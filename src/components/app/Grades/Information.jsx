@@ -49,7 +49,7 @@ function findGradesObjectById(list, value) {
     }
 }
 
-export default function Information({ grades, activeAccount, selectedPeriod, ...props }) {
+export default function Information({ grades, activeAccount, activePeriod, ...props }) {
     const { isTabletLayout, actualDisplayTheme } = useContext(AppContext);
 
     const { gradesEnabledFeatures: {value: gradesEnabledFeatures} } = useContext(UserDataContext);
@@ -67,11 +67,13 @@ export default function Information({ grades, activeAccount, selectedPeriod, ...
     const isDisplayModeQuality = displayMode === "quality";
     
     let selectedElement = isNaN(parseInt(location.hash.slice(1))) ? undefined : "loading";
-    if (grades && grades[selectedPeriod]) {
-        selectedElement = findGradesObjectById(Object.values(grades && grades[selectedPeriod].subjects), location.hash.slice(1));
+    if (grades && grades[activePeriod]) {
+        selectedElement = findGradesObjectById(Object.values(grades && grades[activePeriod].subjects), location.hash.slice(1));
     }
 
-    console.log("tst: ", selectedElement);
+    console.log("grades: ", grades);
+    console.log("actPer: ", activePeriod);
+    console.log("selEle: ", selectedElement);
 
     return (
         <Window className="information" growthFactor={(isExpanded && !["none", undefined].includes(selectedElement)) ? 2 : 1} {...props} >
@@ -247,7 +249,7 @@ export default function Information({ grades, activeAccount, selectedPeriod, ...
                             <div className="number-name">Max</div>
                             <div className="number-value">{selectedElement.maxAverage.toString().replace(".", ",")}{isNaN(selectedElement.maxAverage) ? null : <sub>/20</sub>}</div>
                         </div>}
-                        {grades.get("gradesEnabledFeatures")?.rank && <div>
+                        {gradesEnabledFeatures?.rank && <div>
                             <div className="number-name">Rang</div>
                             <div className="number-value">{selectedElement.rank}</div>
                         </div>}
