@@ -1,15 +1,15 @@
 import { useEffect, useRef, useContext } from "react"
 import ContentLoader from "react-content-loader"
-import EncodedHTMLDiv from "../../generic/CustomDivs/EncodedHTMLDiv"
-import CheckBox from "../../generic/UserInputs/CheckBox"
-import { AppContext, SettingsContext, UserDataContext } from "../../../App"
-import { applyZoom, getZoomedBoudingClientRect } from "../../../utils/zoom";
+import EncodedHTMLDiv from "../../../generic/CustomDivs/EncodedHTMLDiv"
+import CheckBox from "../../../generic/UserInputs/CheckBox"
+import { AppContext, SettingsContext, UserDataContext } from "../../../../App"
+import { applyZoom, getZoomedBoudingClientRect } from "../../../../utils/zoom";
 import { Link, useLocation, useNavigate } from "react-router-dom"
 
-import PatchNotesIcon from "../../graphics/PatchNotesIcon"
-import DownloadIcon from "../../graphics/DownloadIcon"
-import CopyButton from "../../generic/CopyButton"
-import { clearHTML } from "../../../utils/html"
+import PatchNotesIcon from "../../../graphics/PatchNotesIcon"
+import DownloadIcon from "../../../graphics/DownloadIcon"
+import CopyButton from "../../../generic/CopyButton"
+import { clearHTML } from "../../../../utils/html"
 
 import "./DetailedTask.css"
 

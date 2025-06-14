@@ -11,7 +11,7 @@ import {
     WindowContent
 } from "../../generic/Window";
 import LastGrades from "./LastGrades";
-import Notebook from "../Homeworks/Notebook";
+import Notebook from "../Homeworks/Notebook/Notebook";
 import BottomSheet from "../../generic/PopUps/BottomSheet";
 import EncodedHTMLDiv from "../../generic/CustomDivs/EncodedHTMLDiv";
 import UpcomingAssignments from "../Homeworks/UpcomingAssignments";

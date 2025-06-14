@@ -1,8 +1,8 @@
 import { useRef, useContext } from "react"
 import { useLocation, useNavigate } from "react-router-dom";
-import CheckBox from "../../generic/UserInputs/CheckBox";
-import { AppContext, SettingsContext, UserDataContext } from "../../../App";
-import { applyZoom, getZoomedBoudingClientRect } from "../../../utils/zoom";
+import CheckBox from "../../../generic/UserInputs/CheckBox";
+import { AppContext, SettingsContext, UserDataContext } from "../../../../App";
+import { applyZoom, getZoomedBoudingClientRect } from "../../../../utils/zoom";
 
 import "./Task.css";
 import ContentLoader from "react-content-loader";

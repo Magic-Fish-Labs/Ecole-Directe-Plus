@@ -11,7 +11,7 @@ import {
 } from "../../generic/Window";
 
 import { AccountContext, UserDataContext } from "../../../App";
-import Notebook from "./Notebook";
+import Notebook from "./Notebook/Notebook";
 import BottomSheet from "../../generic/PopUps/BottomSheet";
 import EncodedHTMLDiv from "../../generic/CustomDivs/EncodedHTMLDiv";
 import UpcomingAssignments from "./UpcomingAssignments";
@@ -24,9 +24,6 @@ import InfoButton from "../../generic/Informative/InfoButton";
 import DownloadIcon from "../../graphics/DownloadIcon"
 
 import "./Homeworks.css";
-import "./DetailedTask.css";
-import LogoutIcon from "../../graphics/LogoutIcon";
-import LinkableButton from "../../generic/buttons/LinkableButton";
 
 const supposedNoSessionContent = [
     "PHAgc3R5bGU9Ii13ZWJraXQtdGFwLWhpZ2hsaWdodC1jb2xvcjogcmdiYSgwLCAwLCAwLCAwKTsiPjxicj48L3A+PHAgc3R5bGU9Ii13ZWJraXQtdGFwLWhpZ2hsaWdodC1jb2xvcjogcmdiYSgwLCAwLCAwLCAwKTsiPjxicj48L3A+",

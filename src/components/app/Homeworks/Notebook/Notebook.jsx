@@ -1,15 +1,15 @@
 import { useContext, useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import ContentLoader from "react-content-loader";
-import { capitalizeFirstLetter, getISODate } from "../../../utils/utils";
+import { capitalizeFirstLetter, getISODate } from "../../../../utils/utils";
 
-import { AppContext, SettingsContext, UserDataContext } from "../../../App";
+import { AppContext, SettingsContext, UserDataContext } from "../../../../App";
 import Task from "./Task";
 import SessionContent from "./SessionContent";
-import { getZoomedBoudingClientRect } from "../../../utils/zoom";
+import { getZoomedBoudingClientRect } from "../../../../utils/zoom";
 import DetailedTask from "./DetailedTask";
 import DetailedSessionContent from "./DetailedSessionContent";
-import { canScroll } from "../../../utils/DOM";
+import { canScroll } from "../../../../utils/DOM";
 import DateSelector from "./DateSelector";
 
 import "./Notebook.css";

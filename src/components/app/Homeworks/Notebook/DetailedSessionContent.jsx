@@ -1,9 +1,9 @@
 import { useEffect, useRef, useContext } from "react"
-import EncodedHTMLDiv from "../../generic/CustomDivs/EncodedHTMLDiv"
-import { AppContext } from "../../../App"
-import { getZoomedBoudingClientRect } from "../../../utils/zoom";
+import EncodedHTMLDiv from "../../../generic/CustomDivs/EncodedHTMLDiv"
+import { AppContext } from "../../../../App"
+import { getZoomedBoudingClientRect } from "../../../../utils/zoom";
 import { Link, useLocation, useNavigate } from "react-router-dom"
-import DownloadIcon from "../../graphics/DownloadIcon"
+import DownloadIcon from "../../../graphics/DownloadIcon"
 
 import "./DetailedSessionContent.css"
 
