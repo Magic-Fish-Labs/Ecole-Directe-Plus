@@ -64,31 +64,31 @@ export default function Notebook({ hideDateController = false }) {
     //     notebookContainerRef.current.scrollTo(bounds.x - containerBounds.x + TASK_MAX_WIDTH / 2 * (oldSelectedElementBounds.x >= bounds.x) + notebookContainerRef.current.scrollLeft - containerBounds.width / 2, 0)
     // }
 
-    useEffect(() => {
-        const verticalToHorizontalScrolling = (event) => {
-            if (!isMouseIntoScrollableContainer.current.vertical) {
-                if (event.deltaY !== 0 && !event.shiftKey) {
-                    event.preventDefault();
-                    if (event.deltaY !== 0) {
-                        notebookContainerRef.current.style.scrollBehavior = "revert";
-                        notebookContainerRef.current.scrollLeft += event.deltaY;
-                        notebookContainerRef.current.style.scrollBehavior = "";
-                        // const newDate = nearestHomeworkDate(1 - 2 * (event.deltaY < 0), activeHomeworkDate);
-                        // if (!!newDate) {
-                        //     navigateToDate(newDate)
-                        // }
-                    }
-                }
-            }
-        }
-        notebookContainerRef.current.addEventListener("wheel", verticalToHorizontalScrolling);
+    // useEffect(() => {
+    //     const verticalToHorizontalScrolling = (event) => {
+    //         if (!isMouseIntoScrollableContainer.current.vertical) {
+    //             if (event.deltaY !== 0 && !event.shiftKey) {
+    //                 event.preventDefault();
+    //                 if (event.deltaY !== 0) {
+    //                     notebookContainerRef.current.style.scrollBehavior = "revert";
+    //                     notebookContainerRef.current.scrollLeft += event.deltaY;
+    //                     notebookContainerRef.current.style.scrollBehavior = "";
+    //                     // const newDate = nearestHomeworkDate(1 - 2 * (event.deltaY < 0), activeHomeworkDate);
+    //                     // if (!!newDate) {
+    //                     //     navigateToDate(newDate)
+    //                     // }
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     notebookContainerRef.current.addEventListener("wheel", verticalToHorizontalScrolling);
 
-        return () => {
-            if (notebookContainerRef.current) {
-                notebookContainerRef.current.removeEventListener("wheel", verticalToHorizontalScrolling);
-            }
-        }
-    }, [activeHomeworkDate, homeworks, isMouseIntoScrollableContainer]);
+    //     return () => {
+    //         if (notebookContainerRef.current) {
+    //             notebookContainerRef.current.removeEventListener("wheel", verticalToHorizontalScrolling);
+    //         }
+    //     }
+    // }, [activeHomeworkDate, homeworks, isMouseIntoScrollableContainer]);
 
     // - - Drag to scroll - -
 
@@ -114,7 +114,10 @@ export default function Notebook({ hideDateController = false }) {
 
     useEffect(() => {
         let timeoutId;
-        const handleMouseDown = () => {
+        const handleMouseDown = (event) => {
+            if (event.button != 0 && event.buttons != 3) {
+                return ;
+            }
             isNotebookGrab.current = true;
             preventDraggingIssues();
             let movedDistance = 0;
