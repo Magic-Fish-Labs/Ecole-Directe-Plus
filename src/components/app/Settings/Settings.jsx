@@ -94,19 +94,6 @@ export default function Settings({ usersSettings, accountsList, getCurrentSchool
         });
     }
 
-    useEffect(() => {
-        const script = document.createElement("script");
-
-        script.src = "https://cdn.jsdelivr.net/npm/@tsparticles/confetti@3.0.3/tsparticles.confetti.bundle.min.js";
-        script.async = true;
-
-        document.body.appendChild(script);
-
-        return () => {
-            document.body.removeChild(script);
-        }
-    }, []);
-
     return (
         <div id="settings">
             <div id="settings-box">

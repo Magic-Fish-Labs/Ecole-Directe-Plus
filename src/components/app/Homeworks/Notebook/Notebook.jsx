@@ -174,19 +174,6 @@ export default function Notebook({ hideDateController = false }) {
     }, [notebookContainerRef.current]);
 
     useEffect(() => {
-        const script = document.createElement("script");
-
-        script.src = "https://cdn.jsdelivr.net/npm/@tsparticles/confetti@3.0.3/tsparticles.confetti.bundle.min.js";
-        script.async = true;
-
-        document.body.appendChild(script);
-
-        return () => {
-            document.body.removeChild(script);
-        }
-    }, []);
-
-    useEffect(() => {
         tasksContainersRefs.current = [...tasksContainersRefs.current]; // met à jour les références
 
         const handleMouseEnter = (event) => {
