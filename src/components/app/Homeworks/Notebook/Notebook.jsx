@@ -1,15 +1,12 @@
-import { useContext, useState, useEffect, useRef } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useContext, useEffect, useRef } from "react";
 import ContentLoader from "react-content-loader";
 import { capitalizeFirstLetter, getISODate } from "../../../../utils/utils";
 
 import { AppContext, SettingsContext, UserDataContext } from "../../../../App";
 import Task from "./Task";
 import SessionContent from "./SessionContent";
-import { getZoomedBoudingClientRect } from "../../../../utils/zoom";
 import DetailedTask from "./DetailedTask";
 import DetailedSessionContent from "./DetailedSessionContent";
-import { canScroll } from "../../../../utils/DOM";
 import DateSelector from "./DateSelector";
 
 import "./Notebook.css";
@@ -26,69 +23,17 @@ export default function Notebook({ hideDateController = false }) {
     const settings = useContext(SettingsContext);
     const { displayMode } = settings.user;
 
-    const navigate = useNavigate();
-
     const notebookContainerRef = useRef(null);
-    const tasksContainersRefs = useRef([]);
-    const isMouseOverTasksContainer = useRef(false);
-    const isMouseIntoScrollableContainer = useRef(false);
-    const anchorElement = useRef(null);
     const contentLoadersRandomValues = useRef({ days: Array.from({ length: Math.floor(Math.random() * 5) + 5 }, (_, i) => i), tasks: Array.from({ length: 10 }, (_, i) => Math.floor(Math.random() * 3) + 1) })
-    const isNotebookGrab = useRef(false);
-    const [hasMouseMoved, setHasMouseMoved] = useState(false);
-
-    const hashParameters = location.hash.split(";")
-
-    // function customScrollIntoView(element) {
-    //     const container = notebookContainerRef.current;
-
-    //     const elements = container.querySelectorAll(".notebook-day");
-
-    //     // get the old selected element (because the behavior changes according to its position with the new selected element)
-    //     let oldSelectedElementBounds;
-    //     for (let element of elements) {
-    //         const elementBounds = getZoomedBoudingClientRect(element.getBoundingClientRect());
-
-    //         if (elementBounds.width > (document.fullscreenElement?.classList.contains("notebook-window") ? 400 : 300)) {
-    //             oldSelectedElementBounds = elementBounds;
-    //             break;
-    //         }
-    //     }
-    //     if (!oldSelectedElementBounds) {
-    //         return;
-    //     }
-
-    //     const bounds = getZoomedBoudingClientRect(element.getBoundingClientRect());
-    //     const containerBounds = getZoomedBoudingClientRect(notebookContainerRef.current.getBoundingClientRect());
-    //     const TASK_MAX_WIDTH = Math.min(document.fullscreenElement?.classList.contains("notebook-window") ? 800 : 600, containerBounds.width);
-    //     notebookContainerRef.current.scrollTo(bounds.x - containerBounds.x + TASK_MAX_WIDTH / 2 * (oldSelectedElementBounds.x >= bounds.x) + notebookContainerRef.current.scrollLeft - containerBounds.width / 2, 0)
-    // }
-
-    // useEffect(() => {
-    //     const verticalToHorizontalScrolling = (event) => {
-    //         if (!isMouseIntoScrollableContainer.current.vertical) {
-    //             if (event.deltaY !== 0 && !event.shiftKey) {
-    //                 event.preventDefault();
-    //                 if (event.deltaY !== 0) {
-    //                     notebookContainerRef.current.style.scrollBehavior = "revert";
-    //                     notebookContainerRef.current.scrollLeft += event.deltaY;
-    //                     notebookContainerRef.current.style.scrollBehavior = "";
-    //                     // const newDate = nearestHomeworkDate(1 - 2 * (event.deltaY < 0), activeHomeworkDate);
-    //                     // if (!!newDate) {
-    //                     //     navigateToDate(newDate)
-    //                     // }
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     notebookContainerRef.current.addEventListener("wheel", verticalToHorizontalScrolling);
-
-    //     return () => {
-    //         if (notebookContainerRef.current) {
-    //             notebookContainerRef.current.removeEventListener("wheel", verticalToHorizontalScrolling);
-    //         }
-    //     }
-    // }, [activeHomeworkDate, homeworks, isMouseIntoScrollableContainer]);
+    const isNotebookMouseDown = useRef(false);
+    const isNotebookGrabed = useRef(false);
+    const notebookMovement = useRef({
+        distance: 0,
+        speed: {
+            x: 0,
+            y: 0
+        }
+    });
 
     // - - Drag to scroll - -
 
@@ -112,96 +57,57 @@ export default function Notebook({ hideDateController = false }) {
         }
     }
 
-    useEffect(() => {
-        let timeoutId;
-        const handleMouseDown = (event) => {
-            if (event.button != 0 && event.buttons != 3) {
-                return ;
-            }
-            isNotebookGrab.current = true;
-            preventDraggingIssues();
-            let movedDistance = 0;
+    function handleMouseMove(event) {
+        const TRIGGER_SHIFT = 13;
+        if (notebookMovement.current.distance > TRIGGER_SHIFT && !isNotebookGrabed.current) {
+            isNotebookGrabed.current = true;
+        }
+        const mouseSpeed = notebookMovement.current.speed;
+        mouseSpeed.x = -event.movementX;
+        mouseSpeed.y = -event.movementY;
+        notebookContainerRef.current.scrollBy({ left: mouseSpeed.x, top: mouseSpeed.y, behavior: "instant" });
+        notebookMovement.current.distance += Math.sqrt((-event.movementX) ** 2 + (-event.movementY) ** 2);
+    }
 
-            const mouseSpeed = {};
+    function handleMouseUp() {
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+        isNotebookMouseDown.current = false;
 
-            const handleMouseMove = (event) => {
-                const TRIGGER_SHIFT = 13;
-                if (movedDistance > TRIGGER_SHIFT) {
-                    setHasMouseMoved(true);
-                    if (timeoutId) {
-                        clearTimeout(timeoutId);
-                    }
+        const SCROLL_FRICTION = 0.99;
+        const SCROLL_COEF = 1.20;
+        let dragSpeed = notebookMovement.current.speed.x;
+        let bufferedMovement = 0;
+        function applyInertia() {
+            if (!isNotebookMouseDown.current && displayMode.value === "quality" && Math.abs(dragSpeed) > 0.1) {
+                bufferedMovement += dragSpeed * SCROLL_COEF;
+                if (Math.abs(bufferedMovement) >= 1) {
+                    notebookContainerRef.current.scrollBy({ left: bufferedMovement * SCROLL_COEF, behavior: "instant" });
+                    bufferedMovement -= Math.round(bufferedMovement);
                 }
-                mouseSpeed.x = -event.movementX;
-                mouseSpeed.y = -event.movementY;
-                notebookContainerRef.current.scrollBy({ left: mouseSpeed.x, top: mouseSpeed.y, behavior: "instant" });
-                movedDistance += Math.sqrt((-event.movementX) ** 2 + (-event.movementY) ** 2);
-            }
-
-            document.addEventListener("mousemove", handleMouseMove);
-
-            const handleMouseUp = () => {
-                document.removeEventListener("mousemove", handleMouseMove);
-                isNotebookGrab.current = false;
-                const SCROLL_FRICTION = 0.95;
-                const SCROLL_COEF = 1.05;
-                function applyInertia() {
-                    if (!isNotebookGrab.current && displayMode.value === "quality" && (mouseSpeed.x < -0.1 || mouseSpeed.x > 0.1) || (mouseSpeed.y < -0.1 && mouseSpeed.y > 0.1)) {
-                        notebookContainerRef.current.scrollBy({ left: mouseSpeed.x * SCROLL_COEF, top: mouseSpeed.y * SCROLL_COEF, behavior: "instant" });
-                        mouseSpeed.x *= SCROLL_FRICTION;
-                        mouseSpeed.y *= SCROLL_FRICTION;
-                        requestAnimationFrame(applyInertia);
-                    }
-                }
+                dragSpeed *= SCROLL_FRICTION;
                 requestAnimationFrame(applyInertia);
-                unpreventDraggingIssues();
-                document.removeEventListener("mouseup", handleMouseUp);
-                timeoutId = setTimeout(() => {
-                    setHasMouseMoved(false);
-                }, 0);
-            }
-
-            document.addEventListener("mouseup", handleMouseUp);
-        }
-
-        notebookContainerRef.current.addEventListener("mousedown", handleMouseDown);
-
-        return () => {
-            if (notebookContainerRef.current) {
-                notebookContainerRef.current.removeEventListener("mousedown", handleMouseDown);
             }
         }
-    }, [notebookContainerRef.current]);
+        requestAnimationFrame(applyInertia);
+        unpreventDraggingIssues();
+    }
 
-    useEffect(() => {
-        tasksContainersRefs.current = [...tasksContainersRefs.current]; // met à jour les références
-
-        const handleMouseEnter = (event) => {
-            isMouseOverTasksContainer.current = true;
-            isMouseIntoScrollableContainer.current = canScroll(event.target);
+    function handleMouseDown(event) {
+        if (event.button != 0 && event.buttons != 3) {
+            return ;
         }
-        const handleMouseLeave = (event) => {
-            isMouseOverTasksContainer.current = false;
-            isMouseIntoScrollableContainer.current = canScroll(event.target);
-        }
+        // That one is tricky, actually, if you set it to false in handleMouseUp function, the click event will be dispatched after mouseup is handled, so after isNotebookGrabed.current is set to false.
+        isNotebookGrabed.current = false;
+        isNotebookMouseDown.current = true;
+        notebookMovement.current.distance = 0;
+        notebookMovement.current.speed.x = 0;
+        notebookMovement.current.speed.y = 0;
+        preventDraggingIssues();
 
-        for (let tasksContainer of tasksContainersRefs.current) {
-            if (tasksContainer) {
-                tasksContainer.addEventListener("mouseenter", handleMouseEnter);
-                tasksContainer.addEventListener("mouseleave", handleMouseLeave);
-            }
-        }
-
-        return () => {
-            for (let tasksContainer of tasksContainersRefs.current) {
-                if (tasksContainer) {
-                    tasksContainer.removeEventListener("mouseenter", handleMouseEnter);
-                    tasksContainer.removeEventListener("mouseleave", handleMouseLeave);
-                }
-            }
-        }
-
-    }, [isMouseOverTasksContainer, isMouseIntoScrollableContainer, tasksContainersRefs.current, activeHomeworkDate])
+        document.addEventListener("mousemove", handleMouseMove);
+        document.addEventListener("mouseup", handleMouseUp);
+    }
 
     useEffect(() => {
         const controller = new AbortController();
@@ -224,7 +130,7 @@ export default function Notebook({ hideDateController = false }) {
             ? <DateSelector homeworks={homeworks} onChange={setActiveHomeworkDate} selectedDate={activeHomeworkDate} defaultDate={getISODate(new Date())} defaultDisplayDate={"À venir"} />
             : null
         }
-        <div className={`notebook-container ${hasMouseMoved ? "mouse-moved" : ""}`} ref={notebookContainerRef}>
+        <div className="notebook-container" ref={notebookContainerRef} onMouseDown={handleMouseDown}>
             {homeworks
                 ? Object.keys(homeworks).length > 0/* && Object.values(homeworks).some(arr => arr.some(task => task.content))*/
                     ? Object.keys(homeworks).sort().map((day, index) => {
@@ -238,7 +144,7 @@ export default function Notebook({ hideDateController = false }) {
                                 key={day}
                                 id={day}
                                 onClick={() => {
-                                    if (hasMouseMoved) return;
+                                    if (isNotebookGrabed.current) return;
                                     if (day !== activeHomeworkDate)
                                         setActiveHomeworkDate(day);
                                     if (!activeHomeworkId)
@@ -256,7 +162,7 @@ export default function Notebook({ hideDateController = false }) {
                                 </div>
                                 <hr />
                                 {/* <hr style={{ width: `${progression * 100}%`}} /> */}
-                                <div className="tasks-container" ref={(el) => (tasksContainersRefs.current[index] = el)}>
+                                <div className="tasks-container" >
                                     {tasks.map((task, taskIndex) => {
                                         if (selected) {
                                             const result = [<DetailedTask key={"detailed-" + task.id} task={task} day={day} />];
@@ -265,7 +171,7 @@ export default function Notebook({ hideDateController = false }) {
                                             }
                                             return result;
                                         }
-                                        return <Task key={task.id} task={task} day={day} />;
+                                        return <Task key={task.id} task={task} isNotebookGrabed={isNotebookGrabed} />;
                                     })}
                                     {sessionContents.length !== 0 && (selected
                                         ? <div className="detailed-section-separator"><hr /><span>Contenus de Séances</span><hr /></div>
@@ -285,7 +191,7 @@ export default function Notebook({ hideDateController = false }) {
                             </div>
                             : null)
                     }).filter(e => e)
-                    : <p className="no-homework-placeholder">Vous n'avez aucun devoir à venir. Profitez de ce temps libre pour venir discuter sur le <a href="https://discord.gg/AKAqXfTgvE" target="_blank">serveur Discord d'Ecole Directe Plus</a> et contribuer au projet via le <a href="https://github.com/Magic-Fishes/Ecole-Directe-Plus" target="_blank">dépôt Github</a> !</p>
+                    : <p className="no-homework-placeholder">Vous n'avez aucun devoir à venir. Profitez de ce temps libre pour venir discuter sur le <a href="https://discord.gg/AKAqXfTgvE" target="_blank">serveur Discord d'Ecole Directe Plus</a> et contribuer au projet via le <a href="https://github.com/Magic-Fish-Lab/Ecole-Directe-Plus" target="_blank">dépôt Github</a> !</p>
                 : contentLoadersRandomValues.current.days.map((el, index) => {
                     return <div className={`notebook-day ${index === 0 ? "selected" : ""}`} key={index} >
                         <div className="notebook-day-header">
@@ -302,7 +208,7 @@ export default function Notebook({ hideDateController = false }) {
                             </span>
                         </div>
                         <hr />
-                        <div className="tasks-container" ref={(el) => (tasksContainersRefs.current[index] = el)}>
+                        <div className="tasks-container" >
                             {
                                 index === 0
                                     ? Array.from({ length: contentLoadersRandomValues.current.tasks[el] }).map((el, i) => <DetailedTask key={"detailed-" + i} task={{}} day={el} />)
