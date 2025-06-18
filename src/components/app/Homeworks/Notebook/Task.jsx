@@ -1,45 +1,45 @@
-import { useRef, useContext } from "react"
-import { useLocation, useNavigate } from "react-router-dom";
+import { useContext } from "react"
 import CheckBox from "../../../generic/UserInputs/CheckBox";
 import { AppContext, SettingsContext, UserDataContext } from "../../../../App";
 import ContentLoader from "react-content-loader";
 
 import "./Task.css";
-export default function Task({ task, day, ...props }) {
-    const { usedDisplayTheme, fetchHomeworksDone, useUserSettings } = useContext(AppContext)
+export default function Task({ task, isNotebookGrabed, ...props }) {
+    const { usedDisplayTheme } = useContext(AppContext)
 
     const userData = useContext(UserDataContext);
-    const { homeworks: {value: homeworks, set: setHomeworks} } = userData;
+    const {
+        homeworks: { value: homeworks, set: setHomeworks },
+        activeHomeworkId: { set: setActiveHomeworkId }
+    } = userData;
 
     const settings = useContext(SettingsContext);
-    const { isPartyModeEnabled, displayMode } = settings.user;
+    const {
+        displayMode: { value: displayMode },
+        isPartyModeEnabled: { value: isPartyModeEnabled }
+    } = settings.user;
 
-    const navigate = useNavigate();
-    const location = useLocation();
     function checkTask(task) {
+        const isTaskDone = task.isDone;
         task.check()
-        .catch((error) => {
-            console.error(error);
-            homeworks[date].find((item) => item.id === task.id).isDone = isTaskDone;
-            setHomeworks(homeworks);
-        });
-        homeworks[date].find((item) => item.id === task.id).isDone = !isTaskDone;
+            .catch((error) => {
+                task.isDone = isTaskDone;
+                setHomeworks(homeworks);
+                console.error(error);
+            });
+        task.isDone = !isTaskDone;
         setHomeworks(homeworks);
     }
 
-    function handleTaskClick(event) {
-        if (event) {
-            event.stopPropagation();
-        }
-        const notebookContainer = document.getElementsByClassName("notebook-container")[0];
-        if (!notebookContainer.classList.contains("mouse-moved")) {
-            navigate(`#${day};${task.id}${location.hash.split(";").length === 3 ? ";" + location.hash.split(";")[2] : ""}`, { replace: true });
+    function handleTaskClick() {
+        if (!isNotebookGrabed.current) {
+            setActiveHomeworkId(task.id);
         }
     }
 
-    const handleKeyDown = (event) => {
+    function handleKeyDown(event) {
         if (event.key === "Enter" || event.key === " ") {
-            handleTaskClick()
+            handleTaskClick();
         }
     }
 
@@ -48,7 +48,7 @@ export default function Task({ task, day, ...props }) {
             ? <div className={`task ${task.isDone ? "done" : ""}`} onClick={handleTaskClick} onKeyDown={handleKeyDown} tabIndex={0} {...props} >
                 <CheckBox
                     id={"task-cb-" + task.id}
-                    confetti={{ onCheck: displayMode.value === "quality" && isPartyModeEnabled.value }}
+                    confetti={{ onCheck: displayMode === "quality" && isPartyModeEnabled }}
                     checked={task.isDone}
                     onChange={(event) => { checkTask(task); }}
                     onClick={(event) => { event.stopPropagation() }}
@@ -62,7 +62,7 @@ export default function Task({ task, day, ...props }) {
                 </div>
             </div>
             : <ContentLoader
-                animate={displayMode.value === "quality"}
+                animate={displayMode === "quality"}
                 speed={1}
                 backgroundColor={usedDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
                 foregroundColor={usedDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
