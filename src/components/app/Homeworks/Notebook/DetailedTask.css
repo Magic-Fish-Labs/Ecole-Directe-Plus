@@ -118,7 +118,8 @@
     flex: 1;
     background-color: rgba(var(--background-color-3), .5);
     color: rgb(var(--text-color-alt));
-    
+    border: none;
+
     display: flex;
     align-items: center;
     transition: .1s;
