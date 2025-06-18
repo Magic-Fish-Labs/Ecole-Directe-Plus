@@ -31,10 +31,7 @@ export default function DetailedTask({ task, day, ...props }) {
     
     const navigate = useNavigate();
     const location = useLocation();
-    
-    const isMouseInCheckBoxRef = useRef(false);
     const detailedTaskRef = useRef(null);
-    const taskCheckboxRef = useRef(null);
     const contentLoadersRandomValues = useRef({ labelWidth: Math.floor(Math.random() * 150) + 100, contentHeight: Math.floor(Math.random() * 200) + 50 })
 
     function scrollIntoViewNearestParent(element) {
@@ -48,29 +45,8 @@ export default function DetailedTask({ task, day, ...props }) {
         parent.scrollTo(0, bounds.y - parentBounds.y + parent.scrollTop - 20)
     }
 
-    function completedTaskAnimation() {
-        const bounds = getZoomedBoudingClientRect(taskCheckboxRef.current.getBoundingClientRect());
-        const origin = {
-            x: bounds.left + 15 / 2,
-            y: bounds.top + 15 / 2
-        }
-        confetti({
-            particleCount: 40,
-            spread: 70,
-            origin: {
-                x: origin.x / applyZoom(window.innerWidth),
-                y: origin.y / applyZoom(window.innerHeight)
-            },
-        });
-    }
-
     function checkTask(date, task) {
         const isTaskDone = task.isDone;
-        if (!isTaskDone) {
-            if (isPartyModeEnabled.value && displayMode.value === "quality") {
-                completedTaskAnimation();
-            }
-        }
         task.check()
         .catch((error) => {
             console.error(error);
@@ -84,7 +60,14 @@ export default function DetailedTask({ task, day, ...props }) {
     return <>{(task?.content
         ? <div ref={detailedTaskRef} onClick={(e) => {navigate(`#${day};${task.id}`); e.stopPropagation()}} className={`detailed-task ${task.isDone ? "done" : ""}`} id={"task-" + task.id} {...props} >
             <div className="task-header">
-                <CheckBox id={"task-cb-" + task.id} ref={taskCheckboxRef} label="Effectué" onChange={() => { checkTask(day, task) }} checked={task.isDone} onMouseEnter={() => isMouseInCheckBoxRef.current = true} onMouseLeave={() => isMouseInCheckBoxRef.current = false} />
+                <CheckBox
+                    id={"task-cb-" + task.id}
+                    confetti={{ onCheck:  displayMode.value === "quality" && isPartyModeEnabled.value }}
+                    label="Effectué"
+                    onChange={() => { checkTask(day, task) }}
+                    checked={task.isDone}
+                    onClick={(event) => { event.stopPropagation() }}
+                />
                 <h4>
                     {task.subject.replaceAll(". ", ".").replaceAll(".", ". ")}
                 </h4>
@@ -101,7 +84,7 @@ export default function DetailedTask({ task, day, ...props }) {
         </div>
         : <div className={`detailed-task`} {...props} >
             <div className="task-header">
-                <CheckBox id={"task-cb-" + crypto.randomUUID()} ref={taskCheckboxRef} label="Effectué" onChange={() => { }} checked={false} onMouseEnter={() => isMouseInCheckBoxRef.current = true} onMouseLeave={() => isMouseInCheckBoxRef.current = false} />
+                <CheckBox id={"task-cb-" + crypto.randomUUID()} label="Effectué" checked={false} />
                 <h4>
                     <ContentLoader
                         animate={displayMode.value === "quality"}

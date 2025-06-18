@@ -2,11 +2,9 @@ import { useRef, useContext } from "react"
 import { useLocation, useNavigate } from "react-router-dom";
 import CheckBox from "../../../generic/UserInputs/CheckBox";
 import { AppContext, SettingsContext, UserDataContext } from "../../../../App";
-import { applyZoom, getZoomedBoudingClientRect } from "../../../../utils/zoom";
-
-import "./Task.css";
 import ContentLoader from "react-content-loader";
 
+import "./Task.css";
 export default function Task({ task, day, ...props }) {
     const { usedDisplayTheme, fetchHomeworksDone, useUserSettings } = useContext(AppContext)
 
@@ -18,33 +16,7 @@ export default function Task({ task, day, ...props }) {
 
     const navigate = useNavigate();
     const location = useLocation();
-
-    const isMouseInCheckBoxRef = useRef(false);
-    const taskCheckboxRef = useRef(null);
-
-    function completedTaskAnimation() {
-        const bounds = getZoomedBoudingClientRect(taskCheckboxRef.current.getBoundingClientRect());
-        const origin = {
-            x: bounds.left + bounds.width / 2,
-            y: bounds.top + bounds.height / 2
-        }
-        confetti({
-            particleCount: 40,
-            spread: 70,
-            origin: {
-                x: origin.x / applyZoom(window.innerWidth),
-                y: origin.y / applyZoom(window.innerHeight)
-            },
-        });
-    }
-
-    function checkTask(date, task) {
-        const isTaskDone = task.isDone;
-        if (!isTaskDone) {
-            if (isPartyModeEnabled.value && displayMode.value === "quality") {
-                completedTaskAnimation();
-            }
-        }
+    function checkTask(task) {
         task.check()
         .catch((error) => {
             console.error(error);
@@ -60,7 +32,7 @@ export default function Task({ task, day, ...props }) {
             event.stopPropagation();
         }
         const notebookContainer = document.getElementsByClassName("notebook-container")[0];
-        if (!isMouseInCheckBoxRef.current && !notebookContainer.classList.contains("mouse-moved")) {
+        if (!notebookContainer.classList.contains("mouse-moved")) {
             navigate(`#${day};${task.id}${location.hash.split(";").length === 3 ? ";" + location.hash.split(";")[2] : ""}`, { replace: true });
         }
     }
@@ -73,8 +45,14 @@ export default function Task({ task, day, ...props }) {
 
     return (
         task?.id
-            ? <div className={`task ${task.isDone ? "done" : ""}`} id={"task-" + task.id} onClick={handleTaskClick} onKeyDown={handleKeyDown} tabIndex={0} {...props} >
-                <CheckBox id={"task-cb-" + task.id} ref={taskCheckboxRef} onChange={() => { checkTask(day, task) }} checked={task.isDone} onMouseEnter={() => isMouseInCheckBoxRef.current = true} onMouseLeave={() => isMouseInCheckBoxRef.current = false} />
+            ? <div className={`task ${task.isDone ? "done" : ""}`} onClick={handleTaskClick} onKeyDown={handleKeyDown} tabIndex={0} {...props} >
+                <CheckBox
+                    id={"task-cb-" + task.id}
+                    confetti={{ onCheck: displayMode.value === "quality" && isPartyModeEnabled.value }}
+                    checked={task.isDone}
+                    onChange={(event) => { checkTask(task); }}
+                    onClick={(event) => { event.stopPropagation() }}
+                />
                 <div className="task-title">
                     <h4>
                         {task.subject.replaceAll(". ", ".").replaceAll(".", ". ")}

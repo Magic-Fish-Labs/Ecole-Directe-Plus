@@ -37,9 +37,6 @@ export default function Settings({ usersSettings, accountsList, getCurrentSchool
 
     const handleIsPeriodEventEnabledChange = (event) => {
         settings.set("isPeriodEventEnabled", event.target.checked);
-        if (event.target.checked) {
-            confettiAnimation();
-        }
     };
 
     const handleGradeScaleEnableChange = () => {
@@ -76,22 +73,6 @@ export default function Settings({ usersSettings, accountsList, getCurrentSchool
 
         resetUserData(false);
         settings.set("schoolYear", schoolYear)
-    }
-
-    function confettiAnimation() {
-        const bounds = getZoomedBoudingClientRect(partyModeCheckbox.current.getBoundingClientRect());
-        const origin = {
-            x: bounds.left + 30 / 2,
-            y: bounds.top + 30 / 2
-        }
-        confetti({
-            particleCount: 40,
-            spread: 70,
-            origin: {
-                x: origin.x / applyZoom(window.innerWidth),
-                y: origin.y / applyZoom(window.innerHeight)
-            },
-        });
     }
 
     return (
@@ -196,13 +177,13 @@ export default function Settings({ usersSettings, accountsList, getCurrentSchool
                 </div>
 
                 <div className="setting" id="party-mode">
-                    <CheckBox id="party-mode-cb" ref={partyModeCheckbox} label={<span>Activer le mode festif 🎉</span>} checked={settings.get("isPartyModeEnabled")} onChange={(event) => { settings.set("isPartyModeEnabled", event.target.checked); if (event.target.checked) { confettiAnimation() } }} />
+                    <CheckBox id="party-mode-cb" confetti={{ onCheck: true }} label={<span>Activer le mode festif 🎉</span>} checked={settings.get("isPartyModeEnabled")} onChange={(event) => { settings.set("isPartyModeEnabled", event.target.checked) }} />
                 </div>
 
                 <div className="setting" id="period-event">
                     <CheckBox
                         id="period-event-cb"
-                        ref={periodEventCheckbox}
+                        confetti={{ onCheck: true }}
                         label={<span>Activer les thèmes saisonniers ✨</span>}
                         checked={isPeriodEventEnabled}
                         onChange={handleIsPeriodEventEnabledChange}
