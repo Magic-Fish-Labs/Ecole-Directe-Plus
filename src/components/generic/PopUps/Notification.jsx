@@ -42,7 +42,7 @@ export default function DOMNotification({ children }) {
         }, delay)
     }
 
-    function addNotification(newNotificationContent, {customClass = "", timer = 3000}) {
+    function addNotification(newNotificationContent, {customClass = "", timer = 3000} = {}) {
         /** This function will summon a notification
          * @param newNotificationContent content (in jsx) of the notification
          * @param customClass class you can add to the notification pop-up to change the default style
