@@ -122,13 +122,13 @@ export default function useEcoleDirecteSession(initEcoleDirecteSession) {
             switch (response.code) {
                 case 200:
                     if (date === null) {
-                        const { mappedHomeworks, mappedUpcomingAssignments, activeHomeworkDate, activeHomeworkId } = mapUpcomingHomeworks(response.data);
+                        const { mappedHomeworks, mappedUpcomingAssignments, activeHomeworkDate, activeHomeworkId } = mapUpcomingHomeworks(response.data, account);
                         userData.homeworks.set(mappedHomeworks, requestUserIndex);
                         userData.upcomingAssignments.set(mappedUpcomingAssignments, requestUserIndex);
                         userData.activeHomeworkDate.set(activeHomeworkDate, requestUserIndex);
                         userData.activeHomeworkId.set(activeHomeworkId, requestUserIndex);
                     } else {
-                        const { mappedDay } = mapDayHomeworks(response.data);
+                        const { mappedDay } = mapDayHomeworks(response.data, account);
                         if (users[requestUserIndex].id < 0) {
                             const guestDetailedTaskDate = Object.keys(mappedDay)[0];
                             if (userData.homeworks.value[date]) {
