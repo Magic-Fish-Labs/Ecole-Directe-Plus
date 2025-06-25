@@ -1,6 +1,6 @@
 import { apiVersion } from "../constants/config";
 import { FetchErrorBuilders } from "../constants/codes";
-import EdpError from "../utils/EdpError";
+import EdpError from "../class/EdpError";
 
 export default async function fetchDoubleAuthQuestions(token, controller = null) {
     const headers = new Headers();

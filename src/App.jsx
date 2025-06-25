@@ -17,19 +17,19 @@ import AppLoading from "./components/generic/Loading/AppLoading";
 import LandingPage from "./components/LandingPage/LandingPage";
 import EdpUnblock from "./components/EdpUnblock/EdpUnblock"
 import { useCreateNotification } from "./components/generic/PopUps/Notification";
-import { calcAverage, calcCategoryAverage, calcGeneralAverage } from "./utils/gradesTools";
-import { createUserLists, getBrowser } from "./utils/utils";
+import { getBrowser } from "./utils/utils";
 import { getInitialEcoleDirecteSessions } from "./utils/edpUtils"
 import { getCurrentSchoolYear } from "./utils/date";
-import { getProxiedURL } from "./utils/requests";
 import EdpuLogo from "./components/graphics/EdpuLogo";
 import useEcoleDirecteSession from "./EcoleDirecteHandlerCore/hooks/useEcoleDirecteSession";
 
-import { defaultGlobalSettings, EDPVersion, consoleLogEDPLogo } from "./edpConfig";
+import { logEDPLogo } from "./edpConfig";
+import { defaultAccountSettings, defaultGlobalSettings } from "./utils/constants/default";
 import useSettings from "./utils/hooks/useSettings";
 import useAccountSettings from "./utils/hooks/useAccountSettings";
-import { Browsers, LocalStorageKeys } from "./utils/constants";
+import { Browsers, LocalStorageKeys } from "./utils/constants/constants";
 import { useLocalStorageEffect, useDisplayModeEffect, useDisplayThemeEffect, useBrowserDisplayThemeChange } from "./utils/hooks/useCustomEffect";
+import NavigateSave from "./components/generic/router/NavigateSave";
 
 // CODE-SPLITTING - DYNAMIC IMPORTS
 const Lab = lazy(() => import("./components/app/CoreApp").then((module) => { return { default: module.Lab } }));
@@ -57,55 +57,16 @@ const lsIdName = "encryptedUserIds"
 const WINDOW_WIDTH_BREAKPOINT_MOBILE_LAYOUT = 450; // px
 const WINDOW_WIDTH_BREAKPOINT_TABLET_LAYOUT = 869; // px
 
-
-//default settings
-const defaultSettings = {
-    keepLoggedIn: false,
-    displayTheme: "auto",
-    displayMode: "quality",
-    isSepiaEnabled: false,
-    isHighContrastEnabled: false,
-    isGrayscaleEnabled: false,
-    isPhotoBlurEnabled: false,
-    isPartyModeEnabled: true,
-    isPeriodEventEnabled: true,
-    isStreamerModeEnabled: false,
-    gradeScale: 20,
-    isGradeScaleEnabled: false,
-    schoolYear: getCurrentSchoolYear(),
-    isSchoolYearEnabled: false,
-    isLucioleFontEnabled: false,
-    windowArrangement: [],
-    allowWindowsArrangement: true,
-    dynamicLoading: true,
-    shareSettings: true,
-    negativeBadges: false,
-    allowAnonymousReports: true,
-    isDevChannel: false,
-    selectedChart: 0
-}
-
 const userBrowser = getBrowser();
 
 // get data from localstorage
 const accountListFromLs = JSON.parse(localStorage.getItem("accountsList") ?? "[]");
 let userSettingsFromLs = JSON.parse((localStorage.getItem("userSettings") ?? "[{}]"));
 
-function getSetting(setting, accountIdx, isGlobal = false) {
-    if (isGlobal) {
-        const globalSettingsFromLs = JSON.parse((localStorage.getItem("globalSettings") ?? "{}"));
-        return globalSettingsFromLs[setting] ?? defaultSettings[setting];
-    } else if (userSettingsFromLs[accountIdx]) {
-        userSettingsFromLs = JSON.parse((localStorage.getItem("userSettings") ?? "{}"));
-        return ((userSettingsFromLs[accountIdx] && userSettingsFromLs[accountIdx][setting]) ?? defaultSettings[setting]);
-    }
-    return defaultSettings[setting];
-}
-
 /*
 function initSettings(accountList) {
     // comment ajouter un setting :
-    // userSettings ici ; defaultSettings
+    // userSettings ici ; defaultAccountSettings
     const userSettings = [];
     for (let i = 0; i < (accountList?.length || 1); i++) { //Si au login, il y a aucun compte d'enregistré on considère qu'il y a un seul compte
         userSettings.push({
@@ -189,9 +150,8 @@ let promptInstallPWA = () => { };
 window.addEventListener("beforeinstallprompt", (event) => { event.preventDefault(); promptInstallPWA = () => event.prompt() });
 window.addEventListener("appinstalled", () => { promptInstallPWA = null });
 
-consoleLogEDPLogo();
-
-export default function App({ }) {
+logEDPLogo();
+export default function App() {
     const userSession = useEcoleDirecteSession(getInitialEcoleDirecteSessions());
 
     const {
@@ -209,14 +169,15 @@ export default function App({ }) {
 
     const tokenState = token.value;
     const setTokenState = token.set;
-    const [accountsListState, setAccountsListState] = useState(accountListFromLs); // liste des profils sur le compte (notamment si compte parent)
+    const accountsListState = userSession.account.users;
     const globalSettings = useSettings(defaultGlobalSettings);
     // !:! pour le default, store les valeurs en js, et quand on les get, on regarde si elles existent sinon on prend celle par dfaut du config.json
     const { isDevChannel, keepLoggedIn } = globalSettings;
 
     // user settings
     // paramètres propre à chaque profil du compte
-    const userSettings = useAccountSettings(selectedUserIndex.value != null ? selectedUserIndex.value : 0, [Object.fromEntries(Object.keys(defaultSettings).map((setting) => [setting, { value: defaultSettings[setting], properties: {} }]))]); // !:! Il faut ettre un default pertinent
+
+    const userSettings = useAccountSettings(selectedUserIndex.value, [defaultAccountSettings]); // !:! je pense que ca marche pas quand le nombre d'utilisateur change
 
     const { displayTheme, displayMode } = userSettings;
 
@@ -237,7 +198,7 @@ export default function App({ }) {
     // diverse
     const abortControllers = useRef([]); // permet d'abort tous les fetch en cas de déconnexion de l'utilisateur pendant une requête
     const entryURL = useRef(window.location.href);
-    const actualDisplayTheme = displayTheme.value === "auto" // thème d'affichage réel (ex: dark ou light, et non pas auto)
+    const usedDisplayTheme = displayTheme.value === "auto" // thème d'affichage réel (ex: dark ou light, et non pas auto)
         ? window.matchMedia('(prefers-color-scheme: dark)').matches
             ? "dark"
             : "light"
@@ -257,7 +218,7 @@ export default function App({ }) {
     // useEffect(() => {
     //     const lsGlobalSettings = {};
     //     for (const i in globalSettings) {
-    //         lsGlobalSettings[i] = globalSettings[i].value ?? defaultSettings[i];
+    //         lsGlobalSettings[i] = globalSettings[i].value ?? defaultAccountSettings[i];
     //     }
     //     localStorage.setItem("globalSettings", JSON.stringify(lsGlobalSettings));
 
@@ -371,67 +332,17 @@ export default function App({ }) {
         }
     }, []);
 
-
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //                                                                                                                                                                                  //
     //                                                                                  Data Functions                                                                                 //
     //                                                                                                                                                                                  //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    function addNewGrade(periodKey, subjectKey, newValues) {
-        /** 
-         * Ajoute une nouvelle note à l'utilisateur (simulation)
-         * - @param newValues.value : valeur de la note
-         * - @param newValues.coef : coefficient de la note
-         * - @param newValues.scale : note maximum posible
-         * - @param newValues.name : nom du devoir
-         * - @param newValues.type : type de devoir (DS, DM, ...)
-         */
-        const grades = userData.grades.value;
-        grades[periodKey].subjects[subjectKey].grades.push({
-            ...newValues,
-            badges: [],
-            classAverage: "N/A",
-            classMin: "N/A",
-            classMax: "N/A",
-            date: new Date(),
-            elementType: "grade",
-            entryDate: new Date(),
-            examCorrectionSRC: "",
-            examSubjectSRC: "",
-            id: crypto.randomUUID(),
-            isReal: false,
-            skill: [],
-            subjectName: grades[periodKey].subjects[subjectKey].name,
-            upTheStreak: false,
-            subjectKey: subjectKey,
-            periodKey: periodKey,
-        })
-        userData.set("grades", grades);
-        updatePeriodGrades(periodKey)
-    }
-
-    function deleteFakeGrade(UUID, subjectKey, periodKey) {
+    function removeSimulatedGrade(UUID, subjectKey, periodKey) {
         const newGrades = { ...userData.grades }
         newGrades[periodKey].subjects[subjectKey].grades = newGrades[periodKey].subjects[subjectKey].grades.filter((el) => el.id !== UUID)
         userData.set("grades", newGrades);
         updatePeriodGrades(periodKey);
-    }
-
-    function updatePeriodGrades(periodKey) {
-        const grades = userData.grades;
-        const period = grades[periodKey];
-
-        for (const subject in period.subjects) {
-            if (!subject.includes("category")) {
-                period.subjects[subject].average = calcAverage(period.subjects[subject].grades);
-            } else {
-                period.subjects[subject].average = calcCategoryAverage(period, period.subjects[subject]);
-            }
-        }
-        period.generalAverage = calcGeneralAverage(period)
-        sortedGrades[periodKey] = period;
-        changeUserData("sortedGrades", sortedGrades);
     }
 
     function sortNextHomeworks(homeworks) { // This function will sort (I would rather call it translate) the EcoleDirecte response to a better js object
@@ -718,7 +629,7 @@ export default function App({ }) {
         } else {
             try {
                 const response = await fetch(
-                    getProxiedURL(`https://api.ecoledirecte.com/v3/Eleves/${accountsListState[userId].id}/${endpoint}.awp?verbe=get&v=${apiVersion}`, true),
+                    `https://api.ecoledirecte.com/v3/Eleves/${accountsListState[userId].id}/${endpoint}.awp?verbe=get&v=${apiVersion}`,
                     {
                         method: "POST",
                         headers: {
@@ -754,50 +665,6 @@ export default function App({ }) {
         }
     }
 
-
-    async function fetchHomeworksDone({ tasksDone = [], tasksNotDone = [] }, controller = (new AbortController())) {
-        /**
-         * Change the state of selected homeworks
-         * @param tasksDone Tasks switched to true 
-         * @param tasksNotDone Tasks switched to false
-         * These two paramerters are in a single object 
-         * @param controller AbortController
-         */
-        abortControllers.current.push(controller);
-        const userId = selectedUserIndex.value;
-
-        return fetch(
-            getProxiedURL(`https://api.ecoledirecte.com/v3/Eleves/${accountsListState[userId].id}/cahierdetexte.awp?verbe=put&v=${apiVersion}`, true),
-            {
-                method: "POST",
-                headers: {
-                    "x-token": tokenState
-                },
-                body: "data=" + JSON.stringify({ idDevoirsEffectues: tasksDone, idDevoirsNonEffectues: tasksNotDone }),
-                signal: controller.signal
-            },
-            "json"
-        )
-            .then((response) => {
-                let code;
-                if (selectedUser.id === -1) {
-                    code = 49969;
-                } else {
-                    code = response.code;
-                }
-                if (code === 520 || code === 525) {
-                    // token invalide
-                    console.log("INVALID TOKEN: LOGIN REQUIRED");
-                    requireLogin();
-                }
-                setTokenState((old) => (response?.token || old));
-            })
-            .finally(() => {
-                abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
-            })
-    }
-
-
     async function fetchMessages(folderId = 0, controller = (new AbortController())) {
         const oldMessageFolders = useUserData("messageFolders").get();
         if (oldMessageFolders && oldMessageFolders?.length > 0) {
@@ -828,7 +695,7 @@ export default function App({ }) {
             folderId = 0;
         }
         fetch(
-            getProxiedURL(`https://api.ecoledirecte.com/v3/${accountsListState[userId].accountType === "E" ? "eleves/" + accountsListState[userId].id : "familles/" + accountsListState[userId].familyId}/messages.awp?force=false&typeRecuperation=${specialFolderType}&idClasseur=${folderId}&orderBy=date&order=desc&query=&onlyRead=&getAll=1&verbe=get&v=${apiVersion}`, true),
+            `https://api.ecoledirecte.com/v3/${accountsListState[userId].accountType === "E" ? "eleves/" + accountsListState[userId].id : "familles/" + accountsListState[userId].familyId}/messages.awp?force=false&typeRecuperation=${specialFolderType}&idClasseur=${folderId}&orderBy=date&order=desc&query=&onlyRead=&getAll=1&verbe=get&v=${apiVersion}`,
             {
                 method: "POST",
                 headers: {
@@ -902,7 +769,7 @@ export default function App({ }) {
         const mode = (oldSortedMessages.find((item) => item.id === id).folderId === -1 || oldSortedMessages.find((item) => item.id === id).folderId === -4) ? "expediteur" : "destinataire";
 
         fetch(
-            getProxiedURL(`https://api.ecoledirecte.com/v3/${accountsListState[userId].accountType === "E" ? "eleves/" + accountsListState[userId].id : "familles/" + accountsListState[userId].familyId}/messages/${id}.awp?verbe=get&mode=${mode}&v=${apiVersion}`, true),
+            `https://api.ecoledirecte.com/v3/${accountsListState[userId].accountType === "E" ? "eleves/" + accountsListState[userId].id : "familles/" + accountsListState[userId].familyId}/messages/${id}.awp?verbe=get&mode=${mode}&v=${apiVersion}`,
             {
                 method: "POST",
                 headers: {
@@ -951,7 +818,7 @@ export default function App({ }) {
             ids: ids
         }
         fetch(
-            getProxiedURL(`https://api.ecoledirecte.com/v3/${accountsListState[userId].accountType === "E" ? "eleves/" + accountsListState[userId].id : "familles/" + accountsListState[userId].familyId}/messages.awp?verbe=put&v=${apiVersion}`, true),
+            `https://api.ecoledirecte.com/v3/${accountsListState[userId].accountType === "E" ? "eleves/" + accountsListState[userId].id : "familles/" + accountsListState[userId].familyId}/messages.awp?verbe=put&v=${apiVersion}`,
             {
                 method: "POST",
                 headers: {
@@ -987,7 +854,7 @@ export default function App({ }) {
         const data = {
             libelle: name,
         }
-        fetch(getProxiedURL("https://api.ecoledirecte.com/v3/messagerie/classeurs.awp?verbe=post%26v=4.52.0", true),
+        fetch("https://api.ecoledirecte.com/v3/messagerie/classeurs.awp?verbe=post%26v=4.52.0",
             {
                 method: "POST",
                 headers: {
@@ -1002,7 +869,7 @@ export default function App({ }) {
     async function fetchAdministrativeDocuments(selectedYear, controller = (new AbortController())) {
         abortControllers.current.push(controller);
         return fetch(
-            getProxiedURL(`https://api.ecoledirecte.com/v3/${accountsListState[activeAccount].accountType === "E" ? "eleves" : "famille"}Documents.awp?archive=${selectedYear}&verbe=get&v=${apiVersion}`, true),
+            `https://api.ecoledirecte.com/v3/${accountsListState[activeAccount].accountType === "E" ? "eleves" : "famille"}Documents.awp?archive=${selectedYear}&verbe=get&v=${apiVersion}`,
             {
                 method: "POST",
                 headers: {
@@ -1382,7 +1249,7 @@ export default function App({ }) {
                     path: "/",
                 },
                 {
-                    element: <Feedback activeUser={(accountsListState.length > 0 && selectedUser)} carpeConviviale={carpeConviviale} isTabletLayout={isTabletLayout} />,
+                    element: <Feedback activeUser={isLoggedIn && selectedUser} carpeConviviale={carpeConviviale} isTabletLayout={isTabletLayout} />,
                     path: "feedback",
                 },
                 {
@@ -1402,22 +1269,22 @@ export default function App({ }) {
                     path: "museum",
                 },
                 {
-                    element: <UnsubscribeEmails activeUser={(accountsListState.length > 0 && selectedUser)} thonFrustre={thonFrustre} />,
+                    element: <UnsubscribeEmails activeUser={isLoggedIn && selectedUser} thonFrustre={thonFrustre} />,
                     path: "unsubscribe-emails",
                 },
                 {
                     element: (isLoggedIn
-                        ? <Navigate to={`/app/${selectedUserIndex.value}/dashboard`} />
+                        ? <NavigateSave to={`/app/${selectedUserIndex.value}/dashboard`} saveQueryParams />
                         : <Login logout={logout} isEDPUnblockInstalledActuallyInstalled={isEDPUnblockActuallyInstalled} />),
                     path: "login",
                 },
                 {
-                    element: <Navigate to={`/app/${selectedUserIndex.value}/dashboard`} />,
+                    element: <NavigateSave to={`/app/${selectedUserIndex.value}/dashboard`} saveQueryParams/>,
                     path: "app",
                 },
                 {
                     element: (!isLoggedIn
-                        ? <Navigate to="/login" replace={true} />
+                        ? <NavigateSave to="/login" replace={true} saveQueryParams />
                         : <>
                             <Header
                                 token={tokenState}
@@ -1436,7 +1303,7 @@ export default function App({ }) {
                     path: "app",
                     children: [
                         {
-                            element: <Navigate to={`/app/${selectedUserIndex.value}/account`} replace={true} />,
+                            element: <NavigateSave to={`/app/${selectedUserIndex.value}/account`} replace={true} saveQueryParams />,
                             path: "account",
                         },
                         {
@@ -1444,7 +1311,7 @@ export default function App({ }) {
                             path: ":userId/account"
                         },
                         {
-                            element: <Navigate to={`/app/${selectedUserIndex.value}/settings`} replace={true} />,
+                            element: <NavigateSave to={`/app/${selectedUserIndex.value}/settings`} replace={true} saveQueryParams />,
                             path: "settings",
                         },
                         {
@@ -1452,19 +1319,19 @@ export default function App({ }) {
                             path: ":userId/settings"
                         },
                         {
-                            element: <Navigate to={`/app/${selectedUserIndex.value}/dashboard`} replace={true} />,
+                            element: <NavigateSave to={`/app/${selectedUserIndex.value}/dashboard`} replace={true} saveQueryParams />,
                             path: ":userId",
                         },
                         {
-                            element: <Navigate to={`/app/${selectedUserIndex.value}/dashboard`} replace={true} />,
+                            element: <NavigateSave to={`/app/${selectedUserIndex.value}/dashboard`} replace={true} saveQueryParams />,
                             path: "dashboard",
                         },
                         {
-                            element: <Dashboard activeAccount={selectedUserIndex.value} isLoggedIn={isLoggedIn} isTabletLayout={isTabletLayout} />,
+                            element: <Dashboard isTabletLayout={isTabletLayout} />,
                             path: ":userId/dashboard"
                         },
                         {
-                            element: <Navigate to={`/app/${selectedUserIndex.value}/grades`} replace={true} />,
+                            element: <NavigateSave to={`/app/${selectedUserIndex.value}/grades`} replace={true} saveQueryParams />,
                             path: "grades"
                         },
                         {
@@ -1472,7 +1339,7 @@ export default function App({ }) {
                             path: ":userId/grades"
                         },
                         {
-                            element: <Navigate to={`/app/${selectedUserIndex.value}/homeworks`} replace={true} />,
+                            element: <NavigateSave to={`/app/${selectedUserIndex.value}/homeworks`} replace={true} saveQueryParams />,
                             path: "homeworks"
                         },
                         {
@@ -1480,7 +1347,7 @@ export default function App({ }) {
                             path: ":userId/homeworks"
                         },
                         {
-                            element: <Navigate to={`/app/${selectedUserIndex.value}/timetable`} replace={true} />,
+                            element: <NavigateSave to={`/app/${selectedUserIndex.value}/timetable`} replace={true} saveQueryParams />,
                             path: "timetable"
                         },
                         {
@@ -1488,7 +1355,7 @@ export default function App({ }) {
                             path: ":userId/timetable"
                         },
                         {
-                            element: <Navigate to={`/app/${selectedUserIndex.value}/messaging`} replace={true} />,
+                            element: <NavigateSave to={`/app/${selectedUserIndex.value}/messaging`} replace={true} saveQueryParams />,
                             path: "messaging"
                         },
                         {
@@ -1503,9 +1370,6 @@ export default function App({ }) {
 
     const appContextValue = useMemo(() => ({
         refreshApp,
-        addNewGrade,
-        deleteFakeGrade,
-        fetchHomeworksDone,
         fetchHomeworksSequentially,
         promptInstallPWA,
         selectedUserIndex,
@@ -1516,13 +1380,9 @@ export default function App({ }) {
         isStandaloneApp,
         isDevChannel,
         globalSettings,
-        actualDisplayTheme,
-        EDPVersion,
+        usedDisplayTheme,
     }), [
         refreshApp,
-        addNewGrade,
-        deleteFakeGrade,
-        fetchHomeworksDone,
         fetchHomeworksSequentially,
         promptInstallPWA,
         selectedUserIndex,
@@ -1532,8 +1392,7 @@ export default function App({ }) {
         isTabletLayout,
         isStandaloneApp,
         isDevChannel,
-        actualDisplayTheme,
-        EDPVersion,
+        usedDisplayTheme,
     ]);
 
     const accountContextValue = {

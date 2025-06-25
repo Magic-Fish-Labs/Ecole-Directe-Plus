@@ -16,14 +16,14 @@ export default function GradeScaleToggle() {
         setMagicResizer(undefined)
     }, [])
 
-    const handleClick = () => {
+    function handleClick() {
         isGradeScaleEnabled.set(!isGradeScaleEnabled.value);
     }
 
     function changeGradeScale(delta, round=1) {
         const newGradeScale = Math.round((gradeScale.value + delta) / round) * round;
         
-        const { min, max } = gradeScale.properties();
+        const { min, max } = gradeScale.properties;
         if (newGradeScale < min) {
             gradeScale.set(min);
         } else if (newGradeScale > max) {

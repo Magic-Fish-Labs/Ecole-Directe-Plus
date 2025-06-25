@@ -16,7 +16,7 @@ import FeedbackForm from "../../Feedback/FeedbackForm";
 import PatchNotes from "../../generic/PatchNotes";
 import Policy from "../../generic/Policy";
 
-import { EDPVersion } from "../../../edpConfig";
+import { EDPVersion } from "../../../utils/constants/configs";
 
 import { AppContext, SettingsContext, UserDataContext } from "../../../App";
 

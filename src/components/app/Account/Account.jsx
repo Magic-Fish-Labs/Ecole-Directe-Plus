@@ -4,7 +4,6 @@ import { AccountContext, AppContext, SettingsContext, UserDataContext } from "..
 import HolographicDiv from "../../generic/CustomDivs/HolographicDiv";
 import Button from "../../generic/UserInputs/Button";
 import DropDownMenu from "../../generic/UserInputs/DropDownMenu";
-import { getProxiedURL } from "../../../utils/requests";
 import FileComponent from "../../generic/FileComponent";
 import ContentLoader from "react-content-loader";
 import CanardmanSleeping from "../../graphics/CanardmanSleeping";
@@ -13,7 +12,7 @@ import ConfusedCanardman from "../../graphics/ConfusedCanardman";
 import "./Account.css";
 
 export default function Account({ }) {
-    const { actualDisplayTheme } = useContext(AppContext)
+    const { usedDisplayTheme } = useContext(AppContext)
 
     const account = useContext(AccountContext);
 
@@ -119,7 +118,7 @@ export default function Account({ }) {
                         <img
                             ref={(el) => (profilePictureRefs.current[0] = el)}
                             className="profile-picture"
-                            src={(isStreamerModeEnabled ? "/images/scholar-canardman.png" : ((account.selectedUser.firstName !== "Guest") ? getProxiedURL("https:" + account.selectedUser.picture) : account.selectedUser.picture))}
+                            src={isStreamerModeEnabled ? "/images/scholar-canardman.png" : account.selectedUser.picture}
                             alt={"Photo de profil de " + account.selectedUser.firstName}
                         />
                     </div>
@@ -175,8 +174,8 @@ export default function Account({ }) {
                                                     <ContentLoader
                                                         animate={displayMode === "quality"}
                                                         speed={1}
-                                                        backgroundColor={actualDisplayTheme === "dark" ? "#5b5abd" : "#9595cc"}
-                                                        foregroundColor={actualDisplayTheme === "dark" ? "#494897" : "#b0b0f2"}
+                                                        backgroundColor={usedDisplayTheme === "dark" ? "#5b5abd" : "#9595cc"}
+                                                        foregroundColor={usedDisplayTheme === "dark" ? "#494897" : "#b0b0f2"}
                                                         height="30"
                                                         style={{ width: "30%" }}
                                                     >
@@ -188,8 +187,8 @@ export default function Account({ }) {
                                                         <ContentLoader
                                                             animate={displayMode === "quality"}
                                                             speed={1}
-                                                            backgroundColor={actualDisplayTheme === "dark" ? "#5b5abd" : "#9595cc"}
-                                                            foregroundColor={actualDisplayTheme === "dark" ? "#494897" : "#b0b0f2"}
+                                                            backgroundColor={usedDisplayTheme === "dark" ? "#5b5abd" : "#9595cc"}
+                                                            foregroundColor={usedDisplayTheme === "dark" ? "#494897" : "#b0b0f2"}
                                                             height="25"
                                                             style={{ width: `${contentLoaderRandomValues.current.fileNameWidth[index]}%` }}
                                                         >
@@ -199,8 +198,8 @@ export default function Account({ }) {
                                                             <ContentLoader
                                                                 animate={displayMode === "quality"}
                                                                 speed={1}
-                                                                backgroundColor={actualDisplayTheme === "dark" ? "#5b5abd" : "#9595cc"}
-                                                                foregroundColor={actualDisplayTheme === "dark" ? "#494897" : "#b0b0f2"}
+                                                                backgroundColor={usedDisplayTheme === "dark" ? "#5b5abd" : "#9595cc"}
+                                                                foregroundColor={usedDisplayTheme === "dark" ? "#494897" : "#b0b0f2"}
                                                                 height="20"
                                                                 style={{ width: "100%" }}
                                                             >

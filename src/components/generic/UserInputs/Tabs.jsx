@@ -8,7 +8,7 @@ import { AppContext, SettingsContext } from "../../../App";
 import "./Tabs.css";
 
 export default function Tabs({ tabs, displayedTabs = tabs, selected, fieldsetName, dir = "row", onChange, contentLoader = false, id = "", className = "", ...props }) {
-    const { actualDisplayTheme } = useContext(AppContext);
+    const { usedDisplayTheme } = useContext(AppContext);
 
     const settings = useContext(SettingsContext);
     const { displayMode } = settings.user;
@@ -38,8 +38,8 @@ export default function Tabs({ tabs, displayedTabs = tabs, selected, fieldsetNam
         : <ContentLoader
             animate={displayMode.value === "quality"}
             speed={1}
-            backgroundColor={actualDisplayTheme === "dark" ? "#2e2e4f" : "#d2d2ff"}
-            foregroundColor={actualDisplayTheme === "dark" ? "#444475" : "#aaaabf"}
+            backgroundColor={usedDisplayTheme === "dark" ? "#2e2e4f" : "#d2d2ff"}
+            foregroundColor={usedDisplayTheme === "dark" ? "#444475" : "#aaaabf"}
             style={{ width: (dir === "row" ? "100%" : "44px"), height: (dir === "row" ? "44px" : "100%"), "animationDuration": (!firstContentState.current ? "0s" : "") }}
             className="tabs-content-loader"
         >

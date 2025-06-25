@@ -10,7 +10,7 @@ function getCurrentPeriodEvent() {
         }
     };
 
-    let matchingEvent = "none";
+    let matchingEvent = "";
 
     Object.values(periodEventDateTimes).forEach(period => {
         if (today >= period.start && today <= period.end) {

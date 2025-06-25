@@ -1,6 +1,5 @@
 // libs/utils
 import { useState, useRef } from "react";
-import useInitializer from "./utils/useInitializer";
 
 // constants
 import { LoginStates, LoginCodes, DoubleAuthCodes } from "../constants/codes";
@@ -56,7 +55,7 @@ export default function useEcoleDirecteAccount(initialAccount) {
         if (localUsername === guestCredentials.username && localPassword === guestCredentials.password) {
             response = import(/* @vite-ignore */ guestDataPath.login)
         } else {
-            response = fetchLogin(username, password, doubleAuthKey.current, controller)
+            response = fetchLogin(localUsername, localPassword, doubleAuthKey.current, controller)
         }
 
         return response

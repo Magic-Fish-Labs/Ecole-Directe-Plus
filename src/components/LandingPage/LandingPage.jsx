@@ -20,7 +20,7 @@ import "./LandingPage.css";
 import "../generic/events/christmas/snow.css";
 
 export default function LandingPage({ isLoggedIn }) {
-    const { isMobileLayout, isTabletLayout, actualDisplayTheme } = useContext(AppContext);
+    const { isMobileLayout, isTabletLayout, usedDisplayTheme } = useContext(AppContext);
     const settings = useContext(SettingsContext);
     const { displayTheme, displayMode, isPartyModeEnabled, isPeriodEventEnabled } = settings.user;
     const isChristmasEventEnabled = isPartyModeEnabled.value && isPeriodEventEnabled && currentPeriodEvent === "christmas";
@@ -34,7 +34,7 @@ export default function LandingPage({ isLoggedIn }) {
     const navigate = useNavigate();
 
     const changeTheme = () => {
-        displayTheme.set(actualDisplayTheme === "light" ? "dark" : "light");
+        displayTheme.set(usedDisplayTheme === "light" ? "dark" : "light");
     };
 
     useEffect(() => {
@@ -138,7 +138,7 @@ export default function LandingPage({ isLoggedIn }) {
                 <Link to="/login" className="login-call-to-action">{isLoggedIn ? "Ouvrir l'app" : "Se connecter"}</Link>
             </div>
             <div className="fade-out-image">
-                <img src={isTabletLayout ? (isMobileLayout ? `/images/EDP-preview-mobile-${actualDisplayTheme}.jpeg` : `/images/EDP-preview-tablet-${actualDisplayTheme}.jpeg`) : `/images/EDP-preview-${actualDisplayTheme}.jpeg`} className={isTabletLayout ? (isMobileLayout ? "mobile" : "tablet") : "dekstop"} alt="Capture d'écran du site" />
+                <img src={isTabletLayout ? (isMobileLayout ? `/images/EDP-preview-mobile-${usedDisplayTheme}.jpeg` : `/images/EDP-preview-tablet-${usedDisplayTheme}.jpeg`) : `/images/EDP-preview-${usedDisplayTheme}.jpeg`} className={isTabletLayout ? (isMobileLayout ? "mobile" : "tablet") : "dekstop"} alt="Capture d'écran du site" />
             </div>
 
         </section>

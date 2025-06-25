@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useContext } from "react";
 import ContentLoader from "react-content-loader";
 import { Link } from "react-router-dom";
-import { SettingsContext } from "../../../App";
+import { SettingsContext, UserDataContext } from "../../../App";
 import {
     Window,
     WindowHeader,
@@ -14,7 +14,12 @@ import ReverseIcon from "../../graphics/ReverseIcon";
 
 import "./Strengths.css";
 
-export default function Strengths({ activeAccount, grades, selectedPeriod, className = "", ...props }) {
+export default function Strengths({ className = "", ...props }) {
+    const {
+        grades: { value: grades },
+        activePeriod: { value: activePeriod }
+    } = useContext(UserDataContext);
+
     const settings = useContext(SettingsContext);
     const { displayMode } = settings.user;
 
@@ -24,8 +29,8 @@ export default function Strengths({ activeAccount, grades, selectedPeriod, class
 
     useEffect(() => {
         function strengthsCalculation() {
-            if (grades && grades[selectedPeriod]) {
-                const period = grades[selectedPeriod];
+            if (grades && grades[activePeriod]) {
+                const period = grades[activePeriod];
                 const STRENGTHS_NUMBER = 3;
                 const newStrengths = Array.from({ length: STRENGTHS_NUMBER }, () => undefined);
                 const newWeaknesses = Array.from({ length: STRENGTHS_NUMBER }, () => undefined);
@@ -66,22 +71,22 @@ export default function Strengths({ activeAccount, grades, selectedPeriod, class
         }
 
         strengthsCalculation()
-    }, [grades, activeAccount, selectedPeriod]);
+    }, [grades, activePeriod]);
 
     return (<Window className={`strengths ${className}`} {...props}>
         <WindowHeader>
-            <button disabled={!grades || !grades[selectedPeriod]} className="display-type-reverse-button" onClick={() => {setDisplayType((displayType+1) % 2)}} title={displayType === 0 ? "Basculer sur les points faibles" : "Basculer sur les points forts"} > <ReverseIcon /> </button>
+            <button disabled={!grades || !grades[activePeriod]} className="display-type-reverse-button" onClick={() => {setDisplayType((displayType+1) % 2)}} title={displayType === 0 ? "Basculer sur les points faibles" : "Basculer sur les points forts"} > <ReverseIcon /> </button>
             <h2>{displayType === 0 ? "Vos points forts" : "Vos points faibles"}</h2>
             <InfoButton className={"strengths-info " + (displayType === 0 ? "info-strengths" : "info-weaknesses")}>Calculés en fonction de la différence entre votre moyenne et celle de la classe</InfoButton>
         </WindowHeader>
         <WindowContent>
-            {grades && grades[selectedPeriod]
+            {grades && grades[activePeriod]
                 ? <ol className={"strengths-container " + (displayType === 0 ? "display-strengths" : "display-weaknesses")}>
                     {
                         (displayType === 0 ? strengths : weaknesses).map((strength, idx) => <li key={strength?.subject?.name || crypto.randomUUID()} style={{ "--order": idx }} className="strength-container">
                             <Link to={"#" + strength?.subject?.id} className="strength-wrapper">
                                 <span className="subject-container">
-                                    <span className="subject-rank">{displayType === 0 ? idx + 1 : (sortedGrades && Object.keys(sortedGrades[selectedPeriod].subjects).length || 3) - idx}</span>
+                                    <span className="subject-rank">{displayType === 0 ? idx + 1 : (grades && Object.keys(grades[activePeriod].subjects).length || 3) - idx}</span>
                                     <span className="subject-name">{strength?.subject?.name}</span>
                                 </span>
                                 <span className="subject-average"><Grade grade={{ value: strength?.subject?.average ?? "N/A" }} /></span>

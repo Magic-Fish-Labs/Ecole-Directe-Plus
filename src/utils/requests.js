@@ -20,14 +20,3 @@ function isWeekdayAndBusinessHours() {
 
     return isWeekday && isBusinessHours;
 }
-
-
-export function getProxiedURL(url, bait = false) {
-    const proxyURL = "https://api.ecole-directe.plus/proxy?url=";
-    //  || (isWeekdayAndBusinessHours() && location.hostname === "ecole-directe.plus")
-    if (!bait) {
-        return proxyURL + encodeURIComponent(url);
-    } else {
-        return url;
-    }
-}

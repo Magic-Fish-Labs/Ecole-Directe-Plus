@@ -1,7 +1,7 @@
 
 import { useEffect, useContext } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { AppContext, SettingsContext, UserDataContext } from "../../../App";
+import { AccountContext, SettingsContext, UserDataContext } from "../../../App";
 
 import {
     WindowsContainer,
@@ -21,9 +21,15 @@ import "./Dashboard.css";
 import { formatDateRelative } from "../../../utils/date";
 import FileComponent from "../../generic/FileComponent";
 
-export default function Dashboard({ fetchHomeworks, activeAccount, isLoggedIn, isTabletLayout }) {
+export default function Dashboard({ isTabletLayout }) {
     const userData = useContext(UserDataContext);
-    const { grades, homeworks } = userData;
+    const {
+        grades: {value: grades},
+        homeworks: {value: homeworks}
+    } = userData;
+
+    const account = useContext(AccountContext);
+    const { loginStates: { isLoggedIn } } = account;
 
     const settings = useContext(SettingsContext);
     const { isSchoolYearEnabled, schoolYear } = settings.user;
@@ -34,7 +40,7 @@ export default function Dashboard({ fetchHomeworks, activeAccount, isLoggedIn, i
     const location = useLocation()
 
     const hashParameters = location.hash.split(";")
-    const selectedTask = hashParameters.length > 1 && homeworks.value && homeworks.value[hashParameters[0].slice(1)]?.find(e => e.id == hashParameters[1])
+    const selectedTask = hashParameters.length > 1 && homeworks && homeworks[hashParameters[0].slice(1)]?.find(e => e.id == hashParameters[1])
 
     // Behavior
     useEffect(() => {
@@ -43,25 +49,25 @@ export default function Dashboard({ fetchHomeworks, activeAccount, isLoggedIn, i
 
     useEffect(() => {
         const controller = new AbortController();
-        if (isLoggedIn && grades.value === undefined) {
+        if (isLoggedIn && grades === undefined) {
             userData.get.grades(null, controller);
         }
 
         return () => {
             controller.abort();
         }
-    }, [grades.value, isLoggedIn, activeAccount]);
+    }, [grades, isLoggedIn]);
 
     useEffect(() => {
         const controller = new AbortController();
-        if (isLoggedIn && homeworks.value === undefined) {
+        if (isLoggedIn && homeworks === undefined) {
             userData.get.homeworks(null, controller);
         }
 
         return () => {
             controller.abort();
         }
-    }, [homeworks.value, isLoggedIn, activeAccount]);
+    }, [homeworks, isLoggedIn]);
 
     useEffect(() => {
         if (hashParameters.length > 2 && (hashParameters[2] === "s" && !selectedTask?.sessionContent)) {
@@ -76,22 +82,13 @@ export default function Dashboard({ fetchHomeworks, activeAccount, isLoggedIn, i
                 <WindowsLayout direction="row" ultimateContainer={true}>
                     <WindowsLayout direction="column" growthFactor={2.5}>
                         <WindowsLayout direction="row">
-                            <LastGrades activeAccount={activeAccount} />
-                            {/* <Window WIP={true}>
-                                <WindowHeader onClick={() => navigate("../grades")}>
-                                    <h2>Dernière notes</h2>
-                                </WindowHeader>
-                                <WindowContent>
-                                    
-                                </WindowContent>
-                            </Window> */}
-
+                            <LastGrades />
                             <Window>
                                 <WindowHeader onClick={() => navigate("../homeworks")}>
                                     <h2>Prochains devoirs surveillés</h2>
                                 </WindowHeader>
                                 <WindowContent className="upcoming-assignments-container">
-                                    <UpcomingAssignments homeworks={homeworks.value} />
+                                    <UpcomingAssignments />
                                 </WindowContent>
                             </Window>
                         </WindowsLayout>

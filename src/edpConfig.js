@@ -1,27 +1,4 @@
-export const EDPVersion = "0.4.1";
-
-export const defaultGlobalSettings = {
-    keepLoggedIn: {
-        value: false,
-        properties: {
-            type: 0,
-        }
-    },
-    isDevChannel: {
-        value: false,
-        properties: {
-            type: 0,
-        }
-    },
-    shareSettings: {
-        value: false,
-        properties: {
-            type: 0,
-        }
-    }
-}
-
-export function consoleLogEDPLogo() {
+export function logEDPLogo() {
     console.log(`%c
                    /%&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&    
                #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&    

@@ -1,4 +1,4 @@
-export function logger(fn, on = true) {
+export function tracer(fn, on = true) {
     return on
     ? (...params) => {
         console.trace(fn.name);

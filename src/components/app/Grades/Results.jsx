@@ -22,7 +22,7 @@ import "./Results.css";
 import { DisplayTypes } from "./Grades";
 
 export default function Results({ selectedDisplayType, setSelectedDisplayType, ...props }) {
-    const { isTabletLayout, actualDisplayTheme } = useContext(AppContext);
+    const { isTabletLayout, usedDisplayTheme } = useContext(AppContext);
 
     const userData = useContext(UserDataContext);
     const {
@@ -50,8 +50,6 @@ export default function Results({ selectedDisplayType, setSelectedDisplayType, .
             }
         }
     }, [location, grades]);
-
-    console.log(grades);
 
     return (
         <MoveableContainer className="results-container" style={{ flex: "1", display: "flex", flexFlow: "row nowrap", gap: "20px" }} name="results-utimate-container" {...props}>
@@ -183,7 +181,7 @@ export default function Results({ selectedDisplayType, setSelectedDisplayType, .
                                 <tbody>
                                     {grades && grades[activePeriod]
                                         ? Object.keys(grades[activePeriod].subjects).map((idx) => {
-                                            const el = grades[activePeriod].subjects[idx]
+                                            const el = grades[activePeriod].subjects[idx];
                                             return (
                                                 <tr key={el.id} className={el.isCategory ? "category-row" : "subject-row"}>
                                                     <th className="head-cell">
@@ -204,11 +202,11 @@ export default function Results({ selectedDisplayType, setSelectedDisplayType, .
                                                                 <span>Classe : <Grade grade={{ value: el.classAverage }} /></span><span>Min : <Grade grade={{ value: (el.minAverage < el.average ? el.minAverage : el.average) }} /></span><span>Max : <Grade grade={{ value: (el.maxAverage > el.average ? el.maxAverage : el.average) }} /></span>
                                                             </div>
                                                             : <div className="grades-values">
-                                                                {el.grades.filter(el => el.isReal).map((grade) => {
+                                                                {el.grades.filter(el => !el.isSimulated).map((grade) => {
                                                                     return <Grade grade={grade} key={grade.id} className={`${(grade.id && location.hash === "#" + grade.id) ? " selected" : ""}`} />
                                                                 })}
-                                                                <GradeSimulationTrigger subjectKey={idx} activePeriod={activePeriod} />
-                                                                {el.grades.filter(el => !el.isReal).map((grade) => {
+                                                                <GradeSimulationTrigger subjectKey={idx} periodKey={activePeriod} />
+                                                                {el.grades.filter(el => el.isSimulated).map((grade) => {
                                                                     return <Grade grade={grade} key={grade.id} className={`${(grade.id && location.hash === "#" + grade.id) ? " selected" : ""}`} />
                                                                 })}
                                                             </div>}
@@ -223,8 +221,8 @@ export default function Results({ selectedDisplayType, setSelectedDisplayType, .
                                                     <ContentLoader
                                                         animate={isDisplayModeQuality}
                                                         speed={1}
-                                                        backgroundColor={actualDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
-                                                        foregroundColor={actualDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
+                                                        backgroundColor={usedDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
+                                                        foregroundColor={usedDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
                                                         style={{ width: subjectNameWidth + "px", maxHeight: "30px" }}
                                                     >
                                                         <rect x="0" y="0" rx="10" ry="10" width="100%" height="100%" />
@@ -234,8 +232,8 @@ export default function Results({ selectedDisplayType, setSelectedDisplayType, .
                                                     <ContentLoader
                                                         animate={isDisplayModeQuality}
                                                         speed={1}
-                                                        backgroundColor={actualDisplayTheme === "dark" ? "#7878ae" : "#75759a"}
-                                                        foregroundColor={actualDisplayTheme === "dark" ? "#9292d4" : "#9292c0"}
+                                                        backgroundColor={usedDisplayTheme === "dark" ? "#7878ae" : "#75759a"}
+                                                        foregroundColor={usedDisplayTheme === "dark" ? "#9292d4" : "#9292c0"}
                                                         viewBox="0 0 50 50"
                                                         style={{ maxHeight: "30px" }}
                                                     >
@@ -248,8 +246,8 @@ export default function Results({ selectedDisplayType, setSelectedDisplayType, .
                                                             <ContentLoader
                                                                 animate={isDisplayModeQuality}
                                                                 speed={1}
-                                                                backgroundColor={actualDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
-                                                                foregroundColor={actualDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
+                                                                backgroundColor={usedDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
+                                                                foregroundColor={usedDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
                                                                 style={{ width: "80px", maxHeight: "25px" }}
                                                             >
                                                                 <rect x="0" y="0" rx="10" ry="10" style={{ width: "100%", height: "100%" }} />
@@ -257,8 +255,8 @@ export default function Results({ selectedDisplayType, setSelectedDisplayType, .
                                                             <ContentLoader
                                                                 animate={isDisplayModeQuality}
                                                                 speed={1}
-                                                                backgroundColor={actualDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
-                                                                foregroundColor={actualDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
+                                                                backgroundColor={usedDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
+                                                                foregroundColor={usedDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
                                                                 style={{ width: "80px", maxHeight: "25px" }}
                                                             >
                                                                 <rect x="0" y="0" rx="10" ry="10" style={{ width: "100%", height: "100%" }} />
@@ -266,8 +264,8 @@ export default function Results({ selectedDisplayType, setSelectedDisplayType, .
                                                             <ContentLoader
                                                                 animate={isDisplayModeQuality}
                                                                 speed={1}
-                                                                backgroundColor={actualDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
-                                                                foregroundColor={actualDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
+                                                                backgroundColor={usedDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
+                                                                foregroundColor={usedDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
                                                                 style={{ width: "80px", maxHeight: "25px" }}
                                                             >
                                                                 <rect x="0" y="0" rx="10" ry="10" style={{ width: "100%", height: "100%" }} />
@@ -279,8 +277,8 @@ export default function Results({ selectedDisplayType, setSelectedDisplayType, .
                                                                     <ContentLoader
                                                                         animate={isDisplayModeQuality}
                                                                         speed={1}
-                                                                        backgroundColor={actualDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
-                                                                        foregroundColor={actualDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
+                                                                        backgroundColor={usedDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
+                                                                        foregroundColor={usedDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
                                                                         viewBox="0 0 70 50"
                                                                         height="30"
                                                                         key={crypto.randomUUID()}
@@ -303,8 +301,8 @@ export default function Results({ selectedDisplayType, setSelectedDisplayType, .
                                     animate={isDisplayModeQuality}
                                     speed={1}
                                     style={{ width: "100%", height: "100%", padding: "25px" }}
-                                    backgroundColor={actualDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
-                                    foregroundColor={actualDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
+                                    backgroundColor={usedDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
+                                    foregroundColor={usedDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
                                 >
                                     <rect x="0" y="70%" rx="10" ry="10" style={{ width: "18%", height: "30%", padding: "10px" }} />
                                     <rect x="20%" y="65%" rx="10" ry="10" style={{ width: "18%", height: "45%", padding: "10px" }} />

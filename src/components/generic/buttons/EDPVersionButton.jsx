@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import PatchNotes from "../PatchNotes";
-import { EDPVersion } from "../../../edpConfig";
+import { EDPVersion } from "../../../utils/constants/configs";
 import "./EDPVersionButton.css"
 
 export default function EDPVersionButton({ version = EDPVersion }) {

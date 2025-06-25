@@ -49,38 +49,38 @@ function findGradesObjectById(list, value) {
     }
 }
 
-export default function Information({ grades, activeAccount, activePeriod, ...props }) {
-    const { isTabletLayout, actualDisplayTheme } = useContext(AppContext);
+export default function Information({ ...props }) {
+    const { isTabletLayout, usedDisplayTheme } = useContext(AppContext);
 
-    const { gradesEnabledFeatures: {value: gradesEnabledFeatures} } = useContext(UserDataContext);
+    const {
+        grades: { value: grades },
+        activePeriod: { value: activePeriod },
+        gradesEnabledFeatures: { value: gradesEnabledFeatures }
+    } = useContext(UserDataContext);
 
     const settings = useContext(SettingsContext);
     const { displayMode, isStreamerModeEnabled } = settings.user;
 
     const location = useLocation();
     const navigate = useNavigate();
-    
+
     const [isCorrectionLoading, setIsCorrectionLoading] = useState(false);
     const [isSubjectLoading, setIsSubjectLoading] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
 
     const isDisplayModeQuality = displayMode === "quality";
-    
+
     let selectedElement = isNaN(parseInt(location.hash.slice(1))) ? undefined : "loading";
     if (grades && grades[activePeriod]) {
         selectedElement = findGradesObjectById(Object.values(grades && grades[activePeriod].subjects), location.hash.slice(1));
     }
-
-    console.log("grades: ", grades);
-    console.log("actPer: ", activePeriod);
-    console.log("selEle: ", selectedElement);
 
     return (
         <Window className="information" growthFactor={(isExpanded && !["none", undefined].includes(selectedElement)) ? 2 : 1} {...props} >
             <WindowHeader>
                 <h2>Informations</h2>
                 {!isTabletLayout && <button className="expand-reduce-button" onClick={() => setIsExpanded((old) => !old)} style={{ display: (["none", undefined].includes(selectedElement) ? "none" : "") }}>{isExpanded ? <ReduceIcon /> : <ExpandIcon />}</button>}
-                <button className="clear-button" onClick={() => {navigate("#"); setIsExpanded(false)}} style={{ display: (["none", undefined].includes(selectedElement) ? "none" : "") }}>✕</button>
+                <button className="clear-button" onClick={() => { navigate("#"); setIsExpanded(false) }} style={{ display: (["none", undefined].includes(selectedElement) ? "none" : "") }}>✕</button>
             </WindowHeader>
             <WindowContent>
                 {selectedElement === "loading" ? <div className="element-information">
@@ -90,8 +90,8 @@ export default function Information({ grades, activeAccount, activePeriod, ...pr
                                 <ContentLoader
                                     animate={isDisplayModeQuality}
                                     speed={1}
-                                    backgroundColor={actualDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
-                                    foregroundColor={actualDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
+                                    backgroundColor={usedDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
+                                    foregroundColor={usedDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
                                     height="20"
                                     style={{ width: "70%" }}
                                 >
@@ -128,8 +128,8 @@ export default function Information({ grades, activeAccount, activePeriod, ...pr
                             <ContentLoader
                                 animate={isDisplayModeQuality}
                                 speed={1}
-                                backgroundColor={actualDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
-                                foregroundColor={actualDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
+                                backgroundColor={usedDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
+                                foregroundColor={usedDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
                                 height="20"
                                 style={{ maxWidth: "300px" }}
                             >
@@ -139,8 +139,8 @@ export default function Information({ grades, activeAccount, activePeriod, ...pr
                             <ContentLoader
                                 animate={isDisplayModeQuality}
                                 speed={1}
-                                backgroundColor={actualDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
-                                foregroundColor={actualDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
+                                backgroundColor={usedDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
+                                foregroundColor={usedDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
                                 height="20"
                                 style={{ maxWidth: "200px" }}
                             >
@@ -150,8 +150,8 @@ export default function Information({ grades, activeAccount, activePeriod, ...pr
                             <ContentLoader
                                 animate={isDisplayModeQuality}
                                 speed={1}
-                                backgroundColor={actualDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
-                                foregroundColor={actualDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
+                                backgroundColor={usedDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
+                                foregroundColor={usedDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
                                 height="20"
                                 style={{ maxWidth: "260px" }}
                             >
@@ -181,7 +181,7 @@ export default function Information({ grades, activeAccount, activePeriod, ...pr
                             <div className="number-value">{selectedElement.classMax.toString().replace(".", ",")}{isNaN(selectedElement.classMax) ? null : <sub>/{selectedElement.scale}</sub>}</div>
                         </div>}
                     </div>
-                    {true && <p className="selected-coefficient">coefficient : {selectedElement.coef}{selectedElement.isSignificant ? "" : (selectedElement.isReal ? " (non significatif)" : " (note simulée)")}</p>}
+                    <p className="selected-coefficient">coefficient : {selectedElement.coef}{selectedElement.isSignificant ? "" : (selectedElement.isSimulated ? " (note simulée)" : " (non significatif)")}</p>
                     <hr className="information-hr" />
                     <div className="info-zone">
                         <div className="text">
@@ -203,18 +203,18 @@ export default function Information({ grades, activeAccount, activePeriod, ...pr
                             </div> : null}
                         </div>
                         {/* Dcp on activera ca quand on gèrera les fichiers mais ca a l'air de bien marcher nv css (il manque peut-etre une border) */}
-                        {(selectedElement.examCorrectionSRC || selectedElement.examSubjectSRC) && <div className="files">
-                            {selectedElement.examSubjectSRC && <div className="file open-correction" role="button" onClick={async () => {
+                        {(selectedElement.examCorrection || selectedElement.examSubject) && <div className="files">
+                            {selectedElement.examSubject && <div className="file open-correction" role="button" onClick={async () => {
                                 setIsSubjectLoading(true);
-                                await selectedElement.examSubjectSRC.download();
+                                await selectedElement.examSubject.download();
                                 setIsSubjectLoading(false)
                             }}>
                                 {isSubjectLoading ? <LoadingAnimation className="download-loading-animation" /> : <DownloadIcon className="download-icon" />}
                                 <span className="sub-text">Sujet</span>
                             </div>}
-                            {selectedElement.examCorrectionSRC && <div className="file download-correction" role="button" onClick={async () => {
+                            {selectedElement.examCorrection && <div className="file download-correction" role="button" onClick={async () => {
                                 setIsCorrectionLoading(true);
-                                await selectedElement.examCorrectionSRC.download();
+                                await selectedElement.examCorrection.download();
                                 setIsCorrectionLoading(false)
                             }}                                    >
                                 {isCorrectionLoading ? <LoadingAnimation className="download-loading-animation" /> : <DownloadIcon className="download-icon" />}
@@ -227,7 +227,7 @@ export default function Information({ grades, activeAccount, activePeriod, ...pr
                             <p className="skill-name">{el.name}</p>
                             <p>{el.description}</p>
                         </span>
-                        <span className="skill-value" style={{ "color": (actualDisplayTheme === "dark" ? (el.value === "Non atteint" ? "#FF0000" : el.value === "Partiellement atteint" ? "#FFC000" : el.value === "Atteint" ? "#0070C0" : el.value === "Dépassé" ? "#00B050" : "#FFF8") : (el.value === "Non atteint" ? "#F00" : el.value === "Partiellement atteint" ? "#DA8700" : el.value === "Atteint" ? "#0070C0" : el.value === "Dépassé" ? "#03a880" : "#0008")) }}>
+                        <span className="skill-value" style={{ "color": (usedDisplayTheme === "dark" ? (el.value === "Non atteint" ? "#FF0000" : el.value === "Partiellement atteint" ? "#FFC000" : el.value === "Atteint" ? "#0070C0" : el.value === "Dépassé" ? "#00B050" : "#FFF8") : (el.value === "Non atteint" ? "#F00" : el.value === "Partiellement atteint" ? "#DA8700" : el.value === "Atteint" ? "#0070C0" : el.value === "Dépassé" ? "#03a880" : "#0008")) }}>
                             {el.value}
                         </span>
                     </div>].flat())}

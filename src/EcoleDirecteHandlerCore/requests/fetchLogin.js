@@ -1,6 +1,6 @@
 import { apiVersion } from "../constants/config";
 import { FetchErrorBuilders } from "../constants/codes";
-import EdpError from "../utils/EdpError";
+import EdpError from "../class/EdpError";
 
 async function setupGtkToken() {
     return new Promise((resolve, reject) => {

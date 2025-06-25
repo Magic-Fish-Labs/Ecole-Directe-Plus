@@ -4,7 +4,7 @@ import WarningMessage from "../Informative/WarningMessage";
 import EyeVisible from "../../graphics/EyeVisible";
 import EyeHidden from "../../graphics/EyeHidden";
 
-export default function TextInput({ textType, placeholder, value, onChange, disabled, isRequired, warningMessage, icon="", onWarning, className="", id="", keyHint, ...props }) {
+export default function TextInput({ textType, placeholder, value, onChange, disabled, isRequired, warningMessage, icon = "", onWarning, className = "", id = "", keyHint, name, ...props }) {
     const [warningMessageState, setWarningMessageState] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const allowedTextTypes = ["text", "password", "email", "search", "url"];
@@ -13,17 +13,15 @@ export default function TextInput({ textType, placeholder, value, onChange, disa
     if (!allowedTextTypes.includes(textType) || showPassword) {
         textType = "text";
     }
-    
+
     const passwordClickHandler = () => setShowPassword((prev) => !prev);
-    const PasswordIcon = (
-        <>
-            {showPassword ?
-                <EyeVisible onClick={passwordClickHandler} /> :
-                <EyeHidden onClick={passwordClickHandler} />
-            }
-            {icon}
-        </>
-    );
+    const PasswordIcon = <>
+        {showPassword
+            ? <EyeVisible onClick={passwordClickHandler} />
+            : <EyeHidden onClick={passwordClickHandler} />
+        }
+        {icon}
+    </>;
 
     function handleInvalid(event) {
         event.preventDefault();
@@ -43,7 +41,7 @@ export default function TextInput({ textType, placeholder, value, onChange, disa
         <div className={className} id={id}>
             <div className={`text-input-container ${warningMessageState && "invalid"}`} >
                 <input
-                    className={placeholder==="Nom d'Utilisateur"||placeholder==="•••••••••••" ? "prank-text-input": "text-input"}
+                    className={placeholder === "Nom d'Utilisateur" || placeholder === "•••••••••••" ? "prank-text-input" : "text-input"}
                     type={textType}
                     placeholder={placeholder}
                     value={value}
@@ -52,6 +50,7 @@ export default function TextInput({ textType, placeholder, value, onChange, disa
                     required={isRequired}
                     onInvalid={handleInvalid}
                     enterKeyHint={keyHint}
+                    name={name}
                     {...props}
                 />
                 {showPasswordIcon && value !== "" ? PasswordIcon : icon}

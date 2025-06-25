@@ -16,17 +16,23 @@ import "./LastGrades.css"
 import { formatDateRelative } from "../../../utils/date";
 import ContentLoader from "react-content-loader"
 
-export default function LastGrades({ activeAccount, className = "", ...props }) {
-    const { actualDisplayTheme } = useContext(AppContext)
-    
-    const { lastGrades } = useContext(UserDataContext);
+export default function LastGrades({ className = "", ...props }) {
+    const { usedDisplayTheme } = useContext(AppContext)
+
+    const {
+        lastGrades: { value: lastGrades },
+        activeGradeElement: { set: setActiveGradeElement }
+    } = useContext(UserDataContext);
 
     const settings = useContext(SettingsContext);
     const { displayMode } = settings.user;
-    
-    const navigate = useNavigate();
-    const contentLoadersRandomValues = useRef({ subjectNameWidth: Array.from({ length: 3 }, (_, i) => Math.floor(Math.random() * 75) + 75), badgesNumber: Array.from({ length: 3 }, (_, i) => Math.floor(Math.random() * 3) + 1), datesWidth: Array.from({ length: 3 }, (_, i) => Math.floor(Math.random() * 25) + 85) })
 
+    const navigate = useNavigate();
+    const contentLoadersRandomValues = useRef({
+        subjectNameWidth: Array.from({ length: 3 }, (_, i) => Math.floor(Math.random() * 75) + 75),
+        badgesNumber: Array.from({ length: 3 }, (_, i) => Math.floor(Math.random() * 3) + 1),
+        datesWidth: Array.from({ length: 3 }, (_, i) => Math.floor(Math.random() * 25) + 85)
+    })
 
     return (<Window className={`last-grades ${className}`} {...props}>
         <WindowHeader onClick={() => navigate("../grades")}>
@@ -34,23 +40,23 @@ export default function LastGrades({ activeAccount, className = "", ...props }) 
         </WindowHeader>
         <WindowContent>
             <ol className="last-grades-container">
-                {lastGrades.value !== undefined
-                    ? lastGrades.value.length > 0
-                        ? lastGrades.value.map((el) => <li key={el.id} className="last-grade-container">
-                        <Link to={`/app/${activeAccount}/grades#` + el.id} className="last-grade-wrapper">
-                            <span className="last-grade-value"><Grade grade={{ value: el.value ?? "N/A", scale: el.scale }} /></span>
-                            <span className="last-grade-name">{el.subjectName}</span>
-                            <span className="badges-container">
-                                {el.badges.includes("star") && <BadgeStarInfo />}
-                                {el.badges.includes("bestStudent") && <BadgePlusInfo />}
-                                {el.badges.includes("greatStudent") && <BadgeCheckInfo />}
-                                {el.badges.includes("stonks") && <BadgeStonkInfo />}
-                                {el.badges.includes("meh") && <BadgeMehInfo />}
-                                {el.badges.includes("keepOnFire") && <BadgeStreakInfo />}
-                            </span>
-                            <span className="last-grade-date">{formatDateRelative(el.date, window.matchMedia("(max-width: 1850px)").matches)}</span>
-                        </Link>
-                    </li>) : <p className="no-grade-placeholder">Vous n'avez pour l'instant aucune note. Profitez-en le temps que ça dure</p>
+                {lastGrades !== undefined
+                    ? lastGrades.length > 0
+                        ? lastGrades.map((el) => <li key={el.id} className="last-grade-container">
+                            <Link to="../grades" onClick={() => setActiveGradeElement(el.id)} className="last-grade-wrapper">
+                                <span className="last-grade-value"><Grade grade={{ value: el.value ?? "N/A", scale: el.scale }} /></span>
+                                <span className="last-grade-name">{el.subjectName}</span>
+                                <span className="badges-container">
+                                    {el.badges.includes("star") && <BadgeStarInfo />}
+                                    {el.badges.includes("bestStudent") && <BadgePlusInfo />}
+                                    {el.badges.includes("greatStudent") && <BadgeCheckInfo />}
+                                    {el.badges.includes("stonks") && <BadgeStonkInfo />}
+                                    {el.badges.includes("meh") && <BadgeMehInfo />}
+                                    {el.badges.includes("keepOnFire") && <BadgeStreakInfo />}
+                                </span>
+                                <span className="last-grade-date">{formatDateRelative(el.date, window.matchMedia("(max-width: 1850px)").matches)}</span>
+                            </Link>
+                        </li>) : <p className="no-grade-placeholder">Vous n'avez pour l'instant aucune note. Profitez-en le temps que ça dure</p>
                     : Array.from({ length: 3 }, (_, i) => <li key={i} className="last-grade-container">
                         <div className="last-grade-wrapper">
                             <ContentLoader
@@ -67,8 +73,8 @@ export default function LastGrades({ activeAccount, className = "", ...props }) 
                             <ContentLoader
                                 animate={displayMode.value === "quality"}
                                 speed={1}
-                                backgroundColor={actualDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
-                                foregroundColor={actualDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
+                                backgroundColor={usedDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
+                                foregroundColor={usedDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
                                 style={{ width: contentLoadersRandomValues.current.subjectNameWidth[i] + "px", height: "25px" }}
                                 className="last-grade-name"
                             >
@@ -79,8 +85,8 @@ export default function LastGrades({ activeAccount, className = "", ...props }) 
                                     animate={displayMode.value === "quality"}
                                     key={i}
                                     speed={1}
-                                    backgroundColor={actualDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
-                                    foregroundColor={actualDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
+                                    backgroundColor={usedDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
+                                    foregroundColor={usedDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
                                     style={{ width: "20px", height: "20px" }}
                                     className="last-grade-name"
                                 >
@@ -91,8 +97,8 @@ export default function LastGrades({ activeAccount, className = "", ...props }) 
                                 <ContentLoader
                                     animate={displayMode.value === "quality"}
                                     speed={1}
-                                    backgroundColor={actualDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
-                                    foregroundColor={actualDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
+                                    backgroundColor={usedDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
+                                    foregroundColor={usedDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
                                     style={{ width: contentLoadersRandomValues.current.datesWidth[i] + "px", height: "25px" }}
                                     className="last-grade-name"
                                 >

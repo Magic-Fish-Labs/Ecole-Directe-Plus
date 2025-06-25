@@ -9,13 +9,10 @@ import ProxyErrorNotification from "./Errors/ProxyErrorNotification";
 import { useCreateNotification } from "./generic/PopUps/Notification";
 import DoubleAuthLogin from "./Login/DoubleAuthLogin";
 
-import { EDPVersion } from "../edpConfig";
-import { AccountContext, SettingsContext } from "../App";
-import { formatISO, isValid, parseISO } from "date-fns";
+import { EDPVersion } from "../utils/constants/configs";
+import { AccountContext, SettingsContext, UserDataContext } from "../App";
 
 export default function Root({ get, accountsList, fakeLogin, resetUserData, syncSettings, createFolderStorage, displayTheme, displayMode, setDisplayModeState, activeAccount, setActiveAccount, setIsFullScreen, globalSettings, entryURL, logout, isStandaloneApp, isTabletLayout, proxyError, fetchHomeworks, handleEdBan, isEDPUnblockInstalled, setIsEDPUnblockInstalled, setRequireDoubleAuth, isEDPUnblockActuallyInstalled, setIsEDPUnblockActuallyInstalled, }) {
-    const navigate = useNavigate();
-    const location = useLocation();
 
     const { requireDoubleAuth } = useContext(AccountContext)
     const {
@@ -25,6 +22,12 @@ export default function Root({ get, accountsList, fakeLogin, resetUserData, sync
         isLucioleFontEnabled: { value: isLucioleFontEnabled },
     } = useContext(SettingsContext).user;
 
+    const userData = useContext(UserDataContext);
+    const {
+        homeworks: { value: homeworks },
+        activeHomeworkDate: { value: activeHomeworkDate, set: setActiveHomeworkDate },
+        activeHomeworkId: { value: activeHomeworkId, set: setActiveHomeworkId },
+    } = userData;
 
     const createNotification = useCreateNotification();
 
@@ -33,8 +36,12 @@ export default function Root({ get, accountsList, fakeLogin, resetUserData, sync
     const [popUp, setPopUp] = useState(false);
     const [isAdmin, setIsAdmin] = useState((!process.env.NODE_ENV || process.env.NODE_ENV === "development"));
 
-    const commandInputs = useRef([]);
+    const navigate = useNavigate();
+    const location = useLocation();
+    const urlParams = new URLSearchParams(location.search);
 
+    const commandInputs = useRef([]);
+    
     function redirectToFeedback() {
         navigate("/feedback");
     }
@@ -124,6 +131,28 @@ export default function Root({ get, accountsList, fakeLogin, resetUserData, sync
             }
         }
     }, [])
+
+     useEffect(() => {
+        if (homeworks) {
+            const urlParamDate = urlParams.get("homework_date");
+            const urlParamId = parseInt(urlParams.get("homework_id"));
+            
+            if (urlParamDate || urlParamId) {
+                let urlActiveHomeworkDate = null;
+                let urlActiveHomeworkId = null;
+                
+                if (Object.keys(homeworks).includes(urlParamDate)) {
+                    urlActiveHomeworkDate = urlParamDate;
+                    if (homeworks[urlActiveHomeworkDate].some((task) => task.id === urlParamId)) {
+                        urlActiveHomeworkId = urlParamId;
+                    }
+                }
+                setActiveHomeworkDate(urlActiveHomeworkDate);
+                setActiveHomeworkId(urlActiveHomeworkId);
+                navigate(location.pathname);
+            }
+        }
+    }, [urlParams, homeworks]);
 
     useEffect(() => {
         if (isNewUser) {

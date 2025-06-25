@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import { LocalStorageKeys } from "../constants";
-import { consoleLogEDPLogo } from "../../edpConfig";
+import { LocalStorageKeys } from "../constants/constants";
+import { logEDPLogo } from "../../edpConfig";
 
 export function useLocalStorageEffect(userSession, keepLoggedIn) {
     const {
@@ -81,7 +81,7 @@ export function useBrowserDisplayThemeChange(displayMode) {
         const prefersDarkMode = window.matchMedia("(prefers-color-scheme: dark)");
         const handleBrowserThemeChange = () => {
             console.clear();
-            consoleLogEDPLogo();
+            logEDPLogo();
             if (displayTheme.value === "auto") {
                 document.documentElement.classList.add(window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
                 document.documentElement.classList.remove(window.matchMedia("(prefers-color-scheme: dark)").matches ? "light" : "dark");

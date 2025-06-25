@@ -13,8 +13,8 @@ import fetchTimeline from "../requests/fetchTimeline";
 import { mapTimeline } from "../mappers/timeline";
 import fetchHomeworks from "../requests/fetchHomeworks";
 import { mapUpcomingHomeworks, mapDayHomeworks } from "../mappers/homeworks";
-import { testISODate, textPlacehodler } from "../utils/utils";
-import { dataList } from "../constants/constants" // !:! faire passer ca en paramètre (relatif à l'application qui utilise (potentiellement merge ceux nécessaires + ceux personnalisées))
+import { textPlaceholder } from "../utils/utils";
+import { DefaultAccountdata } from "../constants/default";
 
 /**
  * Each fetch function will return a code, and other data such as messages, display text, ...
@@ -34,23 +34,23 @@ import { dataList } from "../constants/constants" // !:! faire passer ca en para
  * )
  */
 
-export default function useEcoleDirecteSession(localStorageSession = {}) {
-    const [
+export default function useEcoleDirecteSession(initEcoleDirecteSession) {
+    const usedAccountDataTemplate = { ...DefaultAccountdata, ...initEcoleDirecteSession.accountDataTemplate };
+    const {
         userData,
-        {
+        handlers: {
             initialize: initializeUserData,
-            reset: resetUserData, // En théories c'est utile dans je sais plus quel contexte mais j'ai oublié pourquoi je l'ai dev
+            reset: resetUserData,
             setSelectedUserDataIndex,
         },
-        caca,
-        pipi
-    ] = useAccountData();
+        isInitialized
+    } = useAccountData(initEcoleDirecteSession.isLoggedIn ? initEcoleDirecteSession.accountData : undefined, usedAccountDataTemplate);
     const account = useEcoleDirecteAccount({});
     const { token, users, selectedUser, selectedUserIndex, loginStates } = account;
 
     useEffect(() => {
-        if (loginStates.isLoggedIn) {
-            initializeUserData(users.length, dataList);
+        if (loginStates.isLoggedIn && !isInitialized) {
+            initializeUserData(users.length);
         } else if (loginStates.requireLogin) {
             resetUserData();
         }
@@ -122,31 +122,40 @@ export default function useEcoleDirecteSession(localStorageSession = {}) {
             switch (response.code) {
                 case 200:
                     if (date === null) {
-                        const { mappedHomeworks, mappedUpcomingAssignments, activeHomework } = mapUpcomingHomeworks(response.data);
+                        const { mappedHomeworks, mappedUpcomingAssignments, activeHomeworkDate, activeHomeworkId } = mapUpcomingHomeworks(response.data);
                         userData.homeworks.set(mappedHomeworks, requestUserIndex);
                         userData.upcomingAssignments.set(mappedUpcomingAssignments, requestUserIndex);
-                        console.log(userData.activeHomework)
-                        userData.activeHomework.set(activeHomework, requestUserIndex);
+                        userData.activeHomeworkDate.set(activeHomeworkDate, requestUserIndex);
+                        userData.activeHomeworkId.set(activeHomeworkId, requestUserIndex);
                     } else {
                         const { mappedDay } = mapDayHomeworks(response.data);
                         if (users[requestUserIndex].id < 0) {
                             const guestDetailedTaskDate = Object.keys(mappedDay)[0];
                             if (userData.homeworks.value[date]) {
+                                console.log({
+                                    ...userData.homeworks.value,
+                                    [date]: [
+                                        ...mappedDay[guestDetailedTaskDate].map((el, index) => ({
+                                            ...el,
+                                            ...userData.homeworks.value[date][index],
+                                            content: textPlaceholder(),
+                                            sessionContent: textPlaceholder()
+                                        })),
+                                    ]
+                                })
                                 userData.homeworks.set({
                                     ...userData.homeworks.value,
                                     [date]: [
                                         ...mappedDay[guestDetailedTaskDate].map((el, index) => ({
                                             ...el,
                                             ...userData.homeworks.value[date][index],
-                                            content: textPlacehodler(),
-                                            sessionContent: textPlacehodler()
+                                            content: textPlaceholder(),
+                                            sessionContent: textPlaceholder()
                                         })),
                                     ]
                                 }, requestUserIndex);
                             }
                         } else {
-                            console.log(userData.homeworks);
-                            console.log(userData.activeHomework);
                             userData.homeworks.set({ ...userData.homeworks.value, ...mappedDay }, requestUserIndex);
                         }
                     }

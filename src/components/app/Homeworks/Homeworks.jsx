@@ -10,7 +10,7 @@ import {
     WindowContent
 } from "../../generic/Window";
 
-import { AppContext } from "../../../App";
+import { AccountContext, UserDataContext } from "../../../App";
 import Notebook from "./Notebook";
 import BottomSheet from "../../generic/PopUps/BottomSheet";
 import EncodedHTMLDiv from "../../generic/CustomDivs/EncodedHTMLDiv";
@@ -19,23 +19,31 @@ import PopUp from "../../generic/PopUps/PopUp";
 import { formatDateRelative } from "../../../utils/date";
 import FileComponent from "../../generic/FileComponent";
 import { getISODate } from "../../../utils/utils";
-import DateSelector from "./Calendar";
+import Calendar from "./Calendar";
 import InfoButton from "../../generic/Informative/InfoButton";
 import DownloadIcon from "../../graphics/DownloadIcon"
 
 import "./Homeworks.css";
 import "./DetailedTask.css";
+import LogoutIcon from "../../graphics/LogoutIcon";
+import LinkableButton from "../../generic/buttons/LinkableButton";
 
 const supposedNoSessionContent = [
     "PHAgc3R5bGU9Ii13ZWJraXQtdGFwLWhpZ2hsaWdodC1jb2xvcjogcmdiYSgwLCAwLCAwLCAwKTsiPjxicj48L3A+PHAgc3R5bGU9Ii13ZWJraXQtdGFwLWhpZ2hsaWdodC1jb2xvcjogcmdiYSgwLCAwLCAwLCAwKTsiPjxicj48L3A+",
     "",
 ]
 
-export default function Homeworks({ isLoggedIn, activeAccount, fetchHomeworks }) {
-    // States
+export default function Homeworks() {
+    const userData = useContext(UserDataContext);
+    const {
+        homeworks: { value: homeworks },
+        activeHomeworkDate: { value: activeHomeworkDate },
+        activeHomeworkId: { value: activeHomeworkId }
+    } = userData;
 
-    const { useUserData } = useContext(AppContext);
-    const homeworks = useUserData("sortedHomeworks").get();
+    const account = useContext(AccountContext);
+    const { loginStates: { isLoggedIn } } = account;
+
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -43,35 +51,20 @@ export default function Homeworks({ isLoggedIn, activeAccount, fetchHomeworks })
     const selectedDate = hashParameters.length ? hashParameters[0].slice(1) : getISODate(new Date())
     const selectedTask = hashParameters.length > 1 && homeworks && homeworks[selectedDate]?.find(e => e.id == hashParameters[1])
 
-    // behavior
     useEffect(() => {
         document.title = "Cahier de texte • Ecole Directe Plus";
     }, []);
 
     useEffect(() => {
         const controller = new AbortController();
-        if (isLoggedIn) {
-            if (homeworks === undefined) {
-                fetchHomeworks(controller);
-            }
+        if (isLoggedIn && homeworks === undefined) {
+            userData.get.homeworks(null, controller);
         }
 
         return () => {
             controller.abort();
         }
-    }, [isLoggedIn, activeAccount, homeworks, location.hash]);
-
-    // This seemed to be useless because we use the <Navigate/> component is a parameter isn't valid
-    /*useEffect(() => {
-        if (hashParameters.length > 2) {
-            if (hashParameters[2] === "s" && !selectedTask?.sessionContent) {
-                navigate(`${hashParameters[0]};${hashParameters[1]}`, { replace: true })
-            }
-            if (hashParameters[2] === "f" && !selectedTask?.files?.length) {
-                navigate(`${hashParameters[0]};${hashParameters[1]}`, { replace: true })
-            }
-        }
-    }, [location.hash])*/
+    }, [isLoggedIn, homeworks]);
 
     // JSX
     return <>
@@ -84,7 +77,7 @@ export default function Homeworks({ isLoggedIn, activeAccount, fetchHomeworks })
                                 <h2>Prochains devoirs surveillés</h2>
                             </WindowHeader>
                             <WindowContent className="upcoming-assignments-container">
-                                <UpcomingAssignments homeworks={homeworks} />
+                                <UpcomingAssignments />
                             </WindowContent>
                         </Window>
                         <Window growthFactor={1.75} >
@@ -101,7 +94,7 @@ export default function Homeworks({ isLoggedIn, activeAccount, fetchHomeworks })
                                 </InfoButton>
                             </WindowHeader>
                             <WindowContent>
-                                <DateSelector defaultSelectedDate={selectedDate} />
+                                <Calendar />
                             </WindowContent>
                         </Window>
                     </WindowsLayout>
@@ -118,7 +111,17 @@ export default function Homeworks({ isLoggedIn, activeAccount, fetchHomeworks })
         </div>
         {(hashParameters.length > 2 && hashParameters[2] === "s" && selectedTask) && (!supposedNoSessionContent.includes(selectedTask.sessionContent)
             ? <BottomSheet heading="Contenu de séance" onClose={() => { navigate(`${hashParameters[0]};${hashParameters[1]}`, { replace: true }) }}>
-                <EncodedHTMLDiv className="bottomsheet-session-content">{selectedTask.sessionContent}</EncodedHTMLDiv><div className="task-footer"><Link to={`#${selectedDate};${selectedTask.id};s;f`} onClick={(e) => e.stopPropagation()} replace={true} className={`task-footer-button ${selectedTask.sessionContentFiles.length === 0 ? "disabled" : ""}`}><DownloadIcon className="download-icon" />Fichiers</Link></div>
+                <EncodedHTMLDiv className="bottomsheet-session-content">{selectedTask.sessionContent}</EncodedHTMLDiv>
+                <div className="task-footer">
+                    <div
+                        to={`#${selectedDate};${selectedTask.id};s;f`}
+                        onClick={(e) => e.stopPropagation()}
+                        replace={true}
+                        className={`task-footer-button ${selectedTask.sessionContentFiles.length === 0 ? "disabled" : ""}`}
+                    >
+                        <DownloadIcon className="download-icon" />Fichiers
+                    </div>
+                </div>
             </BottomSheet>
             : <Navigate to={`${hashParameters[0]};${hashParameters[1]}`} />)}
         {(hashParameters.length > 2 && hashParameters[2] === "f" && selectedTask) && ((selectedTask.type === "task" ? selectedTask.files.length : selectedTask.sessionContentFiles.length)

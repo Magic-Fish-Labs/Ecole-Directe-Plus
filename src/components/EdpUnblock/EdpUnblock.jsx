@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { getBrowser, getOS } from "../../utils/utils";
 import { getZoomedBoudingClientRect } from "../../utils/zoom";
-import { Browsers, OperatingSystems } from "../../utils/constants";
+import { Browsers, OperatingSystems } from "../../utils/constants/constants";
 import GoBackArrow from "../generic/buttons/GoBackArrow";
 import DiscordLink from "../generic/buttons/DiscordLink";
 import GithubLink from "../generic/buttons/GithubLink";

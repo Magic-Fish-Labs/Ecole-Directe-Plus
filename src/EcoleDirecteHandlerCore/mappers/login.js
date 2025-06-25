@@ -20,7 +20,7 @@ export default function mapLogin(data) {
             firstName: accounts.prenom, // prénom de l'élève
             lastName: accounts.nom, // nom de famille de l'élève
             email: accounts.email, // email du compte
-            picture: accounts.profile.photo, // url de la photo
+            picture: `https:${accounts.profile.photo}`, // url de la photo
             schoolName: accounts.profile.nomEtablissement, // nom de l'établissement
             class: (accounts.profile.classe ? [accounts.profile.classe.code, accounts.profile.classe.libelle] : ["inconnu", "inconnu"]), // classe de l'élève, code : 1G4, libelle : Première G4 
             modules: accounts.modules
@@ -37,7 +37,7 @@ export default function mapLogin(data) {
                 firstName: prenom,
                 lastName: nom,
                 email: accounts.email,
-                picture: photo,
+                picture: `https:${photo}`,
                 schoolName: nomEtablissement,
                 class: (classe ? [classe.code, classe.libelle] : ["inconnu", "inconnu"]), // classe de l'élève, code : 1G4, libelle : Première G4
                 modules: modules.concat(accounts.modules) // merge modules with those of parents

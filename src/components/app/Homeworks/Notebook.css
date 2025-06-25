@@ -39,94 +39,6 @@
     cursor: default;
 }
 
-.date-selector {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 20px;
-    height: 40px;
-    gap: 7px;
-}
-
-.date-selector span.change-date-arrow {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    aspect-ratio: 1 / 1;
-    border-radius: 8px;
-    transition: .15s;
-    background-color: rgba(var(--text-color-alt), 0);
-    cursor: pointer;
-}
-
-.date-selector span.change-date-arrow path {
-    stroke: rgb(var(--text-color-alt));
-    transition: .1s;
-}
-
-.date-selector span.change-date-arrow:hover {
-    background-color: rgba(var(--text-color-alt), .1);
-}
-
-.date-selector span.change-date-arrow:active {
-    background-color: rgba(var(--text-color-alt), .2);
-}
-
-.date-selector svg {
-    height: 13px;
-    overflow: visible;
-}
-
-.date-selector span.change-date-arrow:active svg path {
-    transform: translateY(2px);
-}
-
-.date-selector :first-child svg {
-    transform: rotate(90deg);
-}
-
-.date-selector :last-child svg {
-    transform: rotate(-90deg);
-}
-
-.selected-date {
-    text-align: center;
-    min-width: 115px;
-    color: rgb(var(--text-color-alt));
-    border: 2px solid rgb(var(--text-color-alt));
-    border-radius: 50px;
-    user-select: none;
-    transition: .2s;
-    height: 100%;
-    overflow: hidden;
-    cursor: pointer;
-}
-
-.selected-date:hover {
-    background-color: rgba(var(--text-color-alt), .07);
-}
-
-.selected-date div {
-    height: 200%;
-    display: flex;
-    flex-flow: column nowrap;
-    transition: .3s;
-}
-
-.selected-date:is(:hover, :focus-visible) div {
-    transform: translateY(-50%);
-}
-
-.selected-date time {
-    flex: 1;
-    color: rgb(var(--text-color-alt));
-    padding: 7px 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
 .notebook-day {
     flex-shrink: 0;
     width: min(300px, 100%);
@@ -139,7 +51,6 @@
     scroll-snap-align: center;
     cursor: grab;
     transition: .2s;
-    
     display: flex;
     flex-flow: column nowrap;
 }

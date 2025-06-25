@@ -1,6 +1,6 @@
 import CryptoJS from 'crypto-js';
 
-import { KEY, LocalStorageKeys } from "./constants"
+import { KEY, LocalStorageKeys } from "./constants/constants"
 
 export function encrypt(chain) {
     if (!chain) {

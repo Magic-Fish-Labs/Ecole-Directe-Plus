@@ -19,58 +19,34 @@ const supposedNoSessionContent = [
 ]
 
 export default function DetailedTask({ task, day, ...props }) {
-    const { actualDisplayTheme, fetchHomeworksDone } = useContext(AppContext)
+    const { usedDisplayTheme } = useContext(AppContext);
     
     const userData = useContext(UserDataContext);
-    const { homeworks } = userData;
+    const {
+        homeworks: {value: homeworks, set: setHomeworks}
+    } = userData;
 
     const settings = useContext(SettingsContext);
     const { isPartyModeEnabled, displayMode, isStreamerModeEnabled } = settings.user;
     
-    const navigate = useNavigate()
+    const navigate = useNavigate();
     const location = useLocation();
     
     const isMouseInCheckBoxRef = useRef(false);
     const detailedTaskRef = useRef(null);
     const taskCheckboxRef = useRef(null);
     const contentLoadersRandomValues = useRef({ labelWidth: Math.floor(Math.random() * 150) + 100, contentHeight: Math.floor(Math.random() * 200) + 50 })
-    const oldLocationHash = useRef(null);
 
     function scrollIntoViewNearestParent(element) {
+        if (!element) {
+            return;
+        }
         const parent = element.parentElement;
         const parentBounds = getZoomedBoudingClientRect(parent.getBoundingClientRect());
         const bounds = getZoomedBoudingClientRect(element.getBoundingClientRect());
 
         parent.scrollTo(0, bounds.y - parentBounds.y + parent.scrollTop - 20)
     }
-
-    useEffect(() => {
-        if (oldLocationHash.current === location.hash) {
-            return;
-        }
-
-        oldLocationHash.current = location.hash;
-
-        if (["#patch-notes", "#policy", "#feedback"].includes(location.hash)) {
-            return;
-        }
-
-        const anchors = location.hash.split(";");
-
-        if (anchors.length < 2) {
-            return;
-        }
-
-        const taskId = parseInt(anchors[1]);
-
-        if (isNaN(taskId)) {
-            return;
-        }
-
-        if (taskId === task.id && detailedTaskRef.current) {
-            setTimeout(() => scrollIntoViewNearestParent(detailedTaskRef.current), 200);
-        }
-    }, [location, detailedTaskRef.current, homeworks])
 
     function completedTaskAnimation() {
         const bounds = getZoomedBoudingClientRect(taskCheckboxRef.current.getBoundingClientRect());
@@ -89,17 +65,20 @@ export default function DetailedTask({ task, day, ...props }) {
     }
 
     function checkTask(date, task) {
-        const tasksToUpdate = (task.isDone
-            ? { tasksNotDone: [task.id] }
-            : { tasksDone: [task.id] })
-        fetchHomeworksDone(tasksToUpdate); // !:! need to handle errors and stuff (idk but need handle it)
-        if (tasksToUpdate.tasksDone !== undefined) {
+        const isTaskDone = task.isDone;
+        if (!isTaskDone) {
             if (isPartyModeEnabled.value && displayMode.value === "quality") {
                 completedTaskAnimation();
             }
         }
-        homeworks[date].find((item) => item.id === task.id).isDone = !task.isDone;
-        userData.set("homeworks", homeworks);
+        task.check()
+        .catch((error) => {
+            console.error(error);
+            homeworks[date].find((item) => item.id === task.id).isDone = isTaskDone;
+            setHomeworks(homeworks);
+        });
+        homeworks[date].find((item) => item.id === task.id).isDone = !isTaskDone;
+        setHomeworks(homeworks);
     }
 
     return <>{(task?.content
@@ -107,14 +86,14 @@ export default function DetailedTask({ task, day, ...props }) {
             <div className="task-header">
                 <CheckBox id={"task-cb-" + task.id} ref={taskCheckboxRef} label="Effectué" onChange={() => { checkTask(day, task) }} checked={task.isDone} onMouseEnter={() => isMouseInCheckBoxRef.current = true} onMouseLeave={() => isMouseInCheckBoxRef.current = false} />
                 <h4>
-                    {task.subject.replace(". ", ".").replace(".", ". ")}
+                    {task.subject.replaceAll(". ", ".").replaceAll(".", ". ")}
                 </h4>
             </div>
             <div className="task-subtitle">
                 {task.addDate && <span className="add-date">Donné le {(new Date(task.addDate)).toLocaleDateString("fr-FR")} par {isStreamerModeEnabled.value ? task.teacher.split(" ")[0] + " " + "-".repeat(task.teacher.length) : task.teacher}</span>}
                 {task.isInterrogation && <span className="interrogation-alert">évaluation</span>}
             </div>
-            <EncodedHTMLDiv className="task-content" nonEncodedChildren={<CopyButton content={clearHTML(task.content, undefined, false).innerText} />} backgroundColor={actualDisplayTheme === "dark" ? "#40405b" : "#e4e4ff"} >{task.content}</EncodedHTMLDiv>
+            <EncodedHTMLDiv className="task-content" nonEncodedChildren={<CopyButton content={clearHTML(task.content, undefined, false).innerText} />} backgroundColor={usedDisplayTheme === "dark" ? "#40405b" : "#e4e4ff"} >{task.content}</EncodedHTMLDiv>
             <div className="task-footer">
                 <Link to={`#${day};${task.id};s`} onClick={(e) => e.stopPropagation()} replace={true} className={`task-footer-button ${supposedNoSessionContent.includes(task.sessionContent) ? "disabled" : ""}`}><PatchNotesIcon className="session-content-icon" />Contenu de séance</Link>
                 <Link to={`#${day};${task.id};f`} onClick={(e) => e.stopPropagation()} replace={true} className={`task-footer-button ${task.files.length === 0 ? "disabled" : ""}`}><DownloadIcon className="download-icon" />Fichiers</Link>
@@ -127,8 +106,8 @@ export default function DetailedTask({ task, day, ...props }) {
                     <ContentLoader
                         animate={displayMode.value === "quality"}
                         speed={1}
-                        backgroundColor={actualDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
-                        foregroundColor={actualDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
+                        backgroundColor={usedDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
+                        foregroundColor={usedDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
                         style={{ width: contentLoadersRandomValues.current.labelWidth + "px", maxHeight: "30px" }}
                     >
                         <rect x="0" y="0" rx="10" ry="10" style={{ width: "100%", height: "100%" }} />
@@ -147,7 +126,7 @@ export default function DetailedTask({ task, day, ...props }) {
                     <rect x="0" y="0" rx="5" ry="5" style={{ width: "100%", height: "100%" }} />
                 </ContentLoader>
             </div>
-            <div style={{ width: "100%", height: contentLoadersRandomValues.current.contentHeight + "px", marginBlock: "5px", borderRadius: "10px", backgroundColor: actualDisplayTheme === "dark" ? "#40405b" : "#ffffff4d" }}></div>
+            <div style={{ width: "100%", height: contentLoadersRandomValues.current.contentHeight + "px", marginBlock: "5px", borderRadius: "10px", backgroundColor: usedDisplayTheme === "dark" ? "#40405b" : "#ffffff4d" }}></div>
             <div className="task-footer">
                 <div className={`task-footer-button disabled`}><PatchNotesIcon className="session-content-icon" />Contenu de séance</div>
                 <div className={`task-footer-button disabled`}><DownloadIcon className="download-icon" />Fichiers</div>

@@ -27,7 +27,7 @@ export default function SessionContent({ day, sessionContent, sessionContentInde
             ? <div className={`session-content ${sessionContent.isDone ? "done" : ""}`} id={"session-content-" + sessionContent.id} onClick={handleSessionContentClick} onKeyDown={handleKeyDown} tabIndex={0} {...props} >
                 <div className="session-content-title">
                     <h4>
-                        {sessionContent.subject.replace(". ", ".").replace(".", ". ")}
+                        {sessionContent.subject.replaceAll(". ", ".").replaceAll(".", ". ")}
                     </h4>
                     {sessionContent.addDate && <span className="add-date">Écrit le {(new Date(sessionContent.addDate)).toLocaleDateString("fr-FR")}</span>}
                 </div>
@@ -35,8 +35,8 @@ export default function SessionContent({ day, sessionContent, sessionContentInde
             : <ContentLoader
                 animate={settings.get("displayMode") === "quality"}
                 speed={1}
-                backgroundColor={actualDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
-                foregroundColor={actualDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
+                backgroundColor={usedDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
+                foregroundColor={usedDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
                 style={{ width: `100%`, maxHeight: "50px" }}
             >
                 <rect x="0" y="0" rx="10" ry="10" style={{ width: "100%", height: "100%" }} />

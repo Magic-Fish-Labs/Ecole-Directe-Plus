@@ -61,11 +61,6 @@ const displayStates = {
         submitState: ButtonStates.INVALID,
         submitButtonText: "Échec de la connexion",
         errorMessage: "L'extension EDP Unblock n'a pas réussi à accéder aux cookies nécessaires pour votre connexion, vérifiez qu'elle soit à jour et/ou qu'elle ait les permissions nécessaires.",
-    },
-    [LoginCodes.EXT_ERROR.code]: {
-        submitState: ButtonStates.INVALID,
-        submitButtonText: "Échec de la connexion",
-        errorMessage: "Il y a eu un problème lors de l'obtention des cookies nécessaires à votre connexion par l'extension, réessayez plus tard.",
     }
 }
 
@@ -127,7 +122,7 @@ export default function LoginForm({ logout, disabledKeepLoggedInCheckBox = false
         // Process login
         requestLogin(username, password, localKeepLoggedIn)
             .then((result) => {
-                if (Object.keys(displayStates).includes(result.code)) {
+                if (displayStates[result.code]) {
                     setDisplayState(displayStates[result.code]);
                 } else {
                     setDisplayState({
@@ -183,6 +178,7 @@ export default function LoginForm({ logout, disabledKeepLoggedInCheckBox = false
                 textType="text"
                 value={username}
                 onChange={updateUsername}
+                name={"edp-login-username"}
                 onWarning={() => setDisplayState((old) => ({ submitState: ButtonStates.INVALID, ...old }))}
                 disabled={displayState.submitState === ButtonStates.SUBMITTING}
                 className={"login-input"}
@@ -196,6 +192,7 @@ export default function LoginForm({ logout, disabledKeepLoggedInCheckBox = false
                 textType="password"
                 value={password}
                 onChange={updatePassword}
+                name={"edp-login-password"}
                 onWarning={() => setDisplayState((old) => ({ submitState: ButtonStates.INVALID, ...old }))}
                 disabled={displayState.submitState === ButtonStates.SUBMITTING}
                 className={"login-input"}
@@ -209,7 +206,7 @@ export default function LoginForm({ logout, disabledKeepLoggedInCheckBox = false
             <div className="login-option">
                 <Tooltip delay={400}>
                     <TooltipTrigger>
-                        <CheckBox disabled={disabledKeepLoggedInCheckBox || displayState.submitState === ButtonStates.SUBMITTING} id="keep-logged-in" label="Rester connecté" checked={keepLoggedIn.value} onChange={updateKeepLoggedIn} />
+                        <CheckBox disabled={disabledKeepLoggedInCheckBox || displayState.submitState === ButtonStates.SUBMITTING} id="keep-logged-in" label="Rester connecté" checked={localKeepLoggedIn} onChange={updateKeepLoggedIn} />
                     </TooltipTrigger>
                     <TooltipContent className="fdisclaimer">
                         Avertissement : cette fonctionnalité peut présenter des risques, notamment si vous êtes infecté par un logiciel malveillant

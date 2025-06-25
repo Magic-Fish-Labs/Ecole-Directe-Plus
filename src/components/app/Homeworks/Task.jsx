@@ -8,10 +8,10 @@ import "./Task.css";
 import ContentLoader from "react-content-loader";
 
 export default function Task({ task, day, ...props }) {
-    const { actualDisplayTheme, fetchHomeworksDone, useUserSettings } = useContext(AppContext)
+    const { usedDisplayTheme, fetchHomeworksDone, useUserSettings } = useContext(AppContext)
 
     const userData = useContext(UserDataContext);
-    const { homeworks } = userData;
+    const { homeworks: {value: homeworks, set: setHomeworks} } = userData;
 
     const settings = useContext(SettingsContext);
     const { isPartyModeEnabled, displayMode } = settings.user;
@@ -39,19 +39,20 @@ export default function Task({ task, day, ...props }) {
     }
 
     function checkTask(date, task) {
-        const tasksToUpdate = (task.isDone ? {
-            tasksNotDone: [task.id],
-        } : {
-            tasksDone: [task.id],
-        })
-        fetchHomeworksDone(tasksToUpdate);
-        if (tasksToUpdate.tasksDone !== undefined) {
+        const isTaskDone = task.isDone;
+        if (!isTaskDone) {
             if (isPartyModeEnabled.value && displayMode.value === "quality") {
                 completedTaskAnimation();
             }
         }
-        homeworks[date].find((item) => item.id === task.id).isDone = !task.isDone;
-        userData.set("homeworks", homeworks);
+        task.check()
+        .catch((error) => {
+            console.error(error);
+            homeworks[date].find((item) => item.id === task.id).isDone = isTaskDone;
+            setHomeworks(homeworks);
+        });
+        homeworks[date].find((item) => item.id === task.id).isDone = !isTaskDone;
+        setHomeworks(homeworks);
     }
 
     function handleTaskClick(event) {
@@ -76,7 +77,7 @@ export default function Task({ task, day, ...props }) {
                 <CheckBox id={"task-cb-" + task.id} ref={taskCheckboxRef} onChange={() => { checkTask(day, task) }} checked={task.isDone} onMouseEnter={() => isMouseInCheckBoxRef.current = true} onMouseLeave={() => isMouseInCheckBoxRef.current = false} />
                 <div className="task-title">
                     <h4>
-                        {task.subject.replace(". ", ".").replace(".", ". ")}
+                        {task.subject.replaceAll(". ", ".").replaceAll(".", ". ")}
                     </h4>
                     {task.addDate && <span className="add-date">Donné le {(new Date(task.addDate)).toLocaleDateString("fr-FR")}</span>}
                     {task.isInterrogation && <span className="interrogation-alert">évaluation</span>}
@@ -85,8 +86,8 @@ export default function Task({ task, day, ...props }) {
             : <ContentLoader
                 animate={displayMode.value === "quality"}
                 speed={1}
-                backgroundColor={actualDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
-                foregroundColor={actualDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
+                backgroundColor={usedDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
+                foregroundColor={usedDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
                 style={{ width: `100%`, maxHeight: "50px" }}
             >
                 <rect x="0" y="0" rx="10" ry="10" style={{ width: "100%", height: "100%" }} />

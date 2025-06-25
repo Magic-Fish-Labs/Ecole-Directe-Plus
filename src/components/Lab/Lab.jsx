@@ -42,7 +42,8 @@ import { textToHSL } from "../../utils/utils"
 import DefaultFileIcon from "../graphics/file/DefaultFileIcon"
 import OutlineEffectDiv from "../generic/CustomDivs/OutlineEffectDiv";
 import useInitializer from "../../EcoleDirecteHandlerCore/hooks/utils/useInitializer";
-import { BrowserLabels, OperatingSystemLabels } from "../../utils/constants";
+import { BrowserLabels, OperatingSystemLabels } from "../../utils/constants/constants";
+import LinkableButton from "../generic/buttons/LinkableButton";
 export default function Lab({ fetchGrades }) {
     const addNotification = useCreateNotification()
     // States
@@ -65,7 +66,9 @@ export default function Lab({ fetchGrades }) {
     const [targetURL, setTargetURL] = useState("");
     const [testHash, setTestHash] = useState("");
     const [fileExtension, setFileExtension] = useState("PNG");
-    
+    const [linkableButton1, setLinkableButton1] = useState(0);
+    const [linkableButton2, setLinkableButton2] = useState(0);
+
     const initialTestState2 = {
         a: {
             b: "123"
@@ -238,9 +241,9 @@ export default function Lab({ fetchGrades }) {
             </div>
             <h3>StoreCallToAction</h3>
             <div id="store-call-to-action">
-                <StoreCallToAction companyLogoSRC="/images/apple-logo.svg" companyLogoAlt="Logo de Apple" targetURL="https://youtu.be/uHgt8giw1LY" />
-                <StoreCallToAction companyLogoSRC="/images/google-logo.svg" companyLogoAlt="Logo de Google" targetURL="https://youtu.be/uHgt8giw1LY" />
-                <StoreCallToAction companyLogoSRC="/images/microsoft-logo.svg" companyLogoAlt="Logo de Microsoft" targetURL="https://youtu.be/uHgt8giw1LY" />
+                <StoreCallToAction companyLogoSrc="/images/apple-logo.svg" companyLogoAlt="Logo de Apple" targetURL="https://youtu.be/uHgt8giw1LY" />
+                <StoreCallToAction companyLogoSrc="/images/google-logo.svg" companyLogoAlt="Logo de Google" targetURL="https://youtu.be/uHgt8giw1LY" />
+                <StoreCallToAction companyLogoSrc="/images/microsoft-logo.svg" companyLogoAlt="Logo de Microsoft" targetURL="https://youtu.be/uHgt8giw1LY" />
             </div>
             {/* <h3>GameOfLife</h3>
             <canvas id="gameOfLife"></canvas> */}
@@ -322,15 +325,15 @@ export default function Lab({ fetchGrades }) {
             <h4>Contrasts improved:</h4>
             <EncodedHTMLDiv className="inner-html-test">{`PHA+PHNwYW4gc3R5bGU9ImZvbnQtc2l6ZToxOHB4Ij48c3BhbiBzdHlsZT0iY29sb3I6IzI5ODBiOSI+Qm9uam91ciAmYWdyYXZlOyB0b3VzLDwvc3Bhbj48L3NwYW4+PC9wPgoKPHA+PHNwYW4gc3R5bGU9ImZvbnQtc2l6ZToxOHB4Ij48c3BhbiBzdHlsZT0iY29sb3I6IzI5ODBiOSI+TWVyY3JlZGkgMTQgZiZlYWN1dGU7dnJpZXIgYXVyYSBsaWV1ICZhZ3JhdmU7IDEwaDEwIGxhIG1lc3NlIGRlcyBDZW5kcmVzLiBOb3VzIG5vdXMgcmV0cm91dmVyb25zICZhZ3JhdmU7IGxhIGNoYXBlbGxlLiA8L3NwYW4+PC9zcGFuPjwvcD4KCjxwPjxzcGFuIHN0eWxlPSJmb250LXNpemU6MThweCI+PHNwYW4gc3R5bGU9ImNvbG9yOiMyOTgwYjkiPkxlIG1lcmNyZWRpIGRlcyBDZW5kcmVzIGVzdCBsZSBqb3VyIG8mdWdyYXZlOyBkZXMgY2hyJmVhY3V0ZTt0aWVucyBlbnRyZW50IGRhbnMgbGUgY2FyJmVjaXJjO21lLiA8L3NwYW4+PC9zcGFuPjwvcD4KCjxwPjxzcGFuIHN0eWxlPSJmb250LXNpemU6MThweCI+PHNwYW4gc3R5bGU9ImNvbG9yOiMyOTgwYjkiPlNpIHZvdXMgdm91cyBzb3VoYWl0ZXogeSBwYXJ0aWNpcGVyLCA8c3Ryb25nPm1lcmNpIGRlIHZvdXMgaW5zY3JpcmUgYXZhbnQgbGUgbWFyZGkgMTMgJmFncmF2ZTsgMThoPC9zdHJvbmc+LCBhdXByJmVncmF2ZTtzIGRlIE1tZSBYWFhYWCBvdSBhdXByJmVncmF2ZTtzIGRlIG1vaS1tJmVjaXJjO21lKiAoZGlyZWN0ZW1lbnQgb3UgZW4gciZlYWN1dGU7cG9uZGFudCAmYWdyYXZlOyBjZSBtYWlsKS48L3NwYW4+PC9zcGFuPjwvcD4KCjxwPjxzcGFuIHN0eWxlPSJmb250LXNpemU6MThweCI+PHNwYW4gc3R5bGU9ImNvbG9yOiMyOTgwYjkiPkJvbm5lIGpvdXJuJmVhY3V0ZTtlICZhZ3JhdmU7IHRvdXMsPC9zcGFuPjwvc3Bhbj48L3A+Cgo8cD4qSmUgc3VpcyBhYnNlbnQgcG91ciBmb3JtYXRpb24gbHVuZGkgZXQgbWFyZGkgMTIgZXQgMTMgZiZlYWN1dGU7dnJpZXIuPC9wPg==`}</EncodedHTMLDiv>
 
-            <TextInput textType={"text"} onChange={(e) => setTestHash(e.target.value)} value={testHash} style={{backgroundColor: `hsl(${testHSLValues[0]}, ${testHSLValues[1]}%, ${testHSLValues[2]}%)`}} />
+            <TextInput textType={"text"} onChange={(e) => setTestHash(e.target.value)} value={testHash} style={{ backgroundColor: `hsl(${testHSLValues[0]}, ${testHSLValues[1]}%, ${testHSLValues[2]}%)` }} />
 
             <h4>Default File Icon</h4>
-            <DefaultFileIcon extension={fileExtension} style={{height: "500px"}}/>
+            <DefaultFileIcon extension={fileExtension} style={{ height: "500px" }} />
             <TextInput textType={"text"} onChange={(e) => setFileExtension(e.target.value)} value={fileExtension} ></TextInput>
 
             <h4>OutlineEffectDiv</h4>
             <OutlineEffectDiv className="outline-effect-div-test">
-            ac ut consequat semper viverra nam libero justo laoreet sit amet cursus sit amet dictum sit amet justo donec enim diam vulputate ut pharetra sit amet aliquam id diam maecenas ultricies mi eget mauris pharetra et ultrices neque ornare aenean euismod elementum nisi quis eleifend quam adipiscing vitae proin sagittis nisl rhoncus mattis rhoncus urna neque viverra justo nec ultrices dui sapien eget mi proin sed libero enim sed
+                ac ut consequat semper viverra nam libero justo laoreet sit amet cursus sit amet dictum sit amet justo donec enim diam vulputate ut pharetra sit amet aliquam id diam maecenas ultricies mi eget mauris pharetra et ultrices neque ornare aenean euismod elementum nisi quis eleifend quam adipiscing vitae proin sagittis nisl rhoncus mattis rhoncus urna neque viverra justo nec ultrices dui sapien eget mi proin sed libero enim sed
             </OutlineEffectDiv>
 
             <h4>InitializerHook</h4>
@@ -346,14 +349,31 @@ export default function Lab({ fetchGrades }) {
             }}>change initial value</Button>
             <Button onClick={() => {
                 setTestState2((old) => {
-                    const next = {...old};
+                    const next = { ...old };
                     next.a.b += "+";
                     return next;
                 });
             }}>set value</Button>
             {JSON.stringify(initialTestState2)}
-            <br/>
+            <br />
             {JSON.stringify(testState2)}
+            <h4>Linkable Button</h4>
+            <p>
+                this component uses {"<a>"} tag to allow user to copy a link
+                from a button that he could share (like a homework) without
+                needing to redirect to it when clicked. what it mean it that
+                the button will do stuffs like redirect the user or select a
+                grade or homework but without changing the link (less edge case
+                and error prone). However if he wants to copy the link to
+                navigate to the same data on another browser or to share with
+                friend he will be able to do it by copying the link.
+            </p>
+            <LinkableButton onClick={() => {
+                setLinkableButton1(69);
+                setLinkableButton2(42);
+            }} to={"?param_1=69&param_2=42"}>CLICK ME OR COPY ME</LinkableButton>
+            <p>param_1: {linkableButton1}</p>
+            <p>param_2: {linkableButton2}</p>
 
             {/* FOOTER */}
             <div style={{ height: "100px" }}></div>

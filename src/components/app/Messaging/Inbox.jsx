@@ -12,7 +12,7 @@ import MarkAsUnread from "../../graphics/MarkAsUnread";
 
 export default function Inbox({ selectedMessage, setSelectedMessage, selectedFolder, fetchMessageMarkAsUnread }) {
     // States
-    const { useUserData, actualDisplayTheme, useUserSettings } = useContext(AppContext);
+    const { useUserData, usedDisplayTheme, useUserSettings } = useContext(AppContext);
     const settings = useUserSettings();
     const [search, setSearch] = useState("");
 
@@ -113,8 +113,8 @@ export default function Inbox({ selectedMessage, setSelectedMessage, selectedFol
                             <h4 className="message-subject"><span className="author-name"><ContentLoader
                                 animate={settings.get("displayMode") === "quality"}
                                 speed={1}
-                                backgroundColor={actualDisplayTheme === "dark" ? "#7878ae" : "#75759a"}
-                                foregroundColor={actualDisplayTheme === "dark" ? "#9292d4" : "#9292c0"}
+                                backgroundColor={usedDisplayTheme === "dark" ? "#7878ae" : "#75759a"}
+                                foregroundColor={usedDisplayTheme === "dark" ? "#9292d4" : "#9292c0"}
                                 style={{ width: `min(${contentLoadersRandomValues.current.authorWidth[index]}px, 100%)`, maxHeight: "20px" }}
                             >
                                 <rect x="0" y="0" rx="5" ry="5" width="100%" height="100%" />
@@ -122,8 +122,8 @@ export default function Inbox({ selectedMessage, setSelectedMessage, selectedFol
                             <p className="message-author"><ContentLoader
                                 animate={settings.get("displayMode") === "quality"}
                                 speed={1}
-                                backgroundColor={actualDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
-                                foregroundColor={actualDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
+                                backgroundColor={usedDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
+                                foregroundColor={usedDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
                                 style={{ width: `min(${contentLoadersRandomValues.current.subjectWidth[index]}px, 60%)`, maxHeight: "16px" }}
                             >
                                 <rect x="0" y="0" rx="5" ry="5" width="100%" height="100%" />
@@ -131,8 +131,8 @@ export default function Inbox({ selectedMessage, setSelectedMessage, selectedFol
                             <p className="message-date"><ContentLoader
                                 animate={settings.get("displayMode") === "quality"}
                                 speed={1}
-                                backgroundColor={actualDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
-                                foregroundColor={actualDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
+                                backgroundColor={usedDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
+                                foregroundColor={usedDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
                                 style={{ width: `min(${contentLoadersRandomValues.current.dateWidth[index]}px, 30%)`, maxHeight: "16px" }}
                             >
                                 <rect x="0" y="0" rx="5" ry="5" width="100%" height="100%" />

@@ -1,7 +1,8 @@
 
 import { useState, useEffect, useRef, useContext } from "react";
 import { getBrowser, getOS } from "../../utils/utils";
-import { BrowserLabels, OperatingSystemLabels } from "../../utils/constants";
+import { BrowserLabels, OperatingSystemLabels } from "../../utils/constants/constants";
+import { EDPVersion } from "../../utils/constants/configs";
 
 import SegmentedControl from "../generic/UserInputs/SegmentedControl";
 import DropDownMenu from "../generic/UserInputs/DropDownMenu";
@@ -16,7 +17,6 @@ import { AppContext, SettingsContext } from "../../App";
 // graphics
 import PasteIcon from "../graphics/PasteIcon"
 import AtWhite from "../graphics/AtWhite"
-import { getProxiedURL } from "../../utils/requests";
 
 import "./FeedbackForm.css";
 
@@ -74,7 +74,7 @@ ${BrowserLabels[getBrowser()]} ; ${OperatingSystemLabels[getOS()]} ; <inconnu> (
     const [submitButtonText, setSubmitButtonText] = useState("Envoyer");
     const [allowSharing, setAllowSharing] = useState(true);
 
-    const { isDevChannel, EDPVersion } = useContext(AppContext);
+    const { isDevChannel } = useContext(AppContext);
 
     const settings = useContext(SettingsContext);
 
@@ -303,7 +303,7 @@ ${BrowserLabels[getBrowser()]} ; ${OperatingSystemLabels[getOS()]} ; <inconnu> (
                             color: parseInt("0x" + color),
                             author: {
                                 name: ((activeUser && isAnonymous) ? activeUser.lastName + " " + activeUser.firstName : "Poisson-zèbre Augmenté") + " (" + (isAnonymous ? "N/A" : (userEmail || (activeUser ? activeUser.email : ""))) + ")",
-                                icon_url: ((isAnonymous || !activeUser) ? "https://i.ibb.co/CKmD9z8/poisson-z-bre.jpg" : getProxiedURL("https:" + activeUser.picture))
+                                icon_url: ((isAnonymous || !activeUser) ? "https://i.ibb.co/CKmD9z8/poisson-z-bre.jpg" : activeUser.picture)
                             },
                             title: "**__" + selectedFeedbackType + "__ : " + subject + "**",
                             description: feedbackContent,

@@ -1,6 +1,6 @@
 import { v5 as uuidv5 } from "uuid";
 import sha256 from 'js-sha256';
-import { Browsers, OperatingSystems } from "./constants";
+import { Browsers, OperatingSystems } from "./constants/constants";
 
 const UUID_NAMESPACE = "7bbc8dba-be5b-4ff2-b516-713692d5f601";
 

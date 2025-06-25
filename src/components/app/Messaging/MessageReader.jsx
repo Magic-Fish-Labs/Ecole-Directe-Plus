@@ -24,7 +24,7 @@ export default function MessageReader({ selectedMessage, fetchMessageMarkAsUnrea
 
     // States
     const location = useLocation();
-    const { useUserData, actualDisplayTheme, useUserSettings } = useContext(AppContext);
+    const { useUserData, usedDisplayTheme, useUserSettings } = useContext(AppContext);
     const settings = useUserSettings();
     const messages = useUserData("sortedMessages").get();
     const message = messages ? messages.find((item) => item.id === selectedMessage) : null;
@@ -84,14 +84,14 @@ export default function MessageReader({ selectedMessage, fetchMessageMarkAsUnrea
                         {message?.content
                             ? <>
                                 {spoiler ? <div className="reveal-spoiler-container"><h3>Streamer Mode activé</h3><span><p>Le contenu de ce message pourrait contenir des informations personnelles sensibles.</p><p>Cliquez sur Continuer pour afficher le message.</p></span><button className="reveal-spoiler" onClick={() => setSpoiler(false)}>Continuer</button></div> : null}
-                                <EncodedHTMLDiv className={`message-content${spoiler ? " spoiler" : ""}`} backgroundColor={actualDisplayTheme === "dark" ? [72, 72, 102] : [200, 200, 240]}>{message?.content && message?.content?.content}</EncodedHTMLDiv>
+                                <EncodedHTMLDiv className={`message-content${spoiler ? " spoiler" : ""}`} backgroundColor={usedDisplayTheme === "dark" ? [72, 72, 102] : [200, 200, 240]}>{message?.content && message?.content?.content}</EncodedHTMLDiv>
                             </>
                             : <ContentLoader
                                 className="message-content"
                                 animate={settings.get("displayMode") === "quality"}
                                 speed={1}
-                                backgroundColor={actualDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
-                                foregroundColor={actualDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
+                                backgroundColor={usedDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
+                                foregroundColor={usedDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
                                 style={{ display: "block", width: "min(800px, 100%)", margin: "0 auto", height: "575px" }}
                             >
                                 <rect x="0" y="0" rx="8" ry="8" width="30%" height="20px" />

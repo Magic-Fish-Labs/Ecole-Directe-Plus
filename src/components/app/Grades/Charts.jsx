@@ -28,7 +28,7 @@ export default function Charts({ selectedPeriod }) {
     const chartOptions = useRef(null);
     const chartData = useRef(null);
 
-    const { activeAccount, useUserData, actualDisplayTheme } = useContext(AppContext);
+    const { activeAccount, useUserData, usedDisplayTheme } = useContext(AppContext);
     const userData = useUserData();
 
     const generalAverageHistory = userData.get("generalAverageHistory");
@@ -213,7 +213,7 @@ export default function Charts({ selectedPeriod }) {
                             beginAtZero: true,
                             suggestedMax: 20,
                             grid: {
-                                color: actualDisplayTheme == "dark" ? "rgba(180, 180, 240, .4)" : "rgba(76, 76,  184, .4)"
+                                color: usedDisplayTheme == "dark" ? "rgba(180, 180, 240, .4)" : "rgba(76, 76,  184, .4)"
                             }
                         }
                     },
@@ -266,7 +266,7 @@ export default function Charts({ selectedPeriod }) {
         console.log("Building chart...");
         getChartData();
         const ctx = chartContainerRef.current.getContext("2d");
-        Chart.defaults.color = actualDisplayTheme == "dark" ? "rgb(180, 180, 240)" : "rgb(76, 76, 184)";
+        Chart.defaults.color = usedDisplayTheme == "dark" ? "rgb(180, 180, 240)" : "rgb(76, 76, 184)";
         registerPlugin();
         chart.current = new Chart(ctx, {
             data: chartData.current,
@@ -281,14 +281,14 @@ export default function Charts({ selectedPeriod }) {
                         position: "top",
                     },
                     tooltip: {
-                        backgroundColor: actualDisplayTheme == "dark" ? "rgba(24, 24, 41, .8)" : "rgba(228, 228, 255, .8)",
+                        backgroundColor: usedDisplayTheme == "dark" ? "rgba(24, 24, 41, .8)" : "rgba(228, 228, 255, .8)",
                         cornerRadius: 10,
                         padding: 10,
                         boxPadding: 4,
                         bodySpacing: 6,
-                        titleColor: actualDisplayTheme == "dark" ? "white" : "black",
-                        bodyColor: actualDisplayTheme == "dark" ? "white" : "black",
-                        footerColor: actualDisplayTheme == "dark" ? "white" : "black"
+                        titleColor: usedDisplayTheme == "dark" ? "white" : "black",
+                        bodyColor: usedDisplayTheme == "dark" ? "white" : "black",
+                        footerColor: usedDisplayTheme == "dark" ? "white" : "black"
                     },
                     zoomCSS: true
                 },

@@ -63,7 +63,7 @@ export function mapGrades(grades) {
                     if (matiere.sousMatiere) {
                         newSubject.name = matiere.codeMatiere + " - " + matiere.codeSousMatiere;
                     } else {
-                        newSubject.name = matiere.discipline.replace(". ", ".").replace(".", ". ");
+                        newSubject.name = matiere.discipline.replaceAll(". ", ".").replaceAll(".", ". ");
                     }
                     newSubject.classAverage = safeParseFloat(matiere.moyenneClasse);
                     newSubject.minAverage = safeParseFloat(matiere.moyenneMin);
@@ -162,17 +162,15 @@ export function mapGrades(grades) {
             newGrade.classAverage = safeParseFloat(grade.moyenneClasse);
             newGrade.subjectName = grade.libelleMatiere;
             newGrade.isSignificant = !grade.nonSignificatif;
-            newGrade.examSubjectSRC = grade.uncSujet;
-            // newGrade.examSubjectSRC = grade.uncSujet === "" ? undefined : new File(grade.uncSujet, "NODEVOIR", grade.uncSujet, `sujet-${grade.devoir}-${grade.subjectCode}`, { idDevoir: grade.id });
-            // newGrade.examCorrectionSRC = grade.uncCorrige === "" ? undefined : new File(grade.uncCorrige, "NODEVOIR", grade.uncCorrige, `correction-${grade.devoir}-${grade.subjectCode}`, { idDevoir: grade.id });
-            newGrade.isReal = true;
-            /* Si newGrade.isReal est faux :
+            newGrade.examSubject = grade.uncSujet;
+            // newGrade.examSubject = grade.uncSujet === "" ? undefined : new File(grade.uncSujet, "NODEVOIR", grade.uncSujet, `sujet-${grade.devoir}-${grade.subjectCode}`, { idDevoir: grade.id });
+            // newGrade.examCorrection = grade.uncCorrige === "" ? undefined : new File(grade.uncCorrige, "NODEVOIR", grade.uncCorrige, `correction-${grade.devoir}-${grade.subjectCode}`, { idDevoir: grade.id });
+            newGrade.isSimulated = false;
+            /* Si newGrade.isSimulated :
                 pas de :
-                    - badges
-                    - streak
                     - moyenne de classe/min/max
                     - correction ni sujet
-                    - date
+                    - compétence
                 différences : 
                     - id = randomUUID
                 choisit par l'utilisateur : 
@@ -222,7 +220,7 @@ export function mapGrades(grades) {
             periods[periodCode].subjects[subjectCode].average = average;
             periods[periodCode].subjects[subjectCode].classAverage = classAverage;
 
-            const category = findCategory(periods[periodCode], subjectCode);
+            const category = findCategory(periods[periodCode].subjects, subjectCode);
             if (category !== null) {
                 const categoryAverage = calcCategoryAverage(periods[periodCode], category);
                 periods[periodCode].subjects[category.code].average = categoryAverage;
@@ -329,15 +327,15 @@ export function mapGrades(grades) {
         }
     }
 
-    let activePeriod = 0;
+    let activePeriodIndex = 0;
     for (let periodCode in periods) {
         if (Date.now() > periods[periodCode].endDate) {
-            if (activePeriod < Object.keys(periods).length - 1) {
-                activePeriod++;
+            if (activePeriodIndex < Object.keys(periods).length - 1) {
+                activePeriodIndex++;
             }
         }
     }
-    activePeriod = Object.keys(periods)[activePeriod];
+    const activePeriod = Object.keys(periods)[activePeriodIndex];
 
     return {
         grades: periods,

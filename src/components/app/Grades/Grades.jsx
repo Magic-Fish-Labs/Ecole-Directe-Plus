@@ -56,8 +56,8 @@ export default function Grades({ activeAccount, isLoggedIn, isTabletLayout }) {
                 <WindowsLayout direction="row" ultimateContainer={true}>
                     <WindowsLayout direction="column">
                         <StreakScore streakScore={(grades?.[activePeriod]?.streak) ?? 0} streakHighScore={(grades?.[activePeriod]?.maxStreak) ?? 0} />
-                        <Information grades={grades} activeAccount={activeAccount} activePeriod={activePeriod} />
-                        <Strengths grades={grades} activeAccount={activeAccount} />
+                        <Information />
+                        <Strengths />
                     </WindowsLayout>
                     <WindowsLayout growthFactor={2}>
                         <DOMSimulation>

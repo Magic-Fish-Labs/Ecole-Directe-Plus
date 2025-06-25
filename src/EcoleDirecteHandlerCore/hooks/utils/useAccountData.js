@@ -1,20 +1,44 @@
-import { useReducer, useState } from "react";
+import { useReducer, useRef, useState } from "react";
 
-export default function useAccountData() {
+function cleanInitializer(init, template) {
+    if (!init
+        || !init.length
+        || typeof init !== "object"
+        || !Array.isArray(init)
+        || init.some((el) => typeof el !== "object" || Array.isArray(el))) {
+        // these values may come from localStorage, so they are sensible to user modifications and data may be invalid
+        return [template];
+    }
+    const result = [];
+    init.forEach((initElement) => {
+        const element = {};
+        Object.keys(template).forEach((key) => {
+            if (initElement.hasOwnProperty(key)) {
+                element[key] = initElement[key];
+            } else {
+                element[key] = template[key];
+            }
+        });
+        result.push(element);
+    })
+    return Array.from({ length: init.length }, (_, index) => ({ ...template, ...init[index] }));
+}
+
+export default function useAccountData(initAccountData, accountDataTemplate) {
     const [selectedUserDataIndex, setSelectedUserDataIndex] = useState(0);
+    const isInitialized = useRef(!!initAccountData);
     const [accountData, dispatch] = useReducer((current, { action, params }) => {
         switch (action) {
             case "INITIALIZE":
                 {
-                    const { userNumber, dataList } = params;
-                    return Array.from({ length: userNumber }, () => (Object.fromEntries(dataList.map((dataName) => [
-                        dataName,
-                        undefined,
-                    ]))));
+                    const { userNumber } = params;
+                    isInitialized.current = true;
+                    return Array.from({ length: userNumber }, () => accountDataTemplate);
                 }
             case "RESET":
                 {
-                    return null;
+                    isInitialized.current = false;
+                    return [accountDataTemplate];
                 }
             case "SET":
                 {
@@ -25,7 +49,7 @@ export default function useAccountData() {
                     return next;
                 }
         }
-    }, null);
+    }, cleanInitializer(initAccountData, accountDataTemplate));
 
     function initialize(userNumber, dataList) {
         dispatch({
@@ -43,46 +67,41 @@ export default function useAccountData() {
 
     /**This is the function you'll mainly use to change and initialize data of an account with mutiple users.
      * Here is an explanations of the params :
-     *  @param data      is the "key" of the data, its identifier in the object "userData" returned bah the hook
+     *  @param data      is the "key" of the data, its identifier in the object "userData" returned by the hook
      *  @param value     is the value you want to assign to the key above
      *  @param userIndex is the index of a specific user, this may be important in cases where you work with
      *                   async threads and you get data for a user after that the sekected user changed.
      */
     function set(data, value, userIndex) {
-        if (accountData === null) {
-            throw new Error("Cannot set data in uninitialized accountData")
-        }
         if (userIndex >= accountData.length) {
             throw new Error("Cannot set data to unexistent user. Invalid userIndex")
         }
+
         dispatch({
             action: "SET",
             params: { data, value, userIndex }
         });
     }
 
-    const returnedData = accountData !== null 
-        ? accountData.map(data => Object.fromEntries(Object.keys(accountData[selectedUserDataIndex]).map((dataName) => [
-            dataName,
-            {
-                value: data[dataName],
-                set: (value, userIndex = selectedUserDataIndex) => {
-                    set(dataName, value, userIndex);
-                },
-            }
-        ])))
-        : null;
-
-    return [
-        returnedData !== null
-            ? returnedData[selectedUserDataIndex]
-            : null,
+    const returnedData = accountData.map(data => Object.fromEntries(Object.keys(accountData[selectedUserDataIndex]).map((dataName) => [
+        dataName,
         {
+            value: data[dataName],
+            set: (value, userIndex = selectedUserDataIndex) => {
+                set(dataName, value, userIndex);
+            },
+        }
+    ])));
+
+    return {
+        userData: returnedData[selectedUserDataIndex],
+        handlers: {
             initialize,
             reset,
             setSelectedUserDataIndex
         },
+        isInitialized: isInitialized.current,
         returnedData,
         accountData,
-    ];
+    };
 }

@@ -16,7 +16,6 @@ import LogoutIcon from "../../graphics/LogoutIcon";
 import { AccountContext, AppContext, SettingsContext } from "../../../App";
 
 import "./AccountSelector.css";
-import { getProxiedURL } from "../../../utils/requests";
 
 export default function AccountSelector({ accountsList, activeAccount, setActiveAccount, isTabletLayout, logout, ...props }) {
 
@@ -133,10 +132,12 @@ export default function AccountSelector({ accountsList, activeAccount, setActive
                 <div id="active-account" onClick={handleClick} role="button" tabIndex="0" onKeyDown={handleKeyDown}>
                     <div className="account">
                         <div className="pp-container">
-                            <img ref={(el) => (profilePictureRefs.current[0] = el)} className="profile-picture" src={((selectedUser.id !== -1)
-                                ? isStreamerModeEnabled.value ? "/images/scholar-canardman.png" : getProxiedURL("https:" + selectedUser.picture)
-                                : selectedUser.picture
-                            )} alt={"Photo de profil de " + selectedUser.firstName} />
+                            <img
+                                ref={(el) => (profilePictureRefs.current[0] = el)}
+                                className="profile-picture"
+                                src={isStreamerModeEnabled.value ? "/images/scholar-canardman.png" : selectedUser.picture}
+                                alt={"Photo de profil de " + selectedUser.firstName}
+                            />
                         </div>
                         <address className="account-info">
                             <span className="school-name">{isStreamerModeEnabled.value ? "ÉTABLISSEMENT" : selectedUser.schoolName}</span>
@@ -154,13 +155,13 @@ export default function AccountSelector({ accountsList, activeAccount, setActive
                                     return <div className="alt-account" key={account.id} role="button" tabIndex="0" onKeyDown={(event) => handleKeyDown2(event, () => { switchAccount(index); handleClose() })} onClick={() => { switchAccount(index); handleClose() }}>
                                         <div className="account">
                                             <div className="pp-container">
-                                                <img ref={(el) => (profilePictureRefs.current[index+1] = el)} className="profile-picture" src={getProxiedURL("https:" + account.picture)} alt={"Photo de profil de " + account.firstName} />
+                                                <img ref={(el) => (profilePictureRefs.current[index + 1] = el)} className="profile-picture" src={account.picture} alt={"Photo de profil de " + account.firstName} />
                                             </div>
                                             <address className="account-info">
                                                 <span className="name"><span className="first-name">{account.firstName}</span> <span className="last-name">{account.lastName.toUpperCase()}</span></span>
                                                 <span className="class">{account.class[1]}</span>
                                             </address>
-                                            <SwitchArrows className="switch-arrows"/>
+                                            <SwitchArrows className="switch-arrows" />
                                         </div>
                                     </div>
                                 }

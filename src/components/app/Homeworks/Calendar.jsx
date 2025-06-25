@@ -9,9 +9,8 @@ import DropDownArrow from "../../graphics/DropDownArrow";
 import './Calendar.css';
 import { isValidDateFormat } from '../../../utils/date';
 
-export default function Calendar({ onDateClick }) {
+export default function Calendar({ onDateClick, homeworks }) {
     const today = new Date()
-    const { useUserData, fetchHomeworksSequentially } = useContext(AppContext);
     const location = useLocation();
     const [calendarDays, setCalendarDays] = useState([]);
     const [longPressTimeout, setLongPressTimeout] = useState(null);
@@ -23,9 +22,6 @@ export default function Calendar({ onDateClick }) {
     const hashParameters = location.hash.split(";");
     const selectedISODate = isValidDateFormat(hashParameters[0].slice(1)) ? hashParameters[0].slice(1) : Date.now();
     const selectedDate = new Date(selectedISODate);
-
-    const userHomeworks = useUserData("sortedHomeworks");
-    const homeworks = userHomeworks.get();
 
     // For each homework, check the date and add it to the events array if it is a test set redf
     const events = [];

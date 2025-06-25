@@ -82,15 +82,16 @@ export function calcClassAverage(list) {
     }
 }
 
-export function findCategory(period, subject) {
-    const subjectsKeys = Object.keys(period.subjects);
-    let i = subjectsKeys.indexOf(subject);
-    while (--i > 0 && !period.subjects[subjectsKeys[i]]?.isCategory) { } // très sad
-    if (!period.subjects[subjectsKeys[i]]?.isCategory) {
-        return null;
+export function findCategory(subjects, subjectKey) {
+    let category = null;
+    for (const key in subjects) {
+        if (subjects[key].isCategory) {
+            category = subjects[key];
+        }
+        if (key === subjectKey)
+            return category;
     }
-
-    return period.subjects[subjectsKeys[i]];
+    return null;
 }
 
 export function calcCategoryAverage(period, category) {
@@ -102,7 +103,7 @@ export function calcCategoryAverage(period, category) {
         const currentSubject = period.subjects[subjectsKeys[i]];
         let coefMultiplicator = 1;
         if (currentSubject.isSubSubject) {
-            const subjectCode = currentSubject.name.split(" - ")[0];
+            const subjectCode = currentSubject.name.split(" - ")[0]; 
             const validKeys = Object.keys(period.subjects).filter((key) => (key !== subjectCode && key.includes(subjectCode))); // selects other subsubjects (and exclude the parent subject)
             let sum = 0;
             for (let validKey of validKeys) {
@@ -186,4 +187,86 @@ export function formatSkills(skills) {
         // el.valeur soit entre 1 et 4 inclus
         value: isNaN(parseInt(el.valeur)) || parseInt(el.valeur) < 1 || parseInt(el.valeur) > 4 ? "Non évaluée" : skillsValues[parseInt(el.valeur) - 1] // la pire compétence possible commence à 1 donc on ajuste pour les tableaux js
     }))
+}
+
+/** 
+ * Modifie l'objet grades pour y ajouter une nouvelle note définie par `newValues`
+ *
+ * @param {string} periodKey 
+ * @param {string} subjectKey
+ * @param {Object} newValues
+ * @param newValues.value valeur de la note
+ * @param newValues.coef coefficient de la note
+ * @param newValues.scale note maximum posible
+ * @param newValues.name nom du devoir
+ * @param newValues.type type de devoir (DS, DM, ...)
+ */
+export function addSimulatedGrade(periodKey, subjectKey, newValues, grades) {
+    const period = grades[periodKey];
+    const subject = period.subjects[subjectKey];
+    const grade = {
+        ...newValues,
+        badges: [],
+        classAverage: "N/A",
+        classMin: "N/A",
+        classMax: "N/A",
+        date: new Date(),
+        elementType: "grade",
+        entryDate: new Date(),
+        examCorrection: "",
+        examSubject: "",
+        id: crypto.randomUUID(),
+        isSimulated: true,
+        isSignificant: true,
+        subjectName: subject.name,
+        skill: [],
+        upTheStreak: newValues.value / newValues.scale >= subject.average / 20,
+        subjectKey: subjectKey,
+        periodKey: periodKey,
+    }
+    if (newValues.value === newValues.scale) {
+        grade.badges.push("star");
+    }
+    if (newValues.value / newValues.scale > subject.average / 20) {
+        grade.badges.push("stonks");
+    }
+    else if (newValues.value / newValues.scale === subject.average / 20) {
+        grade.badges.push("meh");
+    }
+    if (grade.upTheStreak) {
+        grade.badges.push("keepOnFire");
+    };
+    
+    subject.grades.push(grade);
+    
+    period.streak += grade.upTheStreak;
+    if (period.streak > period.maxStreak) {
+        period.maxStreak += 1;
+    }
+    subject.average = calcAverage(subject.grades);
+    period.generalAverage = calcGeneralAverage(period);
+    const category = findCategory(period.subjects, subjectKey);
+    category.average = calcCategoryAverage(period, category);
+}
+
+/** 
+ * Modifie l'objet `grades` pour y retirer une note d'id `id`
+ *
+ * @param {string} periodKey 
+ * @param {string} subjectKey
+ * @param {string} id L'id de la note à retirer de l'objet `grades`
+ * @param {Object} grades l'objet grades utilisé par EDP pour stocker les notes
+ */
+export function removeSimulatedGrade(periodKey, subjectKey, id, grades) {
+    const period = grades[periodKey];
+    const subject = period.subjects[subjectKey];
+    const grade = subject.grades.find((grade) => grade.id === id);
+
+    subject.grades = subject.grades.filter((grade) => grade.id !== id);
+
+    period.streak -= grade.upTheStreak;
+    subject.average = calcAverage(subject.grades);
+    period.generalAverage = calcGeneralAverage(period);
+    const category = findCategory(period.subjects, subjectKey);
+    category.average = calcCategoryAverage(period, category);
 }
