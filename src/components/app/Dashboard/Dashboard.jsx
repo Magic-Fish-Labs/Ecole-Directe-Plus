@@ -24,8 +24,8 @@ import FileComponent from "../../generic/FileComponent";
 export default function Dashboard({ isTabletLayout }) {
     const userData = useContext(UserDataContext);
     const {
-        grades: {value: grades},
-        homeworks: {value: homeworks}
+        grades: {value: grades, get: getGrades},
+        homeworks: {value: homeworks, get: getHomeworks}
     } = userData;
 
     const account = useContext(AccountContext);
@@ -50,7 +50,7 @@ export default function Dashboard({ isTabletLayout }) {
     useEffect(() => {
         const controller = new AbortController();
         if (isLoggedIn && grades === undefined) {
-            userData.get.grades(null, controller);
+            getGrades(null, controller);
         }
 
         return () => {
@@ -61,7 +61,7 @@ export default function Dashboard({ isTabletLayout }) {
     useEffect(() => {
         const controller = new AbortController();
         if (isLoggedIn && homeworks === undefined) {
-            userData.get.homeworks(null, controller);
+            getHomeworks(null, controller);
         }
 
         return () => {

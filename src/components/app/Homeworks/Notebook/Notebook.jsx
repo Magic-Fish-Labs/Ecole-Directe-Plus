@@ -15,7 +15,7 @@ export default function Notebook({ hideDateController = false }) {
 
     const userData = useContext(UserDataContext);
     const {
-        homeworks: { value: homeworks },
+        homeworks: { value: homeworks, get: getHomeworks },
         activeHomeworkDate: { value: activeHomeworkDate, set: setActiveHomeworkDate },
         activeHomeworkId: { value: activeHomeworkId, set: setActiveHomeworkId },
     } = userData;

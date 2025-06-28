@@ -22,7 +22,7 @@ export const DisplayTypes = {
 export default function Grades({ activeAccount, isLoggedIn, isTabletLayout }) {
     const userData = useContext(UserDataContext);
     const {
-        grades: {value: grades},
+        grades: {value: grades, get: getGrades},
         activePeriod: {value: activePeriod}
     } = userData;
 
@@ -41,7 +41,7 @@ export default function Grades({ activeAccount, isLoggedIn, isTabletLayout }) {
     useEffect(() => {
         const controller = new AbortController();
         if (isLoggedIn && grades === undefined) {
-            userData.get.grades(fetchSchoolYear, controller).then(console.log);
+            getGrades(fetchSchoolYear, controller).then(console.log); // !:! pas de log, à investiguer
         }
 
         return () => {

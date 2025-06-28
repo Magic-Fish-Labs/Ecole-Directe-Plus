@@ -231,10 +231,13 @@ export default function useEcoleDirecteSession(initEcoleDirecteSession) {
     return {
         userData: {
             ...userData,
-            get: {
-                grades: getGrades,
-                timeline: getTimeline,
-                homeworks: getHomeworks,
+            grades: {
+                ...userData.grades,
+                get: getGrades
+            },
+            homeworks: {
+                ...userData.homeworks,
+                get: getHomeworks
             },
         },
         account,

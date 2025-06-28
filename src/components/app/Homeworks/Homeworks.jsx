@@ -33,9 +33,7 @@ const supposedNoSessionContent = [
 export default function Homeworks() {
     const userData = useContext(UserDataContext);
     const {
-        homeworks: { value: homeworks },
-        activeHomeworkDate: { value: activeHomeworkDate },
-        activeHomeworkId: { value: activeHomeworkId }
+        homeworks: { value: homeworks, get: getHomeworks },
     } = userData;
 
     const account = useContext(AccountContext);
@@ -55,7 +53,7 @@ export default function Homeworks() {
     useEffect(() => {
         const controller = new AbortController();
         if (isLoggedIn && homeworks === undefined) {
-            userData.get.homeworks(null, controller);
+            getHomeworks(null, controller);
         }
 
         return () => {
