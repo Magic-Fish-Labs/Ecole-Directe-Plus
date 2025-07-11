@@ -12,8 +12,7 @@ import { mapGrades } from "../mappers/grades";
 import fetchTimeline from "../requests/fetchTimeline";
 import { mapTimeline } from "../mappers/timeline";
 import fetchHomeworks from "../requests/fetchHomeworks";
-import { mapUpcomingHomeworks, mapDayHomeworks } from "../mappers/homeworks";
-import { textPlaceholder } from "../utils/utils";
+import { mapHomeworks } from "../mappers/homeworks";
 import { DefaultAccountdata } from "../constants/default";
 
 /**
@@ -103,62 +102,26 @@ export default function useEcoleDirecteSession(initEcoleDirecteSession) {
     }
 
     /**
-     * @brief Fetch user homeworks
-     * @param date fetch the specified date (Date object) ; default value: "incoming": will fetch the incoming homeworks 
-     * @param controller AbortController
+     * @brief Fetch user incoming homeworks
+     * @param {AbortController} controller AbortController
      */
-    async function getHomeworks(date = null, controller = (new AbortController())) {
+    async function getHomeworks(controller = (new AbortController())) {
         const requestUserIndex = selectedUserIndex.value;
         let response;
         if (selectedUser.id === -1) {
-            response = date === null
-                ? import(/* @vite-ignore */ guestDataPath.incoming_homeworks)
-                : import(/* @vite-ignore */ guestDataPath.detailed_homeworks);
+            response = import(/* @vite-ignore */ guestDataPath.incoming_homeworks);
         } else {
-            response = fetchHomeworks(date, selectedUser.id, token.value, controller);
+            response = fetchHomeworks(selectedUser.id, token.value, controller);
         }
         return response.then((response) => {
             token.set((old) => (response?.token || old));
             switch (response.code) {
                 case 200:
-                    if (date === null) {
-                        const { mappedHomeworks, mappedUpcomingAssignments, activeHomeworkDate, activeHomeworkId } = mapUpcomingHomeworks(response.data, account);
-                        userData.homeworks.set(mappedHomeworks, requestUserIndex);
-                        userData.upcomingAssignments.set(mappedUpcomingAssignments, requestUserIndex);
-                        userData.activeHomeworkDate.set(activeHomeworkDate, requestUserIndex);
-                        userData.activeHomeworkId.set(activeHomeworkId, requestUserIndex);
-                    } else {
-                        const { mappedDay } = mapDayHomeworks(response.data, account);
-                        if (users[requestUserIndex].id < 0) {
-                            const guestDetailedTaskDate = Object.keys(mappedDay)[0];
-                            if (userData.homeworks.value[date]) {
-                                console.log({
-                                    ...userData.homeworks.value,
-                                    [date]: [
-                                        ...mappedDay[guestDetailedTaskDate].map((el, index) => ({
-                                            ...el,
-                                            ...userData.homeworks.value[date][index],
-                                            content: textPlaceholder(),
-                                            sessionContent: textPlaceholder()
-                                        })),
-                                    ]
-                                })
-                                userData.homeworks.set({
-                                    ...userData.homeworks.value,
-                                    [date]: [
-                                        ...mappedDay[guestDetailedTaskDate].map((el, index) => ({
-                                            ...el,
-                                            ...userData.homeworks.value[date][index],
-                                            content: textPlaceholder(),
-                                            sessionContent: textPlaceholder()
-                                        })),
-                                    ]
-                                }, requestUserIndex);
-                            }
-                        } else {
-                            userData.homeworks.set({ ...userData.homeworks.value, ...mappedDay }, requestUserIndex);
-                        }
-                    }
+                    const { mappedHomeworks, mappedUpcomingAssignments, activeHomeworkDate, activeHomeworkId } = mapHomeworks(response.data, account);
+                    userData.homeworks.set(mappedHomeworks, requestUserIndex);
+                    userData.upcomingAssignments.set(mappedUpcomingAssignments, requestUserIndex);
+                    userData.activeHomeworkDate.set(activeHomeworkDate, requestUserIndex);
+                    userData.activeHomeworkId.set(activeHomeworkId, requestUserIndex);
                     return HomeworksCodes.SUCCESS;
                 default:
                     return { code: -1, message: response.message };

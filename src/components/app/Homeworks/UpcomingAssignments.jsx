@@ -3,8 +3,7 @@ import { UserDataContext } from "../../../App";
 import Interrogation from "./Interrogation";
 import CanardmanSleeping from "../../graphics/CanardmanSleeping";
 
-import "./UpcomingAssignments.css";
-const placeholder = [
+const PLACEHOLDERS = [
     <span>Vous n'avez n'as pas de contrôles prochainement, profitez-en pour regarder Canardman dormir.</span>,
     <span>Aucun contrôle de prévu.<br />Tiens, voilà Canardman qui dort.</span>,
     <span>C'est calme...<br />Canardman en profite pour faire dodo.</span>,
@@ -14,11 +13,21 @@ const placeholder = [
 ]
 
 export default function UpcomingAssignments() {
-    const { upcomingAssignments } = useContext(UserDataContext);
+    const userData = useContext(UserDataContext);
+    const {
+        upcomingAssignments: { value: upcomingAssignments }
+    } = userData;
 
-    const choosenPlaceholder = useRef(placeholder[parseInt(Math.random() * placeholder.length)]);
+    const choosenPlaceholder = useRef(PLACEHOLDERS[parseInt(Math.random() * PLACEHOLDERS.length)]);
     return upcomingAssignments?.length
-        ? upcomingAssignments.map((e) => <Interrogation key={e.id} date={e.date} id={e.id} />)
+        ? Array.from({length: 3}, (_, i) => {
+            let task;
+            if (i < upcomingAssignments.length)
+                task = upcomingAssignments[i];
+            else
+                task = {id: "dummy-" + i};
+            return <Interrogation key={`${task.id}`} task={task} />
+        })
         : <div className="loading">
             {choosenPlaceholder.current}
             <CanardmanSleeping />

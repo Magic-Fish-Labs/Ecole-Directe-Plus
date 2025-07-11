@@ -61,7 +61,7 @@ export default function Dashboard({ isTabletLayout }) {
     useEffect(() => {
         const controller = new AbortController();
         if (isLoggedIn && homeworks === undefined) {
-            getHomeworks(null, controller);
+            getHomeworks(controller);
         }
 
         return () => {

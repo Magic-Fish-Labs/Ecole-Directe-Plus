@@ -1,6 +1,7 @@
 import { apiVersion } from "../constants/config";
+import EdpError from "../class/EdpError";
 
-export default async function fetchHomeworksDone({ tasksDone = [], tasksNotDone = [] }, userId, token, controller = (new AbortController())) {
+export default async function fetchHomeworksDone({ tasksDone = [], tasksNotDone = [] }, userId, token, controller) {
 	const headers = new Headers();
 	headers.append("x-token", token);
 	headers.append("content-type", "application/x-www-form-urlencoded");
@@ -12,7 +13,7 @@ export default async function fetchHomeworksDone({ tasksDone = [], tasksNotDone 
 		method: "POST",
 		headers,
 		body,
-		signal: controller.signal
+		signal: controller?.signal
 	};
 
 	return fetch(`https://api.ecoledirecte.com/v3/Eleves/${userId}/cahierdetexte.awp?verbe=put&v=${apiVersion}`, options)

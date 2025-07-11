@@ -1,4 +1,5 @@
 import { useReducer, useRef, useState } from "react";
+import { tracer } from "../../../../devutils/utils";
 
 function cleanInitializer(init, template) {
     if (!init
@@ -87,9 +88,9 @@ export default function useAccountData(initAccountData, accountDataTemplate) {
         dataName,
         {
             value: data[dataName],
-            set: (value, userIndex = selectedUserDataIndex) => {
+            set: tracer((value, userIndex = selectedUserDataIndex) => {
                 set(dataName, value, userIndex);
-            },
+            }, false),
         }
     ])));
 

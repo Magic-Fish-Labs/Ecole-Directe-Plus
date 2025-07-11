@@ -12,9 +12,15 @@
     top: 0;
     left: 0;
     background-color: var(--subject-main-color);
-    border-radius: 8px 0 0 8px;
+    border-radius: 4px 0 0 4px;
     position: absolute;
+    transition: .2s;
 }
+
+.upcoming-assignments.highlight::before {
+    width: 8px;
+}
+
 .upcoming-assignments {
     position: relative;
     border: 1px solid var(--subject-bg-color);
@@ -53,7 +59,8 @@
 
 .upcoming-assignments input[type="checkbox"] {
     height: 100%;
-    width: 100%;
+    /* width: 100%; */
+    flex: 1;
     border-color: var(--subject-main-color);
     /* background-color: var(--background-color-task); */
     border-width: 3px;
@@ -73,17 +80,21 @@
     background-color: var(--subject-bg-color);
 }
 
-.upcoming-assignments span {
-    font-weight: var(--font-weight-semi-bold);
+.upcoming-assignments :is(time, span) {
     color: var(--subject-main-color);
+}
+
+.upcoming-assignments > span {
+    font-weight: var(--font-weight-semi-bold);
     flex: 1;
-    text-align: center;
+    padding-left: 5%;
+    text-align: left;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.upcoming-assignments > span:last-child {
+.upcoming-assignments > time {
     font-weight: var(--font-weight-regular);
     text-align: end;
     flex: unset;

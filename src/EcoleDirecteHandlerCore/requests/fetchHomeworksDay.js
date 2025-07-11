@@ -2,7 +2,7 @@ import { apiVersion } from "../constants/config";
 import { FetchErrorBuilders } from "../constants/codes";
 import EdpError from "../class/EdpError";
 
-export default async function fetchHomeworks(userId, token, controller = null) {
+export default async function fetchHomeworksDay(date, userId, token, controller = null) {
     const headers = new Headers();
     headers.append("x-token", token);
     headers.append("content-type", "application/x-www-form-urlencoded");
@@ -18,7 +18,7 @@ export default async function fetchHomeworks(userId, token, controller = null) {
         referrerPolicy: "no-referrer",
     };
 
-    return fetch(`https://api.ecoledirecte.com/v3/Eleves/${userId}/cahierdetexte.awp?verbe=get&v=${apiVersion}`, options)
+    return fetch(`https://api.ecoledirecte.com/v3/Eleves/${userId}/cahierdetexte/${date}.awp?verbe=get&v=${apiVersion}`, options)
         .catch((error) => {
             error.type = "FETCH_ERROR"
             throw error;

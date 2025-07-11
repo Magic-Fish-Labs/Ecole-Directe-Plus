@@ -44,7 +44,33 @@ import OutlineEffectDiv from "../generic/CustomDivs/OutlineEffectDiv";
 import useInitializer from "../../EcoleDirecteHandlerCore/hooks/utils/useInitializer";
 import { BrowserLabels, OperatingSystemLabels } from "../../utils/constants/constants";
 import LinkableButton from "../generic/buttons/LinkableButton";
+import { AppContext, UserDataContext } from "../../App";
+
+const subjectArray = [
+    "FRANC",
+    "MATHS",
+    "AGL1",
+    "ESP2",
+    "HIGEO",
+    "SCIEN",
+    "PH-CH",
+    "SVT",
+    "TECHN",
+    "HIGCV",
+    "EPS",
+    "EDMUS",
+    "A-PLA",
+    "OR",
+];
+
 export default function Lab({ fetchGrades }) {
+    const { usedDisplayTheme } = useContext(AppContext);
+    // const userData = useContext(UserDataContext);
+    // const {
+    //     grades: {value: grades}
+    // } = userData;
+    // const subjectArray = Object.keys(Object.values(grades)[0].subjects);
+    // console.log(JSON.stringify(subjectArray));
     const addNotification = useCreateNotification()
     // States
     const [jsp, rerenderer] = useState(0);
@@ -68,6 +94,11 @@ export default function Lab({ fetchGrades }) {
     const [fileExtension, setFileExtension] = useState("PNG");
     const [linkableButton1, setLinkableButton1] = useState(0);
     const [linkableButton2, setLinkableButton2] = useState(0);
+    const [colorSeed, setColorSeed] = useState("");
+    const [colorSeedVIMax, setColorSeedVIMax] = useState(32);
+    const [colorSeedVIMin, setColorSeedVIMin] = useState(52);
+    const [colorSeedVLMax, setColorSeedVLMax] = useState(63);
+    const [colorSeedVLMin, setColorSeedVLMin] = useState(83);
 
     const initialTestState2 = {
         a: {
@@ -375,6 +406,41 @@ export default function Lab({ fetchGrades }) {
             <p>param_1: {linkableButton1}</p>
             <p>param_2: {linkableButton2}</p>
 
+            <h4>Couleurs de matières en fonction du préfixe</h4>
+            <NumberInput min={0} max={100} onChange={(e) => setColorSeedVIMin(parseInt(e))} value={colorSeedVIMin} ></NumberInput>
+            <NumberInput min={0} max={100} onChange={(e) => setColorSeedVIMax(parseInt(e))} value={colorSeedVIMax} ></NumberInput>
+            <NumberInput min={0} max={Math.min(50, colorSeedVIMin)} onChange={(e) => setColorSeedVLMin(parseInt(e))} value={colorSeedVLMin} ></NumberInput>
+            <NumberInput min={0} max={Math.min(50, colorSeedVIMax)} onChange={(e) => setColorSeedVLMax(parseInt(e))} value={colorSeedVLMax} ></NumberInput>
+            <TextInput textType={"n"} onChange={(e) => setColorSeed(e.target.value)} value={colorSeed} ></TextInput>
+            <div
+                style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, 300px)',
+                    gap: '5px',
+                    marginInline: "500px"
+                }}
+            >
+                {subjectArray.map((subject, i) => {
+                    const taskColor = textToHSL(colorSeed + subject);
+                    const primaryColor = usedDisplayTheme === "dark" ? `hsl(${taskColor[0]}, ${taskColor[1]}%, ${taskColor[2]}%)` : `hsl(${taskColor[0]}, ${taskColor[1] - 20}%, ${taskColor[2] - 30}%)`;
+                    const secondaryColor = usedDisplayTheme === "dark" ? `hsla(${taskColor[0]}, ${taskColor[1]}%, ${taskColor[2]}%, .2)` : `hsla(${taskColor[0]}, ${taskColor[1] - 20}%, ${taskColor[2] - 30}%, .2)`;
+                    return <div
+                        key={i}
+                        style={{
+                            width: '300px',
+                            height: '105px',
+                            backgroundColor: secondaryColor,
+                            color: primaryColor,
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            fontWeight: "600",
+                            borderRadius: "4px",
+                            border: "1px solid " + primaryColor
+                        }}
+                    >{subject}</div>
+                })}
+            </div>
             {/* FOOTER */}
             <div style={{ height: "100px" }}></div>
         </div>

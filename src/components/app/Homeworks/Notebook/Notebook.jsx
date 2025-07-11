@@ -1,13 +1,12 @@
-import { useContext, useEffect, useRef } from "react";
+import { useContext, useRef } from "react";
 import ContentLoader from "react-content-loader";
-import { capitalizeFirstLetter, getISODate } from "../../../../utils/utils";
 
 import { AppContext, SettingsContext, UserDataContext } from "../../../../App";
 import Task from "./Task";
-import SessionContent from "./SessionContent";
 import DetailedTask from "./DetailedTask";
-import DetailedSessionContent from "./DetailedSessionContent";
 import DateSelector from "./DateSelector";
+import NotebookDay from "./NotebookDay";
+import { getISODate } from "../../../../utils/utils";
 
 import "./Notebook.css";
 export default function Notebook({ hideDateController = false }) {
@@ -29,10 +28,7 @@ export default function Notebook({ hideDateController = false }) {
     const isNotebookGrabed = useRef(false);
     const notebookMovement = useRef({
         distance: 0,
-        speed: {
-            x: 0,
-            y: 0
-        }
+        speed: 0
     });
 
     // - - Drag to scroll - -
@@ -58,25 +54,25 @@ export default function Notebook({ hideDateController = false }) {
     }
 
     function handleMouseMove(event) {
-        const TRIGGER_SHIFT = 13;
+        const TRIGGER_SHIFT = 5;
         if (notebookMovement.current.distance > TRIGGER_SHIFT && !isNotebookGrabed.current) {
             isNotebookGrabed.current = true;
         }
-        const mouseSpeed = notebookMovement.current.speed;
-        mouseSpeed.x = -event.movementX;
-        mouseSpeed.y = -event.movementY;
-        notebookContainerRef.current.scrollBy({ left: mouseSpeed.x, top: mouseSpeed.y, behavior: "instant" });
-        notebookMovement.current.distance += Math.sqrt((-event.movementX) ** 2 + (-event.movementY) ** 2);
+        const mouseMovement = notebookMovement.current;
+        mouseMovement.speed = -event.movementX;
+        notebookContainerRef.current.scrollBy({ left: mouseMovement.speed, behavior: "instant" });
+        notebookMovement.current.distance += Math.abs(mouseMovement.speed);
     }
 
     function handleMouseUp() {
         document.removeEventListener("mousemove", handleMouseMove);
         document.removeEventListener("mouseup", handleMouseUp);
+        if (!isNotebookGrabed.current) return;
         isNotebookMouseDown.current = false;
 
         const SCROLL_FRICTION = 0.99;
-        const SCROLL_COEF = 1.20;
-        let dragSpeed = notebookMovement.current.speed.x;
+        const SCROLL_COEF = 1.15;
+        let dragSpeed = notebookMovement.current.speed;
         let bufferedMovement = 0;
         function applyInertia() {
             if (!isNotebookMouseDown.current && displayMode.value === "quality" && Math.abs(dragSpeed) > 0.1) {
@@ -95,35 +91,18 @@ export default function Notebook({ hideDateController = false }) {
 
     function handleMouseDown(event) {
         if (event.button != 0 && event.buttons != 3) {
-            return ;
+            return;
         }
         // That one is tricky, actually, if you set it to false in handleMouseUp function, the click event will be dispatched after mouseup is handled, so after isNotebookGrabed.current is set to false.
         isNotebookGrabed.current = false;
         isNotebookMouseDown.current = true;
         notebookMovement.current.distance = 0;
-        notebookMovement.current.speed.x = 0;
-        notebookMovement.current.speed.y = 0;
+        notebookMovement.current.speed = 0;
         preventDraggingIssues();
 
         document.addEventListener("mousemove", handleMouseMove);
         document.addEventListener("mouseup", handleMouseUp);
     }
-
-    useEffect(() => {
-        const controller = new AbortController();
-        if ((homeworks !== undefined // SI l'objet des devoirs existe
-            && (activeHomeworkDate !== null // MAIS qu'une date est choisie
-                && (homeworks[activeHomeworkDate] === undefined // ET que les devoirs de cette date selectionnée ne sont pas fetch
-                    || (homeworks[activeHomeworkDate].length // OU que les devoir d'aujourd'hui ont été fetch mais qu'ils ne sont pas vides
-                        && !(homeworks[activeHomeworkDate][0].content || homeworks[activeHomeworkDate][0].sessionContent))))) // MAIS que le contenu OU le contenu de séance n'a pas été fetch
-            && isLoggedIn) {
-            userData.get.homeworks(activeHomeworkDate, controller);
-        }
-
-        return () => {
-            controller.abort();
-        }
-    }, [activeHomeworkDate, homeworks, isLoggedIn]);
 
     return <>
         {(!hideDateController && (!homeworks || Object.keys(homeworks).length > 0))
@@ -132,65 +111,11 @@ export default function Notebook({ hideDateController = false }) {
         }
         <div className="notebook-container" ref={notebookContainerRef} onMouseDown={handleMouseDown}>
             {homeworks
-                ? Object.keys(homeworks).length > 0/* && Object.values(homeworks).some(arr => arr.some(task => task.content))*/
-                    ? Object.keys(homeworks).sort().map((day, index) => {
-                        const tasks = homeworks[day].filter(element => element.type === "task");
-                        const sessionContents = homeworks[day].filter(element => element.type === "sessionContent");
-                        const progression = tasks.filter((task) => task.isDone).length / tasks.length;
-                        const dayDate = new Date(day);
-                        const selected = activeHomeworkDate === day;
-                        return (homeworks[day].length
-                            ? <div
-                                key={day}
-                                id={day}
-                                onClick={() => {
-                                    if (isNotebookGrabed.current) return;
-                                    if (day !== activeHomeworkDate)
-                                        setActiveHomeworkDate(day);
-                                    if (!activeHomeworkId)
-                                        setActiveHomeworkId(tasks[0].id);
-                                }}
-                                className={`notebook-day${selected ? " selected" : ""}`}
-                                style={{ "--day-progression": `${progression * 100}%` }}
-                            >
-                                <div className="notebook-day-header" style={{ "--after-opacity": (progression === 1 ? 1 : 0) }}>
-                                    <span className="notebook-day-date">
-                                        <time dateTime={dayDate.toISOString()}>
-                                            {capitalizeFirstLetter(dayDate.toLocaleDateString("fr-FR", { weekday: "long", month: "long", day: "numeric" }))}
-                                        </time>
-                                    </span>
-                                </div>
-                                <hr />
-                                {/* <hr style={{ width: `${progression * 100}%`}} /> */}
-                                <div className="tasks-container" >
-                                    {tasks.map((task, taskIndex) => {
-                                        if (selected) {
-                                            const result = [<DetailedTask key={"detailed-" + task.id} task={task} day={day} />];
-                                            if (taskIndex < tasks.length - 1) {
-                                                result.push(<hr key={`${task.id}-hr`} className="detailed-task-separator" />)
-                                            }
-                                            return result;
-                                        }
-                                        return <Task key={task.id} task={task} isNotebookGrabed={isNotebookGrabed} />;
-                                    })}
-                                    {sessionContents.length !== 0 && (selected
-                                        ? <div className="detailed-section-separator"><hr /><span>Contenus de Séances</span><hr /></div>
-                                        : <hr className="section-separator" />)
-                                    }
-                                    {sessionContents.map((sessionContent, sessionContentIndex) => {
-                                        if (selected) {
-                                            result = [<DetailedSessionContent key={"detailed-" + sessionContent.id} day={day} sessionContent={sessionContent} sessionContentIndex={sessionContentIndex} />];
-                                            if (sessionContentIndex < sessionContents.length - 1) {
-                                                result.push(<hr key={`${sessionContent.id}-hr`} className="detailed-task-separator" />)
-                                            }
-                                            return result;
-                                        }
-                                        return <SessionContent key={sessionContent.id} day={day} sessionContent={sessionContent} sessionContentIndex={sessionContentIndex} />
-                                    })}
-                                </div>
-                            </div>
-                            : null)
-                    }).filter(e => e)
+                ? Object.values(homeworks).length > 0
+                    ? Object.values(homeworks).sort((day) => day.date).map((day) => (day.taskList.length || day.sessionContentList.length)
+                        ? <NotebookDay day={day} isNotebookGrabed={isNotebookGrabed} />
+                        : null
+                    ).filter(e => e)
                     : <p className="no-homework-placeholder">Vous n'avez aucun devoir à venir. Profitez de ce temps libre pour venir discuter sur le <a href="https://discord.gg/AKAqXfTgvE" target="_blank">serveur Discord d'Ecole Directe Plus</a> et contribuer au projet via le <a href="https://github.com/Magic-Fish-Lab/Ecole-Directe-Plus" target="_blank">dépôt Github</a> !</p>
                 : contentLoadersRandomValues.current.days.map((el, index) => {
                     return <div className={`notebook-day ${index === 0 ? "selected" : ""}`} key={index} >

@@ -130,9 +130,9 @@ export default function Root({ get, accountsList, fakeLogin, resetUserData, sync
                 necessaryResets(localStorage.getItem("EDPVersion"));
             }
         }
-    }, [])
+    }, []);
 
-     useEffect(() => {
+    useEffect(() => {
         if (homeworks) {
             const urlParamDate = urlParams.get("homework_date");
             const urlParamId = parseInt(urlParams.get("homework_id"));
