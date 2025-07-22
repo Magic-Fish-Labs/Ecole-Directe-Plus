@@ -45,7 +45,7 @@ export default function useAccountSettings(selectedUserIndex, defaultSettings) {
         {
             ...accountSettings[selectedUserIndex][setting],
             set: (value) => dispatch({ action: "SET", params: { setting, value } }),
-            setroperty: (property, value) => dispatch({ action: "SET_PROPERTY", params: { setting, property, value } })
+            setProperty: (property, value) => dispatch({ action: "SET_PROPERTY", params: { setting, property, value } })
         }
     ]));
 }

@@ -12,7 +12,7 @@ import DoubleAuthLogin from "./Login/DoubleAuthLogin";
 import { EDPVersion } from "../utils/constants/configs";
 import { AccountContext, SettingsContext, UserDataContext } from "../App";
 
-export default function Root({ get, accountsList, fakeLogin, resetUserData, syncSettings, createFolderStorage, displayTheme, displayMode, setDisplayModeState, activeAccount, setActiveAccount, setIsFullScreen, globalSettings, entryURL, logout, isStandaloneApp, isTabletLayout, proxyError, fetchHomeworks, handleEdBan, isEDPUnblockInstalled, setIsEDPUnblockInstalled, setRequireDoubleAuth, isEDPUnblockActuallyInstalled, setIsEDPUnblockActuallyInstalled, }) {
+export default function Root({ accountsList, fakeLogin, resetUserData, syncSettings, createFolderStorage, displayTheme, displayMode, setDisplayModeState, activeAccount, setActiveAccount, setIsFullScreen, globalSettings, entryURL, isStandaloneApp, isTabletLayout, proxyError, handleEdBan, isEDPUnblockInstalled, setIsEDPUnblockInstalled, isEDPUnblockActuallyInstalled, setIsEDPUnblockActuallyInstalled, }) {
 
     const { requireDoubleAuth } = useContext(AccountContext)
     const {

@@ -42,10 +42,6 @@ export default function Homeworks() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const hashParameters = location.hash.split(";")
-    const selectedDate = hashParameters.length ? hashParameters[0].slice(1) : getISODate(new Date())
-    const selectedTask = hashParameters.length > 1 && homeworks && homeworks[selectedDate]?.find(e => e.id == hashParameters[1])
-
     useEffect(() => {
         document.title = "Cahier de texte • Ecole Directe Plus";
     }, []);
@@ -104,7 +100,7 @@ export default function Homeworks() {
                 </WindowsLayout>
             </WindowsContainer>
         </div>
-        {(hashParameters.length > 2 && hashParameters[2] === "s" && selectedTask) && (!supposedNoSessionContent.includes(selectedTask.sessionContent)
+        {/* {(hashParameters.length > 2 && hashParameters[2] === "s" && selectedTask) && (!supposedNoSessionContent.includes(selectedTask.sessionContent)
             ? <BottomSheet heading="Contenu de séance" onClose={() => { navigate(`${hashParameters[0]};${hashParameters[1]}`, { replace: true }) }}>
                 <EncodedHTMLDiv className="bottomsheet-session-content">{selectedTask.sessionContent}</EncodedHTMLDiv>
                 <div className="task-footer">
@@ -148,6 +144,6 @@ export default function Homeworks() {
                     </div>
                 </div>
             </PopUp>
-            : <Navigate to={`${hashParameters[0]};${hashParameters[1]}`} />)}
+            : <Navigate to={`${hashParameters[0]};${hashParameters[1]}`} />)} */}
     </>
 }
