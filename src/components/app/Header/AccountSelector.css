@@ -161,6 +161,7 @@
 }
 
 #account-selector .options-container {
+    overflow: hidden;
     min-height: 0;
 }
 
