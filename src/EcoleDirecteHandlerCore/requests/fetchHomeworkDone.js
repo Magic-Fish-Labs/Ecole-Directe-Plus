@@ -21,15 +21,21 @@ export default async function fetchHomeworksDone({ tasksDone = [], tasksNotDone 
 			error.type = "FETCH_ERROR";
 			throw error;
 		})
-		.then((response) => response.json())
 		.then((response) => {
-			if (!response) {
+			if (response.ok) return response.json();
+
+			const error = new Error();
+			error.type = "FETCH_ERROR"
+			throw error;
+		})
+		.then((data) => {
+			if (!data) {
 				throw new EdpError(FetchErrorBuilders.EMPTY_RESPONSE);
 			}
-			if (response.code < 300) {
-				return response;
+			if (data.code < 300) {
+				return data;
 			}
-			switch (response.code) {
+			switch (data.code) {
 				case 520:
 					throw new EdpError(FetchErrorBuilders.INVALID_TOKEN);
 				case 525:
@@ -37,8 +43,8 @@ export default async function fetchHomeworksDone({ tasksDone = [], tasksNotDone 
 				default: // UNHANDLED ERROR
 					throw new EdpError({
 						name: "UnhandledError",
-						code: response.code,
-						message: response.message,
+						code: data.code,
+						message: data.message,
 					});
 			}
 		});

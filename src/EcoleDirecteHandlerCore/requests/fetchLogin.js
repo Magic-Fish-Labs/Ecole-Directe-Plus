@@ -63,15 +63,21 @@ export default async function fetchLogin(username, password, A2FKey, controller 
             error.type = "FETCH_ERROR"
             throw error;
         })
-        .then((response) => response.json())
         .then((response) => {
-            if (!response) {
+			if (response.ok) return response.json();
+
+			const error = new Error();
+			error.type = "FETCH_ERROR"
+			throw error;
+		})
+        .then((data) => {
+            if (!data) {
                 throw new EdpError(FetchErrorBuilders.EMPTY_RESPONSE);
             }
-            if (response.code < 300) {
-                return response;
+            if (data.code < 300) {
+                return data;
             }
-            switch (response.code) {
+            switch (data.code) {
                 case 505:
                     throw new EdpError(FetchErrorBuilders.login.INVALID_CREDENTIALS);
                 case 74000:
@@ -80,8 +86,8 @@ export default async function fetchLogin(username, password, A2FKey, controller 
                     // !:! report l'erreur
                     throw new EdpError({
                         name: "UnhandledError",
-                        code: response.code,
-                        message: response.message,
+                        code: data.code,
+                        message: data.message,
                     });
             }
         })
