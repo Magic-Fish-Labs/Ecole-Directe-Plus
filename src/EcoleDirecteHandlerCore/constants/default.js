@@ -1,5 +1,5 @@
 export const DefaultEcoleDirecteAccount = {
-	username: "EDELEVE",
+	username: "EDFAMILLE",
 	password: "@plim2023-2024",
 	token: "",
 	selectedUserIndex: 0,

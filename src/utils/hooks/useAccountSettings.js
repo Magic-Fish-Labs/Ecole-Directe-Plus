@@ -1,7 +1,7 @@
-import { useReducer } from "react";
+import { useState, useReducer } from "react";
 
-export default function useAccountSettings(selectedUserIndex, defaultSettings) {
-
+export default function useAccountSettings(init, template) {
+    const [selectedUserSettingIndex, setSelectedUserSettingIndex] = useState(0);
     const [accountSettings, dispatch] = useReducer((current, { action, params }) => {
         const next = [...current];
 
@@ -9,10 +9,10 @@ export default function useAccountSettings(selectedUserIndex, defaultSettings) {
             case "SET":
                 {
                     const { setting, value } = params;
-                    if (next[selectedUserIndex].hasOwnProperty(setting)) {
-                        next[selectedUserIndex][setting].value = value;
+                    if (next[selectedUserSettingIndex].hasOwnProperty(setting)) {
+                        next[selectedUserSettingIndex][setting].value = value;
                     } else {
-                        next[selectedUserIndex][setting] = { value, properties: {} };
+                        next[selectedUserSettingIndex][setting] = { value, properties: {} };
                     }
                     return next;
                 }
@@ -25,11 +25,16 @@ export default function useAccountSettings(selectedUserIndex, defaultSettings) {
                      * below (setting and value)  
                      */
                     const { setting, property, value } = params;
-                    if (!next[selectedUserIndex].hasOwnProperty(setting)) {
+                    if (!next[selectedUserSettingIndex].hasOwnProperty(setting)) {
                         throw new Error("Couldn't add property to inexistant setting");
                     }
-                    next[selectedUserIndex][setting].properties[property] = value;
+                    next[selectedUserSettingIndex][setting].properties[property] = value;
                     return next;
+                }
+            case "INITIALIZE":
+                {
+                    const { userNumber } = params;
+                    return Array.from({ length: userNumber }, () => template);
                 }
             case "RESET":
                 { // !:! We'll see later if this is usefull or not
@@ -38,14 +43,20 @@ export default function useAccountSettings(selectedUserIndex, defaultSettings) {
                 }
         }
 
-    }, defaultSettings);
+    }, init);
 
-    return Object.fromEntries(Object.keys(accountSettings[selectedUserIndex]).map(setting => [
-        setting,
-        {
-            ...accountSettings[selectedUserIndex][setting],
-            set: (value) => dispatch({ action: "SET", params: { setting, value } }),
-            setProperty: (property, value) => dispatch({ action: "SET_PROPERTY", params: { setting, property, value } })
+    return {
+        userSettings: Object.fromEntries(Object.keys(accountSettings[selectedUserSettingIndex]).map(setting => [
+            setting,
+            {
+                ...accountSettings[selectedUserSettingIndex][setting],
+                set: (value) => dispatch({ action: "SET", params: { setting, value } }),
+                setProperty: (property, value) => dispatch({ action: "SET_PROPERTY", params: { setting, property, value } })
+            }
+        ])),
+        handlers: {
+            initialize: (userNumber) => dispatch({ action: "INITIALIZE", params: { userNumber } }),
+            setSelectedUserSettingIndex
         }
-    ]));
+    };
 }

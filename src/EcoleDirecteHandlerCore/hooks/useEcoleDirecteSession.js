@@ -33,7 +33,7 @@ import { DefaultAccountdata } from "../constants/default";
  * )
  */
 
-export default function useEcoleDirecteSession(initEcoleDirecteSession) {
+export default function useEcoleDirecteSession(initEcoleDirecteSession, callbacks) {
     const usedAccountDataTemplate = { ...DefaultAccountdata, ...initEcoleDirecteSession.accountDataTemplate };
     const {
         userData,
@@ -41,23 +41,23 @@ export default function useEcoleDirecteSession(initEcoleDirecteSession) {
             initialize: initializeUserData,
             reset: resetUserData,
             setSelectedUserDataIndex,
-        },
-        isInitialized
-    } = useAccountData(initEcoleDirecteSession.isLoggedIn ? initEcoleDirecteSession.accountData : undefined, usedAccountDataTemplate);
-    const account = useEcoleDirecteAccount({});
-    const { token, users, selectedUser, selectedUserIndex, loginStates } = account;
-
-    useEffect(() => {
-        if (loginStates.isLoggedIn && !isInitialized) {
-            initializeUserData(users.length);
-        } else if (loginStates.requireLogin) {
-            resetUserData();
         }
-    }, [loginStates.isLoggedIn, loginStates.requireLogin]);
-
-    useEffect(() => {
-        setSelectedUserDataIndex(selectedUserIndex.value);
-    }, [selectedUserIndex.value]);
+    } = useAccountData(initEcoleDirecteSession.isLoggedIn ? initEcoleDirecteSession.accountData : undefined, usedAccountDataTemplate);
+    const account = useEcoleDirecteAccount({}, {
+        onLogin: (users) => {
+            initializeUserData(users.length);
+            if (callbacks.onLogin) callbacks.onLogin(users);
+        },
+        onUserChange: (user, userIndex) => {
+            setSelectedUserDataIndex(userIndex);
+            if (callbacks.onUserChange) callbacks.onUserChange(user, userIndex);
+        },
+        onLogout: () => {
+            resetUserData();
+            if (callbacks.onLogout) callbacks.onLogout();
+        }
+    });
+    const { token, selectedUser, selectedUserIndex, loginStates } = account;
 
     async function getGrades(schoolYear, controller = (new AbortController())) {
         const requestUserIndex = selectedUserIndex.value;

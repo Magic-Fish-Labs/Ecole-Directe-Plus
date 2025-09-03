@@ -152,34 +152,46 @@ window.addEventListener("appinstalled", () => { promptInstallPWA = null });
 
 logEDPLogo();
 export default function App() {
-    const userSession = useEcoleDirecteSession(getInitialEcoleDirecteSessions());
+    const {
+        userSettings,
+        handlers: {
+            initialize: initAccountSettings,
+            setSelectedUserSettingIndex
+        }
+    } = useAccountSettings([defaultAccountSettings], defaultAccountSettings);
+    const {
+        displayTheme,
+        displayMode
+    } = userSettings;
 
+    const userSession = useEcoleDirecteSession(getInitialEcoleDirecteSessions(), {
+        onLogin: (users) => {
+            initAccountSettings(users.length);
+        },
+        onUserChange: (_, userIndex) => {
+            console.log(userIndex);
+            setSelectedUserSettingIndex(userIndex);
+        }
+    });
     const {
         userData,
     } = userSession;
-
     const {
         token,
         loginStates,
         selectedUserIndex,
         selectedUser,
     } = userSession.account;
-
     const { isLoggedIn, requireDoubleAuth, doubleAuthAcquired } = loginStates;
-
     const tokenState = token.value;
     const setTokenState = token.set;
-    const accountsListState = userSession.account.users;
+    const accountsListState = userSession.account.users.value;
+
     const globalSettings = useSettings(defaultGlobalSettings);
-    // !:! pour le default, store les valeurs en js, et quand on les get, on regarde si elles existent sinon on prend celle par dfaut du config.json
     const { isDevChannel, keepLoggedIn } = globalSettings;
 
     // user settings
     // paramètres propre à chaque profil du compte
-
-    const userSettings = useAccountSettings(selectedUserIndex.value, [defaultAccountSettings]); // !:! je pense que ca marche pas quand le nombre d'utilisateur change
-
-    const { displayTheme, displayMode } = userSettings;
 
     // user data (chaque information relative à l'utilisateur est stockée dans un State qui lui est propre)
     const [timeline, setTimeline] = useState([]);
@@ -1279,7 +1291,7 @@ export default function App() {
                     path: "login",
                 },
                 {
-                    element: <NavigateSave to={`/app/${selectedUserIndex.value}/dashboard`} saveQueryParams/>,
+                    element: <NavigateSave to={`/app/${selectedUserIndex.value}/dashboard`} saveQueryParams />,
                     path: "app",
                 },
                 {

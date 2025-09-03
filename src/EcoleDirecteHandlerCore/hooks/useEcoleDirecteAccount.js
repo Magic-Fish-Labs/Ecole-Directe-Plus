@@ -12,6 +12,7 @@ import fetchDoubleAuthAnswer from "../requests/fetchDoubleAuthAnswer";
 import fetchDoubleAuthQuestions from "../requests/fetchDoubleAuthQuestions";
 import { DefaultEcoleDirecteAccount } from "../constants/default";
 import { mapDoubleAuthQuestion } from "../mappers/doubleAuthQuestions";
+import { requestLogin } from "./requestHandler/requestLogin";
 
 /**
  * Each get function (the ones that get parse and store data such as requestLogin of getGrades)
@@ -32,7 +33,7 @@ import { mapDoubleAuthQuestion } from "../mappers/doubleAuthQuestions";
  * )
  */
 
-export default function useEcoleDirecteAccount(initialAccount) {
+export default function useEcoleDirecteAccount(initialAccount, callbacks) {
     const [loginState, setLoginState] = useState(initialAccount.users ? (initialAccount.token ? LoginStates.LOGGED_IN : LoginStates.REQUIRE_NEW_TOKEN) : LoginStates.REQUIRE_LOGIN);
     const [username, setUsername] = useState(initialAccount.username ?? DefaultEcoleDirecteAccount.username);
     const [password, setPassword] = useState(initialAccount.password ?? DefaultEcoleDirecteAccount.password);
@@ -49,78 +50,27 @@ export default function useEcoleDirecteAccount(initialAccount) {
     const requireDoubleAuth = loginState === LoginStates.REQUIRE_DOUBLE_AUTH;
     const doubleAuthAcquired = loginState === LoginStates.DOUBLE_AUTH_ACQUIRED;
 
-    async function requestLogin(localUsername, localPassword, keepLoggedIn, controller = new AbortController()) {
+    const account = {
+        userCredentials: {
+            username: { value: username, set: (value) => { if (requireLogin) setUsername(value) } },
+            password: { value: password, set: (value) => { if (requireLogin) setPassword(value) } },
+        },
+        doubleAuthKey,
+        token: { value: token, set: setToken },
+        selectedUserIndex: { value: selectedUserIndex, set: (newIndex) => { setSelectedUserIndex(newIndex); callbacks.onUserChange(users[newIndex], newIndex) } },
+        loginStates: {
+            requireLogin,
+            isLoggedIn,
+            requireDoubleAuth,
+            requireNewToken,
+            doubleAuthAcquired,
+            set: setLoginState,
+        },
+        selectedUser,
+        users: {value: users, set: setUsers},
+    };
 
-        let response;
-        if (localUsername === guestCredentials.username && localPassword === guestCredentials.password) {
-            response = import(/* @vite-ignore */ guestDataPath.login)
-        } else {
-            response = fetchLogin(localUsername, localPassword, doubleAuthKey.current, controller)
-        }
-
-        return response
-            .then((response) => {
-                switch (response.code) {
-                    case 200:
-                        setToken(response.token); // collecte du token
-                        setUsers(mapLogin(response.data));
-                        setLoginState(LoginStates.LOGGED_IN);
-                        if (keepLoggedIn) {
-                            setUsername(localUsername);
-                            setPassword(localPassword);
-                        } else {
-                            setUsername("");
-                            setPassword("");
-                        }
-                        return LoginCodes.SUCCESS;
-                    case 250:
-                        doubleAuthKey.current = null;
-                        setToken(response.token); // collecte du token pour la double authentification
-                        setLoginState(LoginStates.REQUIRE_DOUBLE_AUTH);
-                        return LoginCodes.REQUIRE_DOUBLE_AUTH;
-                    case 202:
-                        setLoginState(LoginStates.REQUIRE_LOGIN);
-                        return LoginCodes.ACCOUNT_CREATION_ERROR;
-                    case -1:
-                        setLoginState(LoginStates.BANNED_USER);
-                        return LoginCodes.EMPTY_RESPONSE;
-                    default: // UNHANDLED ERROR
-                        // !:! report l'erreur
-                        return { code: -1, message: response.message };
-                }
-            })
-            .catch((error) => {
-                if (error.type === "ED_ERROR") {
-                    if (error.code < 0) {
-                        setLoginState(LoginStates.BANNED_USER);
-                    } else {
-                        setLoginState(LoginStates.REQUIRE_LOGIN);
-                    }
-                    switch (error.code) {
-                        case 1:
-                            return LoginCodes.NO_EXT_RESPONSE;
-                        case 2:
-                            return LoginCodes.EXT_NO_GTK_COOKIE;
-                        case 3:
-                            return LoginCodes.EXT_NO_COOKIE;
-                        case 505:
-                            return LoginCodes.INVALID_CREDENTIALS;
-                        case 74000:
-                            return LoginCodes.SERVER_ERROR;
-                        case -1:
-                            return LoginCodes.EMPTY_RESPONSE;
-                        default:
-                            return { code: -1, message: error.message };
-                    }
-                }
-                if (error.name !== "AbortError") {
-                    console.error(error);
-                    return { code: -1, message: error.message };
-                } // !:! report l'erreur
-            });
-    }
-
-    function getDoubleAuthQuestions(controller = new AbortController()) {
+    async function getDoubleAuthQuestions(controller = new AbortController()) {
         // We don't handle guest because he doesn't need DoubleAuth obviously
         return fetchDoubleAuthQuestions(token, controller)
             .then((response) => {
@@ -158,7 +108,7 @@ export default function useEcoleDirecteAccount(initialAccount) {
             })
     }
 
-    function sendDoubleAuthAnswer(choice, controller = new AbortController()) {
+    async function sendDoubleAuthAnswer(choice, controller = new AbortController()) {
         return fetchDoubleAuthAnswer(token, choice, controller)
             .then((response) => {
                 setToken((old) => response?.token || old);
@@ -201,6 +151,7 @@ export default function useEcoleDirecteAccount(initialAccount) {
     }
 
     function logout() {
+        callbacks.onLogout();
         setUsers(null);
         setToken("");
         setUsername("");
@@ -210,26 +161,11 @@ export default function useEcoleDirecteAccount(initialAccount) {
     }
 
     return {
-        userCredentials: {
-            username: { value: username, set: (value) => { if (requireLogin) setUsername(value) } },
-            password: { value: password, set: (value) => { if (requireLogin) setPassword(value) } },
-        },
-        token: { value: token, set: setToken },
-        selectedUserIndex: { value: selectedUserIndex, set: setSelectedUserIndex },
-        loginStates: {
-            requireLogin,
-            isLoggedIn,
-            requireDoubleAuth,
-            requireNewToken,
-            doubleAuthAcquired,
-            set: setLoginState,
-        },
-        requestLogin,
-        getDoubleAuthQuestions,
-        sendDoubleAuthAnswer,
-        selectedUser,
-        users,
+        ...account,
         exportInitAccounts,
         logout,
+        requestLogin: (...args) => requestLogin(account, callbacks, ...args),
+        getDoubleAuthQuestions,
+        sendDoubleAuthAnswer,
     };
 }
