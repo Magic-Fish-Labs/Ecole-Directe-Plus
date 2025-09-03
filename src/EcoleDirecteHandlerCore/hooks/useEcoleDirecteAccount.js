@@ -164,7 +164,7 @@ export default function useEcoleDirecteAccount(initialAccount, callbacks) {
         ...account,
         exportInitAccounts,
         logout,
-        requestLogin: (...args) => requestLogin(account, callbacks, ...args),
+        requestLogin: (...args) => requestLogin(account, callbacks.onLogin, ...args),
         getDoubleAuthQuestions,
         sendDoubleAuthAnswer,
     };
