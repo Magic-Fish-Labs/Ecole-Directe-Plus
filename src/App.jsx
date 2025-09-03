@@ -1222,7 +1222,7 @@ export default function App() {
                     isLoggedIn={isLoggedIn}
                     token={tokenState}
                     accountsList={accountsListState}
-                    resetUserData={resetUserData}
+                    resetUserData={resetUserData} // could be in appContext
 
                     get={userSession.get}
 
@@ -1327,7 +1327,7 @@ export default function App() {
                             path: "settings",
                         },
                         {
-                            element: <Settings usersSettings={userSettings[selectedUserIndex.value]} accountsList={accountsListState} getCurrentSchoolYear={getCurrentSchoolYear} resetUserData={resetUserData} />,
+                            element: <Settings accountsList={accountsListState} resetUserData={resetUserData}  /* could be in appContext */ />,
                             path: ":userId/settings"
                         },
                         {

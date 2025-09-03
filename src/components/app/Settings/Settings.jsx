@@ -12,8 +12,10 @@ import KeyboardKey from "../../generic/KeyboardKey";
 import StoreCallToAction from "../../generic/StoreCallToAction";
 import { currentPeriodEvent } from "../../generic/events/setPeriodEvent";
 
-import { AppContext } from "../../../App";
+import { AppContext, SettingsContext } from "../../../App";
 import { applyZoom, getZoomedBoudingClientRect } from "../../../utils/zoom";
+import { getCurrentSchoolYear } from "../../../utils/date";
+
 import DropDownMenu from "../../generic/UserInputs/DropDownMenu";
 
 import "./Settings.css";
@@ -22,36 +24,41 @@ import "./Settings.css";
 import RefreshIcon from "../../graphics/RefreshIcon";
 import ToggleEnd from "../../graphics/ToggleEnd";
 
-export default function Settings({ usersSettings, accountsList, getCurrentSchoolYear, resetUserData }) {
-    const { isStandaloneApp, promptInstallPWA, useUserSettings, globalSettings, isTabletLayout } = useContext(AppContext);
+export default function Settings({ accountsList, resetUserData }) {
+    const {
+        global: globalSettings,
+        user: userSettings
+    } = useContext(SettingsContext);
+
+    const { isStandaloneApp, promptInstallPWA, isTabletLayout } = useContext(AppContext);
 
     const partyModeCheckbox = useRef(null);
     const periodEventCheckbox = useRef(null);
 
-    const settings = useUserSettings();
-    const isPeriodEventEnabled = settings.get("isPeriodEventEnabled");
+    const isPeriodEventEnabled = 
     
     useEffect(() => {
         document.title = "Paramètres • Ecole Directe Plus";
     }, []);
 
     const handleIsPeriodEventEnabledChange = (event) => {
-        settings.set("isPeriodEventEnabled", event.target.checked);
+        userSettings.isPeriodEventEnabled.set(event.target.checked);
     };
 
     const handleGradeScaleEnableChange = () => {
-        const newEnableValue = !settings.get("isGradeScaleEnabled");
+        const newEnableValue = !userSettings.isGradeScaleEnabled.value;
         if (newEnableValue) {
-            settings.set("gradeScale", settings.get("gradeScale") ? newEnableValue * settings.get("gradeScale") : newEnableValue * 20)
+            const gradeScale = userSettings.gradeScale.value;
+            userSettings.gradeScale.set(gradeScale ? newEnableValue * gradeScale : newEnableValue * 20)
         }
-        settings.set("isGradeScaleEnabled", newEnableValue);
+        userSettings.isGradeScaleEnabled.set(newEnableValue);
     }
 
     const handleGradeScaleValueChange = (newValue) => {
-        if (settings.get("gradeScale") !== newValue) {
-            settings.set("isGradeScaleEnabled", !!parseInt(newValue));
+        if (userSettings.gradeScale.value !== newValue) {
+            userSettings.isGradeScaleEnabled.set(!!parseInt(newValue));
         }
-        settings.set("gradeScale", newValue);
+        userSettings.gradeScale.set(newValue);
     }
 
     const handleDevChannelSwitchingToggle = () => {
@@ -60,9 +67,9 @@ export default function Settings({ usersSettings, accountsList, getCurrentSchool
 
     const handleSchoolYearChange = (newValue, side) => {
         newValue = parseInt(newValue);
-        settings.set("isSchoolYearEnabled", true);
+        userSettings.isSchoolYearEnabled.set(true);
 
-        let schoolYear = structuredClone(settings.get("schoolYear"));
+        let schoolYear = userSettings.schoolYear.value;
         if (side === 0) {
             schoolYear[0] = newValue;
             schoolYear[1] = newValue + 1;
@@ -71,8 +78,7 @@ export default function Settings({ usersSettings, accountsList, getCurrentSchool
             schoolYear[0] = newValue - 1;
         }
 
-        resetUserData(false);
-        settings.set("schoolYear", schoolYear)
+        userSettings.schoolYear.set(schoolYear)
     }
 
     return (
@@ -85,12 +91,12 @@ export default function Settings({ usersSettings, accountsList, getCurrentSchool
                 </div>
 
                 <div className="setting" id="display-theme">
-                    <span>Thème d'affichage</span> <DisplayThemeController id="display-theme-sc" selected={settings.get("displayTheme")} onChange={(value) => { settings.set("displayTheme", value) }} fieldsetName="display-theme" />
+                    <span>Thème d'affichage</span> <DisplayThemeController id="display-theme-sc" selected={userSettings.displayTheme.value} onChange={(value) => { userSettings.displayTheme.set(value) }} fieldsetName="display-theme" />
                 </div>
 
                 <div className="setting" id="grade-scale">
-                    <CheckBox id="grade-scale-cb" label={<span>Tous les barèmes sur</span>} checked={!!settings.get("isGradeScaleEnabled")} onChange={handleGradeScaleEnableChange} />
-                    <NumberInput min={settings.object("gradeScale").min} max={settings.object("gradeScale").max} value={settings.get("gradeScale")} onChange={handleGradeScaleValueChange} active={settings.get("isGradeScaleEnabled")} />
+                    <CheckBox id="grade-scale-cb" label={<span>Tous les barèmes sur</span>} checked={!!userSettings.isGradeScaleEnabled.value} onChange={handleGradeScaleEnableChange} />
+                    <NumberInput min={userSettings.gradeScale.properties.min} max={userSettings.gradeScale.properties.max} value={userSettings.gradeScale.value} onChange={handleGradeScaleValueChange} active={userSettings.isGradeScaleEnabled.value} />
                 </div>
 
                 <div className="setting" id="display-mode">
@@ -144,12 +150,12 @@ export default function Settings({ usersSettings, accountsList, getCurrentSchool
                         </InfoButton>
                     </div>
                     {isTabletLayout
-                        ? <DropDownMenu id="display-mode-dd" name="display-mode-dm" options={settings.object("displayMode").values} displayedOptions={["Qualité", "Équilibré", "Performance"]} selected={settings.get("displayMode")} onChange={(value) => { settings.set("displayMode", value) }} />
-                        : <SegmentedControl id="display-mode-sc" segments={settings.object("displayMode").values} displayedSegments={["Qualité", "Équilibré", "Performance"]} selected={settings.get("displayMode")} onChange={(value) => { settings.set("displayMode", value) }} fieldsetName="display-mode" />}
+                        ? <DropDownMenu id="display-mode-dd" name="display-mode-dm" options={userSettings.displayMode.properties.values} displayedOptions={["Qualité", "Équilibré", "Performance"]} selected={userSettings.displayMode.value} onChange={(value) => { userSettings.displayMode.set(value) }} />
+                        : <SegmentedControl id="display-mode-sc" segments={userSettings.displayMode.properties.values} displayedSegments={["Qualité", "Équilibré", "Performance"]} selected={userSettings.displayMode.value} onChange={(value) => { userSettings.displayMode.set(value) }} fieldsetName="display-mode" />}
                 </div>
 
                 <div className="setting" id="luciole-font">
-                    <CheckBox id="luciole-font-cb" checked={settings.get("isLucioleFontEnabled")} onChange={(event) => { settings.set("isLucioleFontEnabled", event.target.checked) }} label={<span>Police d'écriture optimisée pour les malvoyants (Luciole)</span>} />
+                    <CheckBox id="luciole-font-cb" checked={userSettings.isLucioleFontEnabled.value} onChange={(event) => { userSettings.isLucioleFontEnabled.set(event.target.checked) }} label={<span>Police d'écriture optimisée pour les malvoyants (Luciole)</span>} />
                 </div>
 
                 <div className="setting">
@@ -157,15 +163,15 @@ export default function Settings({ usersSettings, accountsList, getCurrentSchool
                         <span>Options d'affichage :</span>
                         <div id="filters-container">
                             <div id="sepia-filter">
-                                <CheckBox id="sepia-filter-cb" label={<span>Filtre sepia</span>} checked={settings.get("isSepiaEnabled")} onChange={(event) => { settings.set("isSepiaEnabled", event.target.checked) }} />
+                                <CheckBox id="sepia-filter-cb" label={<span>Filtre sepia</span>} checked={userSettings.isSepiaEnabled.value} onChange={(event) => { userSettings.isSepiaEnabled.set(event.target.checked) }} />
                             </div>
 
                             <div id="high-contrast-filter">
-                                <CheckBox id="high-contrast-filter-cb" label={<span>Mode contraste élevé</span>} checked={settings.get("isHighContrastEnabled")} onChange={(event) => { settings.set("isHighContrastEnabled", event.target.checked) }} />
+                                <CheckBox id="high-contrast-filter-cb" label={<span>Mode contraste élevé</span>} checked={userSettings.isHighContrastEnabled.value} onChange={(event) => { userSettings.isHighContrastEnabled.set(event.target.checked) }} />
                             </div>
 
                             <div id="grayscale-filter">
-                                <CheckBox id="grayscale-filter-cb" label={<span>Mode Noir et Blanc</span>} checked={settings.get("isGrayscaleEnabled")} onChange={(event) => { settings.set("isGrayscaleEnabled", event.target.checked) }} />
+                                <CheckBox id="grayscale-filter-cb" label={<span>Mode Noir et Blanc</span>} checked={userSettings.isGrayscaleEnabled.value} onChange={(event) => { userSettings.isGrayscaleEnabled.set(event.target.checked) }} />
                             </div>
                         </div>
                     </div>
@@ -173,11 +179,11 @@ export default function Settings({ usersSettings, accountsList, getCurrentSchool
 
 
                 <div className="setting" id="photo-blur">
-                    <CheckBox id="photo-blur-cb" label={<span>Flouter la photo de profil</span>} checked={settings.get("isPhotoBlurEnabled")} onChange={(event) => { settings.set("isPhotoBlurEnabled", event.target.checked) }} />
+                    <CheckBox id="photo-blur-cb" label={<span>Flouter la photo de profil</span>} checked={userSettings.isPhotoBlurEnabled.value} onChange={(event) => { userSettings.isPhotoBlurEnabled.set(event.target.checked) }} />
                 </div>
 
                 <div className="setting" id="party-mode">
-                    <CheckBox id="party-mode-cb" confetti={{ onCheck: true }} label={<span>Activer le mode festif 🎉</span>} checked={settings.get("isPartyModeEnabled")} onChange={(event) => { settings.set("isPartyModeEnabled", event.target.checked) }} />
+                    <CheckBox id="party-mode-cb" confetti={{ onCheck: true }} label={<span>Activer le mode festif 🎉</span>} checked={userSettings.isPartyModeEnabled.value} onChange={(event) => { userSettings.isPartyModeEnabled.set(event.target.checked) }} />
                 </div>
 
                 <div className="setting" id="period-event">
@@ -191,11 +197,11 @@ export default function Settings({ usersSettings, accountsList, getCurrentSchool
                 </div>
 
                 <div className="setting" id="reset-windows-layouts">
-                    <span>Réinitialiser l'agencement des fenêtres</span> <Button onClick={() => settings.set("windowArrangement", [])}>Réinitialiser</Button>
+                    <span>Réinitialiser l'agencement des fenêtres</span> <Button onClick={() => userSettings.windowArrangement.set([])}>Réinitialiser</Button>
                 </div>
 
                 <div className="setting" id="allow-windows-arrangement">
-                    <CheckBox id="allow-windows-arrangement-cb" label={<span>Permettre le réarrangement des fenêtres</span>} checked={settings.get("allowWindowsArrangement")} onChange={(event) => settings.set("allowWindowsArrangement", event.target.checked)} />
+                    <CheckBox id="allow-windows-arrangement-cb" label={<span>Permettre le réarrangement des fenêtres</span>} checked={userSettings.allowWindowsArrangement.value} onChange={(event) => userSettings.allowWindowsArrangement.set(event.target.checked)} />
                 </div>
 
 
@@ -211,7 +217,7 @@ export default function Settings({ usersSettings, accountsList, getCurrentSchool
                         <CheckBox id="show-old-streak-cb" label={<span>Afficher les Streak passées</span>} />
                     </div>
                     <div className="setting" id="show-negative-badges">
-                        <CheckBox id="show-negative-badges-cb" label={<span>Afficher les Badges négatifs</span>} checked={settings.get("negativeBadges")} onChange={(event) => settings.set("negativeBadges", event.target.checked)} />
+                        <CheckBox id="show-negative-badges-cb" label={<span>Afficher les Badges négatifs</span>} checked={userSettings.negativeBadges.value} onChange={(event) => userSettings.negativeBadges.set(event.target.checked)} />
                     </div>
                     <div className="setting" id="weaknesses-badges">
                         <CheckBox id="weaknesses-cb" label={<span>Afficher les points faibles</span>} />
@@ -232,11 +238,11 @@ export default function Settings({ usersSettings, accountsList, getCurrentSchool
                     </div>
 
                     <div className="setting" id="streamer-mode">
-                        <CheckBox id="streamer-mode-cb" label={<span>Activer le mode streamer (bêta)</span>} checked={settings.get("isStreamerModeEnabled")} onChange={(event) => { settings.set("isStreamerModeEnabled", event.target.checked) }} /><InfoButton className="setting-tooltip">Anonymise les informations sensibles. Les données scolaires seront tout de même affichées. (Bêta : certaines informations qui devraient être masquées ne le seront peut-être pas.)</InfoButton>
+                        <CheckBox id="streamer-mode-cb" label={<span>Activer le mode streamer (bêta)</span>} checked={userSettings.isStreamerModeEnabled.value} onChange={(event) => { userSettings.isStreamerModeEnabled.set(event.target.checked) }} /><InfoButton className="setting-tooltip">Anonymise les informations sensibles. Les données scolaires seront tout de même affichées. (Bêta : certaines informations qui devraient être masquées ne le seront peut-être pas.)</InfoButton>
                     </div>
 
                     <div className="setting" id="allow-anonymous-reports">
-                        <CheckBox id="allow-anonymous-reports-cb" label={<span>Autoriser l'envoi de rapports d'erreurs anonymisés</span>} checked={settings.get("allowAnonymousReports")} onChange={(event) => settings.set("allowAnonymousReports", event.target.checked)} />
+                        <CheckBox id="allow-anonymous-reports-cb" label={<span>Autoriser l'envoi de rapports d'erreurs anonymisés</span>} checked={userSettings.allowAnonymousReports.value} onChange={(event) => userSettings.allowAnonymousReports.set(event.target.checked)} />
                     </div>
 
                     <div className="setting disabled" id="info-persistence">
@@ -255,11 +261,11 @@ export default function Settings({ usersSettings, accountsList, getCurrentSchool
 
                     <div className="setting" id="school-year">
                         <div className="setting-label">
-                            <CheckBox id="school-year-cb" label={<span>Année scolaire (expérimental) </span>} checked={settings.get("isSchoolYearEnabled")} onChange={(event) => { settings.set("isSchoolYearEnabled", event.target.checked); resetUserData(false); }} />
+                            <CheckBox id="school-year-cb" label={<span>Année scolaire (expérimental) </span>} checked={userSettings.isSchoolYearEnabled.value} onChange={(event) => { userSettings.isSchoolYearEnabled.set(event.target.checked); resetUserData(false); }} />
                             <InfoButton className="school-year">Expérimental : permet d'obtenir les informations des années scolaires précédentes. Nous tentons de reconstruire les données perdues mais ne garantissons pas la véracité totale des informations</InfoButton>
                         </div>
                         <div id="shool-year-ni">
-                            <NumberInput min={1999} max={getCurrentSchoolYear()[0]} value={settings.get("schoolYear")[0]} onChange={(value) => handleSchoolYearChange(value, 0)} active={settings.get("isSchoolYearEnabled")} displayArrowsControllers={false} /><span className="separator"> - </span><NumberInput min={1999} max={getCurrentSchoolYear()[1]} value={settings.get("schoolYear")[1]} onChange={(value) => handleSchoolYearChange(value, 1)} active={settings.get("isSchoolYearEnabled")} displayArrowsControllers={false} />
+                            <NumberInput min={1999} max={getCurrentSchoolYear()[0]} value={userSettings.schoolYear.value[0]} onChange={(value) => handleSchoolYearChange(value, 0)} active={userSettings.isSchoolYearEnabled.value} displayArrowsControllers={false} /><span className="separator"> - </span><NumberInput min={1999} max={getCurrentSchoolYear()[1]} value={userSettings.schoolYear.value[1]} onChange={(value) => handleSchoolYearChange(value, 1)} active={userSettings.isSchoolYearEnabled.value} displayArrowsControllers={false} />
                         </div>
                     </div>
 
@@ -353,7 +359,7 @@ export default function Settings({ usersSettings, accountsList, getCurrentSchool
                         </div>
                     </div>
                 </div>
-                <p id="important-note">Ces paramètres sont exclusifs {usersSettings.syncNomDeDossierTier ? (globalSettings.shareSettings.value ? "à l'appareil et au compte" : "à l'appareil, au compte et au profil") : (globalSettings.shareSettings.value ? "au compte" : "au compte et au profil")} que vous utilisez en ce moment</p>
+                <p id="important-note">Ces paramètres sont exclusifs {userSettings.syncNomDeDossierTier ? (globalSettings.shareSettings.value ? "à l'appareil et au compte" : "à l'appareil, au compte et au profil") : (globalSettings.shareSettings.value ? "au compte" : "au compte et au profil")} que vous utilisez en ce moment</p>
                 {/* Install as application (iOS/Android/Windows) */}
                 {!isStandaloneApp && promptInstallPWA !== null && <div className="setting" id="install-as-application-tutorials">
                     <StoreCallToAction companyLogoSrc="/images/apple-logo.svg" companyLogoAlt="Logo d'Apple" targetURL="https://www.clubic.com/tutoriels/article-889913-1-comment-ajouter-raccourci-web-page-accueil-iphone.html " />

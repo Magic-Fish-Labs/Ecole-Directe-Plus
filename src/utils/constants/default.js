@@ -1,3 +1,4 @@
+import { lightFormat } from "date-fns"
 import { getCurrentSchoolYear } from "../date"
 
 export const defaultGlobalSettings = {
@@ -22,17 +23,17 @@ export const defaultGlobalSettings = {
 }
 
 export const defaultAccountSettings = {
-	keepLoggedIn: {
-		value: false,
-		properties: {},
-	},
 	displayTheme: {
 		value: "auto",
-		properties: {},
+		properties: {
+			values: ["auto", "light", "dark"]
+		},
 	},
 	displayMode: {
 		value: "quality",
-		properties: {},
+		properties: {
+			values: ["quality", "balanced", "performance"]
+		},
 	},
 	isSepiaEnabled: {
 		value: false,

@@ -34,7 +34,7 @@ export default function useAccountSettings(init, template) {
             case "INITIALIZE":
                 {
                     const { userNumber } = params;
-                    return Array.from({ length: userNumber }, () => template);
+                    return Array.from({ length: userNumber }, () => structuredClone(template));
                 }
             case "RESET":
                 { // !:! We'll see later if this is usefull or not
@@ -44,6 +44,8 @@ export default function useAccountSettings(init, template) {
         }
 
     }, init);
+
+    console.log(selectedUserSettingIndex);
 
     return {
         userSettings: Object.fromEntries(Object.keys(accountSettings[selectedUserSettingIndex]).map(setting => [
