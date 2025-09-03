@@ -34,12 +34,12 @@ export default function useAccountData(initAccountData, accountDataTemplate) {
                 {
                     const { userNumber } = params;
                     isInitialized.current = true;
-                    return Array.from({ length: userNumber }, () => accountDataTemplate);
+                    return Array.from({ length: userNumber }, () => structuredClone(accountDataTemplate));
                 }
             case "RESET":
                 {
                     isInitialized.current = false;
-                    return [accountDataTemplate];
+                    return [structuredClone(accountDataTemplate)];
                 }
             case "SET":
                 {
