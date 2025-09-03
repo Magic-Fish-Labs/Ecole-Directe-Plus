@@ -169,7 +169,6 @@ export default function App() {
             initAccountSettings(users.length);
         },
         onUserChange: (_, userIndex) => {
-            console.log(userIndex);
             setSelectedUserSettingIndex(userIndex);
         }
     });

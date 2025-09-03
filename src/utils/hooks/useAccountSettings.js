@@ -45,8 +45,6 @@ export default function useAccountSettings(init, template) {
 
     }, init);
 
-    console.log(selectedUserSettingIndex);
-
     return {
         userSettings: Object.fromEntries(Object.keys(accountSettings[selectedUserSettingIndex]).map(setting => [
             setting,
