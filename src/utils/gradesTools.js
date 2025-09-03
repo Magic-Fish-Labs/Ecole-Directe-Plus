@@ -98,7 +98,10 @@ export function calcCategoryAverage(period, category) {
     const list = [];
     const subjectsKeys = Object.keys(period.subjects);
     let i = 0;
-    while (i < subjectsKeys.length && period.subjects[subjectsKeys[i]].name !== category.name) { i++ }
+    console.log(period.subjects[subjectsKeys[i]]);
+    while (i < subjectsKeys.length && period.subjects[subjectsKeys[i]].name !== category.name) {
+        i++;
+    }
     while (++i < subjectsKeys.length && !period.subjects[subjectsKeys[i]].isCategory) {
         const currentSubject = period.subjects[subjectsKeys[i]];
         let coefMultiplicator = 1;
@@ -246,7 +249,9 @@ export function addSimulatedGrade(periodKey, subjectKey, newValues, grades) {
     subject.average = calcAverage(subject.grades);
     period.generalAverage = calcGeneralAverage(period);
     const category = findCategory(period.subjects, subjectKey);
-    category.average = calcCategoryAverage(period, category);
+    if (category) {
+        category.average = calcCategoryAverage(period, category);
+    }
 }
 
 /** 
@@ -268,5 +273,7 @@ export function removeSimulatedGrade(periodKey, subjectKey, id, grades) {
     subject.average = calcAverage(subject.grades);
     period.generalAverage = calcGeneralAverage(period);
     const category = findCategory(period.subjects, subjectKey);
-    category.average = calcCategoryAverage(period, category);
+    if (category) {
+        category.average = calcCategoryAverage(period, category);
+    }
 }
