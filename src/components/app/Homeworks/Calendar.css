@@ -24,7 +24,8 @@
 .calendar .arrow {
     height: 100%;
     border-radius: 12px;
-    /* aspect-ratio: 1 / 1; */
+    border: none;
+    background-color: unset;
     padding: 7px;
     transition: .1s;
     cursor: pointer;
@@ -77,14 +78,14 @@
 }
 
 .calendar .weekdays {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    display: flex;
     margin-bottom: 10px;
 }
 
 .calendar .weekdays span {
     text-align: center;
     font-weight: bold;
+    flex: 1;
 }
 
 .calendar .days {
@@ -150,49 +151,4 @@
 
 .calendar .button-return {
     min-width: 130px;
-}
-
-.calendar .progress-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 20px 0;
-    padding: 15px;
-}
-
-.calendar .progress-bar {
-    width: calc(100% - 30px);
-    /* Fixed the calculation syntax */
-    border: 1px solid rgba(var(--text-color-alt), 1);
-    border-radius: 10px;
-    margin: 15px;
-    background-color: rgba(var(--text-color-alt), .3);
-    height: 15px;
-    color: rgba(var(--text-color-alt), .5);
-    display: none;
-    /* Changed to block to ensure it shows */
-}
-
-.calendar progress {
-    -webkit-appearance: none;
-    /* Ensure consistent styling across browsers */
-    appearance: none;
-    width: 100%;
-    height: 100%;
-    color: rgba(var(--text-color-alt), .5);
-}
-
-.calendar progress::-webkit-progress-bar {
-    background-color: rgba(var(--text-color-alt), .3);
-    border-radius: 10px;
-}
-
-.calendar progress::-webkit-progress-value {
-    background-color: rgba(var(--text-color-alt), .5);
-    border-radius: 10px;
-}
-
-.calendar progress::-moz-progress-bar {
-    background-color: rgba(var(--text-color-alt), .5);
-    border-radius: 10px;
 }
