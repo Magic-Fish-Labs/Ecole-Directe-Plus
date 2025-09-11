@@ -28,6 +28,7 @@ import { Spiders } from "../../generic/events/halloween/elements/spiders";
 
 import "./Header.css";
 import Moon from "../../generic/events/halloween/elements/moon";
+import Jumpscare from "../../generic/events/halloween/jumpscare";
 
 
 export default function Header({ currentEDPVersion, accountsList, setActiveAccount, activeAccount, carpeConviviale, isLoggedIn, fetchUserTimeline, timeline, isFullScreen, isTabletLayout, logout }) {
@@ -47,6 +48,8 @@ export default function Header({ currentEDPVersion, accountsList, setActiveAccou
     const [easterEggCounter, setEasterEggCounter] = useState(0);
     const [easterEggTimeoutId, setEasterEggTimeoutId] = useState(null);
     const [closeFeedbackBottomSheet, setCloseFeedbackBottomSheet] = useState(false);
+
+    const [jumpscareActive, isJumpscareActive] = useState(false);
 
     const headerLogoRef = useRef(null);
     // const isFirstFrame = useRef(true);
@@ -138,14 +141,26 @@ export default function Header({ currentEDPVersion, accountsList, setActiveAccou
     }
 
     useEffect(() => {
+        if (jumpscareActive) {
+            setTimeout(() => isJumpscareActive(false), 3000);
+        }
+    }, [jumpscareActive]);
+
+    useEffect(() => {
         let audio;
         if (easterEggCounter >= 8) {
-            // preload the audio to prevent the ping
             const audios = ["/sfx/quick-fart-reverb.mp3", "/sfx/heavy-fart-reverb.mp3"]
-            audio = new Audio(audios[Math.floor(Math.random() * 2)]);
+            // preload the audio to prevent the ping
+            if (isPartyModeEnabled && isPartyModeEnabled && currentPeriodEvent === "halloween") {
+                audio = new Audio('http://soundbible.com/mp3/Female_Scream_Horror-NeoPhyTe-138499973.mp3');
+                audio.volume = 1;
+            } else {
+                audio = new Audio(audios[Math.floor(Math.random() * 2)]);
+            }
         }
         if (easterEggCounter >= 16) {
             setEasterEggCounter(0);
+            isJumpscareActive(true);
             audio.play();
         }
     }, [easterEggCounter]);
@@ -223,7 +238,7 @@ export default function Header({ currentEDPVersion, accountsList, setActiveAccou
                 </ul>
             )}
             {!isFullScreen && <div className={`header-container${isStandaloneApp ? " standalone" : ""}`}>
-                <header className="header-menu">
+                <header className={`header-menu ${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "halloween" && "halloween-window-header"}`}>
                     <div className="header-logo-container">
                         <Link to="dashboard" tabIndex="-1" ref={headerLogoRef} onClick={handleClick}>
                             {
@@ -282,6 +297,7 @@ export default function Header({ currentEDPVersion, accountsList, setActiveAccou
             <>
                 <FloatingParticles />
                 <Spiders />
+                <Jumpscare activate={jumpscareActive} />
             </>
             }
         </div>

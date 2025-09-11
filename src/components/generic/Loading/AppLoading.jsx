@@ -1,12 +1,17 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 
 import EDPLogoFullWidth from "../../graphics/EDPLogoFullWidth";
 import WalkingCanardman from "../../graphics/WalkingCanardman";
 import EDPVersion from "../buttons/EDPVersion";
 import KeyboardKey from "../KeyboardKey";
 
+import { AppContext } from "../../../App";
+
 import "./AppLoading.css";
+
+import { currentPeriodEvent } from "../events/setPeriodEvent";
+
+import HalloweenCanardman from "../events/halloween/elements/halloween_canardman";
 
 const loadingScreenTips = [
     // astuces
@@ -86,6 +91,12 @@ function pickRandomSentence() {
 
 export default function AppLoading({ currentEDPVersion }) {
     // States
+    const { useUserSettings } = useContext(AppContext);
+
+    const settings = useUserSettings();
+
+    const isPartyModeEnabled = settings.get("isPartyModeEnabled");
+    const isPeriodEventEnabled = settings.get("isPeriodEventEnabled");
 
     // const [randomSentences, setRandomSentences] = useState(loadingScreenTips[1].message);
     const [randomSentences, setRandomSentences] = useState([pickRandomSentence()]);
@@ -121,7 +132,16 @@ export default function AppLoading({ currentEDPVersion }) {
             <div id="loading-box">
                 <div id="walking-canardman">
                     {/* <img src="/images/walking-canardman-no-morph.svg" alt="Walking Canardman" /> */}
-                    <WalkingCanardman alt="Canardman qui marche"/>
+                    {
+                        isPartyModeEnabled
+                        && isPeriodEventEnabled
+                        && currentPeriodEvent === "halloween"
+                        ? (
+                            <div style={{width: "100%", height: "100%"}}>
+                                <HalloweenCanardman />
+                            </div>
+                        ) : <WalkingCanardman alt="Canardman qui marche"/>
+                    }
                 </div>
                 <h1>Chargement en cours...</h1>
                 <p id="loading-screen-tip">

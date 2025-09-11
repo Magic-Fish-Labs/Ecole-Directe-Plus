@@ -1,0 +1,18 @@
+.container {
+  position: default !important;
+  display: flex;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.canardman {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 50vw !important;
+  min-height: 50vw !important;
+  object-fit: contain;
+  overflow: hidden;
+}
