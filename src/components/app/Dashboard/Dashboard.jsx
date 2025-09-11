@@ -1,6 +1,10 @@
 
-import { useEffect } from "react";
+import { useEffect, useContext } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+
+import { AppContext } from "../../../App";
+
+import "../../generic/events/halloween/css/modifier.css"
 
 import {
     WindowsContainer,
@@ -23,10 +27,17 @@ import FileComponent from "../../generic/FileComponent";
 export default function Dashboard({ fetchUserGrades, grades, fetchHomeworks, activeAccount, isLoggedIn, useUserData, sortGrades, isTabletLayout }) {
     const navigate = useNavigate();
     const userData = useUserData();
-    const location = useLocation()
+    const location = useLocation();
+
+    const { useUserSettings } = useContext(AppContext);
 
     const sortedGrades = userData.get("sortedGrades");
     const homeworks = useUserData("sortedHomeworks");
+
+    const settings = useUserSettings();
+
+    const isPartyModeEnabled = settings.get("isPartyModeEnabled");
+    const isPeriodEventEnabled = settings.get("isPeriodEventEnabled");
 
     const hashParameters = location.hash.split(";")
     const selectedTask = hashParameters.length > 1 && homeworks.get() && homeworks.get()[hashParameters[0].slice(1)]?.find(e => e.id == hashParameters[1])

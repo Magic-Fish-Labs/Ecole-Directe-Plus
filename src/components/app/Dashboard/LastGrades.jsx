@@ -16,6 +16,9 @@ import "./LastGrades.css"
 import { formatDateRelative } from "../../../utils/date";
 import ContentLoader from "react-content-loader"
 
+import "../../generic/events/halloween/css/modifier.css"
+import { currentPeriodEvent } from "../../generic/events/setPeriodEvent";
+
 export default function LastGrades({ activeAccount, className = "", ...props }) {
     const navigate = useNavigate();
     const contentLoadersRandomValues = useRef({ subjectNameWidth: Array.from({ length: 3 }, (_, i) => Math.floor(Math.random() * 75) + 75), badgesNumber: Array.from({ length: 3 }, (_, i) => Math.floor(Math.random() * 3) + 1), datesWidth: Array.from({ length: 3 }, (_, i) => Math.floor(Math.random() * 25) + 85) })
@@ -23,6 +26,9 @@ export default function LastGrades({ activeAccount, className = "", ...props }) 
     const { actualDisplayTheme, useUserData, useUserSettings } = useContext(AppContext)
     const lastGrades = useUserData().get("lastGrades");
     const settings = useUserSettings();
+
+    const isPartyModeEnabled = settings.get("isPartyModeEnabled");
+    const isPeriodEventEnabled = settings.get("isPeriodEventEnabled");
 
     return (<Window className={`last-grades ${className}`}>
         <WindowHeader onClick={() => navigate("../grades")}>
@@ -34,8 +40,8 @@ export default function LastGrades({ activeAccount, className = "", ...props }) 
                     ? lastGrades.length > 0
                         ? lastGrades.map((el) => <li key={el.id} className="last-grade-container">
                         <Link to={`/app/${activeAccount}/grades#` + el.id} className="last-grade-wrapper">
-                            <span className="last-grade-value"><Grade grade={{ value: el.value ?? "N/A", scale: el.scale }} /></span>
-                            <span className="last-grade-name">{el.subjectName}</span>
+                            <span className={`last-grade-value ${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "halloween" && "halloween-div-patcher"}`}><Grade grade={{ value: el.value ?? "N/A", scale: el.scale }} /></span>
+                            <span className={`last-grade-name`}>{el.subjectName}</span>
                             <span className="badges-container">
                                 {el.badges.includes("star") && <BadgeStarInfo />}
                                 {el.badges.includes("bestStudent") && <BadgePlusInfo />}

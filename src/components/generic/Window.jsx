@@ -1036,7 +1036,7 @@ export function Window({ children, growthFactor = 1, allowFullscreen = false, fu
 
 
     return (
-        <section className={`window ${className} ${WIP ? "work-in-progress" : ""} ${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "christmas" ? "allow-overflow-event" : ""}`}
+        <section className={`window ${className} ${WIP ? "work-in-progress" : ""} ${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "christmas" ? "allow-overflow-event" : ""} ${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "halloween" ? "halloween-window" : ""}`}
             style={{ flexGrow: growthFactor }} ref={windowRef} {...props}>
             {WIP ? <p className="wip-info">Fonctionnalité en cours de développement...<br/>Rejoignez le <a href="https://discord.gg/AKAqXfTgvE" target="_blank">serveur Discord d'EDP</a> pour en suivre l'avancée !</p> : children}
             {/* <span style={{ color: "lime", fontWeight: "600", position: "relative", zIndex: "999" }}>{windowRef?.current?.name}</span> */}
@@ -1054,7 +1054,7 @@ export function WindowHeader({ children, className = "", ...props }) {
 
 
     return (
-        <div className={`window-header ${className} ${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "christmas" ? "snowy-element-window" : ""}`} {...props}>
+        <div className={`window-header ${className} ${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "christmas" ? "snowy-element-window" : ""} ${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "halloween" ? "halloween-window-header" : ""}`} {...props}>
             {isPeriodEventEnabled !== false && currentPeriodEvent === "christmas" && (
                 <SnowCap className="snow-cap"/>
             )}

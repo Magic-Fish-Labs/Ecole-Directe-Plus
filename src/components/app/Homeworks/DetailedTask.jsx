@@ -27,6 +27,10 @@ export default function DetailedTask({ task, userHomeworks, day, ...props }) {
     const { actualDisplayTheme, fetchHomeworksDone, useUserSettings } = useContext(AppContext)
     const settings = useUserSettings();
     const homeworks = userHomeworks.get()
+    
+
+    const isPartyModeEnabled = settings.get("isPartyModeEnabled");
+    const isPeriodEventEnabled = settings.get("isPeriodEventEnabled");
 
     const contentLoadersRandomValues = useRef({ labelWidth: Math.floor(Math.random() * 150) + 100, contentHeight: Math.floor(Math.random() * 200) + 50 })
 

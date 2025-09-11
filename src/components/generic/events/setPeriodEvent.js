@@ -7,6 +7,11 @@ function getCurrentPeriodEvent() {
             name: 'christmas',
             start: new Date(today.getFullYear(), 11, 1, 0, 0, 0),
             end: new Date(today.getFullYear(), 11, 31, 0, 0, 0)
+        },
+        halloween: {
+            name: "halloween",
+            start: new Date(today.getFullYear(), 8, 1, 0, 0, 0),
+            end: new Date(today.getFullYear(), 10, 5, 0, 0, 0)
         }
     };
 

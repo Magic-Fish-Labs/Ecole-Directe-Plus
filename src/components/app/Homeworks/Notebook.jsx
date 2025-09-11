@@ -12,6 +12,8 @@ import DetailedTask from "./DetailedTask";
 import DetailedSessionContent from "./DetailedSessionContent";
 import { canScroll } from "../../../utils/DOM";
 
+import { currentPeriodEvent } from "../../generic/events/setPeriodEvent";
+
 import "./Notebook.css";
 export default function Notebook({ hideDateController = false }) {
     const { isLoggedIn, actualDisplayTheme, useUserData, useUserSettings, fetchHomeworks, isTabletLayout } = useContext(AppContext);
@@ -19,6 +21,9 @@ export default function Notebook({ hideDateController = false }) {
     const userHomeworks = useUserData("sortedHomeworks");
     const location = useLocation();
     const navigate = useNavigate();
+
+    const isPartyModeEnabled = settings.get("isPartyModeEnabled");
+    const isPeriodEventEnabled = settings.get("isPeriodEventEnabled");
 
     const notebookContainerRef = useRef(null);
     const tasksContainersRefs = useRef([]);
@@ -329,14 +334,14 @@ export default function Notebook({ hideDateController = false }) {
                         const elDate = new Date(el);
                         return (homeworks[el].length
                             ? <div className={`notebook-day ${selectedDate === el ? "selected" : ""}`} style={{ "--day-progression": `${progression * 100}%` }} onClick={() => !hasMouseMoved && navigate(`#${el};${(selectedDate === el ? hashParameters[1] : homeworks[el].find((item) => item.type === "task")?.id ?? homeworks[el][0].id)}${hashParameters.length === 3 ? ";" + hashParameters[2] : ""}`, { replace: true })} key={el} id={el} ref={selectedDate === el ? anchorElement : null}>
-                                <div className="notebook-day-header" style={{ "--after-opacity": (progression === 1 ? 1 : 0) }}>
+                                <div className={`notebook-day-header ${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "halloween" && "halloween-window-header-sec"}`} style={{ "--after-opacity": (progression === 1 ? 1 : 0) }}>
                                     <span className="notebook-day-date">
                                         <time dateTime={elDate.toISOString()}>{capitalizeFirstLetter(elDate.toLocaleDateString("fr-FR", { weekday: "long", month: "long", day: "numeric" }))}</time>
                                     </span>
                                 </div>
                                 <hr />
                                 {/* <hr style={{ width: `${progression * 100}%`}} /> */}
-                                <div className="tasks-container" ref={(el) => (tasksContainersRefs.current[index] = el)}>
+                                <div className={`tasks-container ${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "halloween" && "halloween-window-sec"}`} ref={(el) => (tasksContainersRefs.current[index] = el)}>
                                     {tasks.map((task, taskIndex) => {
                                         const result = [
                                             selectedDate === el

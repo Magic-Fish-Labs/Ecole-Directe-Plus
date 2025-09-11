@@ -19,6 +19,11 @@ import UpArrow from "../graphics/UpArrow";
 import "./LandingPage.css";
 import "../generic/events/christmas/snow.css";
 
+import { FloatingParticles } from "../generic/events/halloween/particles";
+import { Spiders } from "../generic/events/halloween/elements/spiders";
+import { HalloweenPanel } from "../generic/events/halloween/welcomePanel";
+import { SpookyBtn } from "../generic/events/halloween/elements/spooky-btn";
+
 export default function LandingPage({ token, accountsList }) {
     const { isMobileLayout, isTabletLayout, actualDisplayTheme, useUserSettings } = useContext(AppContext);
 
@@ -49,8 +54,7 @@ export default function LandingPage({ token, accountsList }) {
     }, [token, accountsList]);
 
     useEffect(() => {
-        if (isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "christmas") {
-        }
+        console.log("Current Period Event:" + currentPeriodEvent);
     }, []);
 
     useEffect(() => {
@@ -147,18 +151,28 @@ export default function LandingPage({ token, accountsList }) {
             && currentPeriodEvent === "christmas"
             && <Snowfall />
         }
+        {
+            isPartyModeEnabled
+            && isPartyModeEnabled
+            && currentPeriodEvent === "halloween"
+            && <FloatingParticles />
+            && <Spiders />
+        }
         <section id="home" ref={homeSectionRef}>
+            <HalloweenPanel />
             <Link to="" className={`go-to-top ${isTop ? "unactive" : "active"}`}><UpArrow className="up-arrow" /></Link>
             <div className="affiliation-disclaimer"> <InfoTypoIcon />Service open source non-affilié à Aplim</div>
             <div className="text-center">
                 <h1>Découvrez <strong className="heading-emphasis">Ecole Directe Plus</strong></h1>
                 <p>EDP augmente EcoleDirecte, avec une interface moderne et intuitive, enrichie de fonctionnalités exclusives, le tout de façon gratuite, libre et open-source.</p>
-                <Link to="/login" className="login-call-to-action">{isLoggedIn ? "Ouvrir l'app" : "Se connecter"}</Link>
+                { isPartyModeEnabled && isPartyModeEnabled && currentPeriodEvent === "halloween" ? <SpookyBtn text={"Ouvrir l'app"} onClick={() => navigate("/login")}/> : (
+                    <Link to="/login" className="login-call-to-action">{isLoggedIn ? "Ouvrir l'app" : "Se connecter"}</Link>
+                    )
+                }
             </div>
             <div className="fade-out-image">
                 <img src={isTabletLayout ? (isMobileLayout ? `/images/EDP-preview-mobile-${actualDisplayTheme}.jpeg` : `/images/EDP-preview-tablet-${actualDisplayTheme}.jpeg`) : `/images/EDP-preview-${actualDisplayTheme}.jpeg`} className={isTabletLayout ? (isMobileLayout ? "mobile" : "tablet") : "dekstop"} alt="Capture d'écran du site" />
             </div>
-
         </section>
         <section id="features">
             {(displayMode !== "performance") && <>

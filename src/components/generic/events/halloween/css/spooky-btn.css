@@ -1,0 +1,131 @@
+
+.spooky-btn {
+  position: relative;
+  background: rgba(0, 0, 0, 0.5);
+  border: .5px solid oklch(75% 0.183 55.934);
+  margin: 3rem;
+  border-radius: 16px;
+  width: 10rem;
+  height: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: oklch(75% 0.183 55.934);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  z-index: 10;
+}
+
+.spooky-btn {
+    position: relative;
+    background: linear-gradient(145deg, rgba(20, 5, 40, 0.9), rgba(50, 20, 80, 0.7));
+    border: 2px solid #ff8c00;
+    margin: 3rem;
+    border-radius: 20px;
+    width: 12rem;
+    height: 5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #ff8c00;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    backdrop-filter: blur(15px);
+    z-index: 10;
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    overflow: hidden;
+    box-shadow: 
+        0 8px 25px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 140, 0, 0.2),
+        0 0 0 1px rgba(255, 140, 0, 0.1);
+}
+
+.spooky-btn::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #ff8c00, #ffaa33, #ff6600, #ff8c00);
+    border-radius: 22px;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.spooky-btn::after {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    font-size: 1.5rem;
+    opacity: 0.7;
+    transition: all 0.3s ease;
+}
+
+.spooky-btn .text {
+    position: relative;
+    z-index: 2;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.spooky-btn .spooky-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, rgba(255, 140, 0, 0.3), transparent 70%);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 0.3s ease;
+    z-index: 1;
+}
+
+.spooky-btn:hover {
+    background: linear-gradient(145deg, rgba(40, 10, 60, 0.95), rgba(80, 30, 120, 0.8));
+    border-color: #ffaa33;
+    color: #ffaa33;
+    box-shadow: 
+        0 12px 35px rgba(255, 140, 0, 0.3),
+        0 0 30px rgba(255, 140, 0, 0.4),
+        inset 0 1px 0 rgba(255, 170, 51, 0.3),
+        0 0 0 3px rgba(255, 140, 0, 0.1);
+    transform: scale(1.05) translateY(-2px);
+    text-shadow: 
+        0 0 10px rgba(255, 140, 0, 0.8),
+        2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+.spooky-btn:hover::before {
+    opacity: 1;
+}
+
+.spooky-btn:hover::after {
+    transform: rotate(15deg) scale(1.2);
+    opacity: 1;
+    filter: drop-shadow(0 0 10px rgba(255, 140, 0, 0.8));
+}
+
+.spooky-btn:hover .spooky-glow {
+    width: 200px;
+    height: 200px;
+}
+
+.spooky-btn:active {
+    transform: scale(0.98) translateY(1px);
+    box-shadow: 
+        0 5px 15px rgba(255, 140, 0, 0.2),
+        inset 0 3px 10px rgba(0, 0, 0, 0.3);
+}
+
+.spooky-btn:focus {
+    outline: none;
+    box-shadow: 
+        0 12px 35px rgba(255, 140, 0, 0.3),
+        0 0 0 4px rgba(255, 140, 0, 0.2);
+}

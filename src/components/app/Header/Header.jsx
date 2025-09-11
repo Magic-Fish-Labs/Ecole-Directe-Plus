@@ -23,7 +23,11 @@ import { currentPeriodEvent } from "../../generic/events/setPeriodEvent";
 import Snowfall from "../../generic/events/christmas/Snowfall";
 import "../../generic/events/christmas/garland.css";
 
+import { FloatingParticles } from "../../generic/events/halloween/particles";
+import { Spiders } from "../../generic/events/halloween/elements/spiders";
+
 import "./Header.css";
+import Moon from "../../generic/events/halloween/elements/moon";
 
 
 export default function Header({ currentEDPVersion, accountsList, setActiveAccount, activeAccount, carpeConviviale, isLoggedIn, fetchUserTimeline, timeline, isFullScreen, isTabletLayout, logout }) {
@@ -206,6 +210,10 @@ export default function Header({ currentEDPVersion, accountsList, setActiveAccou
         navigate("", { replace: false, relative: "path" });
     }
 
+    useEffect(() => {
+        console.log("Current Period Event:", currentPeriodEvent);
+    }, [currentPeriodEvent]);
+
     // JSX
     return (
         <div id="app">
@@ -218,7 +226,15 @@ export default function Header({ currentEDPVersion, accountsList, setActiveAccou
                 <header className="header-menu">
                     <div className="header-logo-container">
                         <Link to="dashboard" tabIndex="-1" ref={headerLogoRef} onClick={handleClick}>
-                            <EDPLogo id="header-logo" />
+                            {
+                                isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "halloween" ? (
+                                    <div style={{ width: "7.5rem", height: "7.5rem", marginTop: ".2rem" }}>
+                                        <Moon />
+                                    </div>
+                                ) : (
+                                    <EDPLogo id="header-logo" />
+                                )
+                            }
                             <div id="version-tag">{globalSettings.isDevChannel.value ? "DEV" : currentEDPVersion}</div>
                         </Link>
                     </div>
@@ -259,6 +275,14 @@ export default function Header({ currentEDPVersion, accountsList, setActiveAccou
                 && isPeriodEventEnabled
                 && currentPeriodEvent === "christmas"
                 && <Snowfall />
+            }
+
+            {
+            (isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "halloween") &&
+            <>
+                <FloatingParticles />
+                <Spiders />
+            </>
             }
         </div>
     )
