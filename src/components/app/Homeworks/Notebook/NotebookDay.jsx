@@ -25,7 +25,7 @@ export default function NotebookDay({ day, isNotebookGrabed }) {
 
 	useEffect(() => {
 		if (selected && !day.detailed) {
-			day.detail().then(() => setHomeworks({...homeworks}));
+			day.detail().then(() => setHomeworks({ ...homeworks }));
 		}
 	}, [selected, day.detailed]);
 

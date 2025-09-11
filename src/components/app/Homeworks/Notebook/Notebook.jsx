@@ -105,18 +105,18 @@ export default function Notebook({ hideDateController = false }) {
     }
 
     return <>
-        {(!hideDateController && (!homeworks || Object.keys(homeworks).length > 0))
+        {(!hideDateController && (!homeworks || Object.keys(homeworks.days).length > 0))
             ? <DateSelector homeworks={homeworks} onChange={setActiveHomeworkDate} selectedDate={activeHomeworkDate} defaultDate={getISODate(new Date())} defaultDisplayDate={"À venir"} />
             : null
         }
         <div className="notebook-container" ref={notebookContainerRef} onMouseDown={handleMouseDown}>
             {homeworks
-                ? Object.values(homeworks).length > 0
-                    ? Object.values(homeworks).sort((day) => day.date).map((day) => (day.taskList.length || day.sessionContentList.length)
-                        ? <NotebookDay day={day} isNotebookGrabed={isNotebookGrabed} />
-                        : null
-                    ).filter(e => e)
-                    : <p className="no-homework-placeholder">Vous n'avez aucun devoir à venir. Profitez de ce temps libre pour venir discuter sur le <a href="https://discord.gg/AKAqXfTgvE" target="_blank">serveur Discord d'Ecole Directe Plus</a> et contribuer au projet via le <a href="https://github.com/Magic-Fish-Lab/Ecole-Directe-Plus" target="_blank">dépôt Github</a> !</p>
+                ? homeworks.empty
+                    ? <p className="no-homework-placeholder">Vous n'avez aucun devoir à venir. Profitez de ce temps libre pour venir discuter sur le <a href="https://discord.gg/AKAqXfTgvE" target="_blank">serveur Discord d'Ecole Directe Plus</a> et contribuer au projet via le <a href="https://github.com/Magic-Fish-Lab/Ecole-Directe-Plus" target="_blank">dépôt Github</a> !</p>
+                    : Object.entries(homeworks.days).sort(([_, day]) => day.date).map(([ISODate, day]) => {
+                        if (day.empty) return null;
+                        return <NotebookDay key={ISODate} day={day} isNotebookGrabed={isNotebookGrabed} />
+                    }).filter(e => e)
                 : contentLoadersRandomValues.current.days.map((el, index) => {
                     return <div className={`notebook-day ${index === 0 ? "selected" : ""}`} key={index} >
                         <div className="notebook-day-header">

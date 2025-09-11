@@ -17,17 +17,18 @@ export default class Task {
 	 * @param {object} params 
 	 */
 	constructor(account, day, { id, subjectCode, isDone, subject, addDate, isInterrogation }) {
+		this.account = account;
+		this.day = day;
+
 		this.id = id;
 		this.subjectCode = subjectCode;
 		this.isDone = isDone;
 		this.isInterrogation = isInterrogation;
 		this.subject = subject;
 		this.addDate = addDate;
-		this.account = account;
-		this.day = day;
 	}
 
-	detail({teacher, content, files, sessionContent, sessionContentFiles}) {
+	detail({ teacher, content, files, sessionContent, sessionContentFiles }) {
 		this.teacher = teacher;
 		this.content = content;
 		this.files = files;
@@ -45,5 +46,18 @@ export default class Task {
 					this.account.token.set(result.token);
 				}
 			});
+	}
+
+	static createFromRaw(account, homeworkDay, taskData) {
+		const { idDevoir, codeMatiere, donneLe, effectue, interrogation, matiere /* rendreEnLigne, documentsAFaire // I don't know what to do with that for now */ } = taskData;
+
+		return new Task(account, homeworkDay, {
+			id: idDevoir,
+			subjectCode: codeMatiere,
+			isDone: effectue,
+			isInterrogation: interrogation,
+			subject: matiere,
+			addDate: donneLe,
+		});
 	}
 }

@@ -12,8 +12,8 @@ import { mapGrades } from "../mappers/grades";
 import fetchTimeline from "../requests/fetchTimeline";
 import { mapTimeline } from "../mappers/timeline";
 import fetchHomeworks from "../requests/fetchHomeworks";
-import { mapHomeworks } from "../mappers/homeworks";
 import { DefaultAccountdata } from "../constants/default";
+import Homeworks from "../class/Homeworks";
 
 /**
  * Each fetch function will return a code, and other data such as messages, display text, ...
@@ -117,11 +117,11 @@ export default function useEcoleDirecteSession(initEcoleDirecteSession, callback
             token.set((old) => (response?.token || old));
             switch (response.code) {
                 case 200:
-                    const { mappedHomeworks, mappedUpcomingAssignments, activeHomeworkDate, activeHomeworkId } = mapHomeworks(response.data, account);
+                    const mappedHomeworks = Homeworks.createFromRaw(account, response.data);
                     userData.homeworks.set(mappedHomeworks, requestUserIndex);
-                    userData.upcomingAssignments.set(mappedUpcomingAssignments, requestUserIndex);
-                    userData.activeHomeworkDate.set(activeHomeworkDate, requestUserIndex);
-                    userData.activeHomeworkId.set(activeHomeworkId, requestUserIndex);
+                    userData.upcomingAssignments.set(mappedHomeworks.getUpcomingAssignements(), requestUserIndex);
+                    userData.activeHomeworkDate.set(mappedHomeworks.getDefaultActiveHomeworkDate(), requestUserIndex);
+                    userData.activeHomeworkId.set(null, requestUserIndex);
                     return HomeworksCodes.SUCCESS;
                 default:
                     return { code: -1, message: response.message };

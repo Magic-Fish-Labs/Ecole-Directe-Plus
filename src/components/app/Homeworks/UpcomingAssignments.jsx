@@ -19,6 +19,7 @@ export default function UpcomingAssignments() {
     } = userData;
 
     const choosenPlaceholder = useRef(PLACEHOLDERS[parseInt(Math.random() * PLACEHOLDERS.length)]);
+
     return upcomingAssignments?.length
         ? Array.from({length: 3}, (_, i) => {
             let task;

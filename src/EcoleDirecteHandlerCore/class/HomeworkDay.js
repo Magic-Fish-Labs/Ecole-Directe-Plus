@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import { HomeworksCodes } from "../constants/codes";
 import { mapHomeworksDay } from "../mappers/homeworksDay";
 import fetchHomeworksDay from "../requests/fetchHomeworksDay";
@@ -7,12 +8,11 @@ import Task from "./Task";
 export default class HomeworkDay {
 	/**
 	 * 
-	 * @param {string} date the date of the homeworkDay
+	 * @param {Date} date the date of the homeworkDay
 	 * @param {object} account the account object initialized in the useEcoleDirecteSession.js file
 	 */
-	constructor(date, account) {
-		this.ISODate = date;
-		this.date = new Date(date);
+	constructor(account, date) {
+		this.date = date;
 		this.account = account;
 		this.detailed = false;
 		this.taskList = [];
@@ -21,7 +21,7 @@ export default class HomeworkDay {
 
 	/**
 	 * @param {Task|Task[]} tasks task(s) that will be added to this object's task list
-	 */
+	*/
 	addTasks(tasks) {
 		if (tasks instanceof Task) {
 			this.taskList.push(tasks);
@@ -32,13 +32,25 @@ export default class HomeworkDay {
 
 	/**
 	 * @param {SessionContent|SessionContent[]} sessionContents  sessionContent(s) that will be added to this object's sessionContent list
-	 */
+	*/
 	addSessionContents(sessionContents) {
 		if (sessionContents instanceof SessionContent) {
-			this.taskList.push(sessionContents);
+			this.sessionContentList.push(sessionContents);
 		} else {
-			this.taskList.push(...sessionContents);
+			this.sessionContentList.push(...sessionContents);
 		}
+	}
+
+	getInterrogations() {
+		return this.taskList.filter((task) => task.isInterrogation);
+	}
+
+	get empty() {
+		return !this.taskList.length && !this.sessionContentList.length;
+	}
+
+	get ISODate() {
+		return format(this.date, "yyyy-MM-dd");
 	}
 
 	async detail(controller) {
@@ -92,5 +104,21 @@ export default class HomeworkDay {
 					return { code: -1, message: error.message };
 				}
 			})
+	}
+
+	static createFromRaw(account, homeworkDayData, ISODate) {
+		const homeworkDay = new HomeworkDay(account, new Date(ISODate));
+
+		for (const homework of homeworkDayData) {
+			if (homework.aFaire) {
+				const task = Task.createFromRaw(account, homeworkDay, homework);
+				homeworkDay.addTasks(task);
+			} else {
+				const sessionContent = SessionContent.createFromRaw(homework);
+				homeworkDay.addSessionContents(sessionContent);
+			}
+		}
+
+		return homeworkDay;
 	}
 }
