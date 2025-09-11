@@ -98,7 +98,6 @@ export function calcCategoryAverage(period, category) {
     const list = [];
     const subjectsKeys = Object.keys(period.subjects);
     let i = 0;
-    console.log(period.subjects[subjectsKeys[i]]);
     while (i < subjectsKeys.length && period.subjects[subjectsKeys[i]].name !== category.name) {
         i++;
     }
