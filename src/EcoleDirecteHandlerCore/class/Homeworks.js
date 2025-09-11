@@ -1,7 +1,8 @@
 import { da } from "date-fns/locale";
 import { getToday } from "../utils/date";
 import HomeworkDay from "./HomeworkDay";
-import { isValidDateFormat } from "../../utils/date";
+import { isValid } from "date-fns";
+import { testISODate } from "../utils/utils";
 
 export default class Homeworks {
 	constructor(account, homeworkDays) {
@@ -37,9 +38,19 @@ export default class Homeworks {
 		return null;
 	}
 
-	getDayByISODate(ISODate) {
-		if (!isValidDateFormat(ISODate))
-			throw new Error("invalid ISO date format.");
+	getDayByDate(date) {
+		let ISODate;
+		if (date instanceof Date) {
+			if (!isValid(date))
+				throw new Error("invalid date.");
+			ISODate = format(date, "yyyy-MM-dd");
+		} else {
+			console.log(ISODate);
+			if (!testISODate(ISODate))
+				throw new Error("invalid ISO date format.");
+			ISODate = date;
+		}
+
 		if (!this.days.hasOwnProperty(ISODate))
 			this.days[ISODate] = new HomeworkDay(this.account, new Date(ISODate));
 		return this.days[ISODate];
