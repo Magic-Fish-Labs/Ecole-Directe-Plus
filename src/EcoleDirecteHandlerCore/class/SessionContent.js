@@ -20,7 +20,7 @@ export default class SessionContent {
 	}
 
 	static createFromRaw(account, homeworkDay, sessionContentData) {
-		const { idDevoir, codeMatiere, donneLe, matiere } = taskData;
+		const { idDevoir, codeMatiere, donneLe, matiere } = sessionContentData;
 
 		return new SessionContent(account, homeworkDay, {
 			id: idDevoir,
