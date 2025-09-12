@@ -20,23 +20,22 @@ export const LoginCodes = {
     EXT_NO_COOKIE:          { code: 8, message: "The extension needed to use EcoleDirecte's API couldn't access to any cookie" },
 }
 
-export const DoubleAuthCodes = {
-    SUCCESS:        { code: 0, message: "Double authentification keys have been successfuly acquired" },
+export const CommonCodes = {
     INVALID_TOKEN:  { code: 1, message: "Invalid token" },
     EXPIRED_TOKEN:  { code: 2, message: "Expired token" },
+}
+
+export const DoubleAuthCodes = {
+    SUCCESS:        { code: 0, message: "Double authentification keys have been successfuly acquired" },
     INVALID_ANSWER: { code: 3, message: "Invalid answer to double authentification questions. /!\\ this may lock your EcoleDirecte account, check your emails if it is the case" },
 }
 
 export const GradesCodes = {
     SUCCESS:        { code: 0, message: "Grades Fetched" },
-    INVALID_TOKEN:  { code: 1, message: "Invalid token" },
-    EXPIRED_TOKEN:  { code: 2, message: "Expired token" },
 }
 
 export const HomeworksCodes = {
     SUCCESS:        { code: 0, message: "Homeworks Fetched" },
-    INVALID_TOKEN:  { code: 1, message: "Invalid token" },
-    EXPIRED_TOKEN:  { code: 2, message: "Expired token" },
     INVALID_DATE:  { code: 3, message: "The date neither in ISO format nor null" },
 }
 

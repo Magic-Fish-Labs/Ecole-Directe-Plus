@@ -2,7 +2,7 @@
 import { useState, useRef } from "react";
 
 // constants
-import { LoginStates, LoginCodes, DoubleAuthCodes } from "../constants/codes";
+import { LoginStates, CommonCodes } from "../constants/codes";
 import { guestDataPath, guestCredentials } from "../constants/config";
 
 // split
@@ -93,9 +93,9 @@ export default function useEcoleDirecteAccount(initialAccount, callbacks) {
                     setLoginState(LoginStates.REQUIRE_LOGIN);
                     switch (error.code) {
                         case 520:
-                            return DoubleAuthCodes.INVALID_TOKEN;
+                            return CommonCodes.INVALID_TOKEN;
                         case 525:
-                            return DoubleAuthCodes.EXPIRED_TOKEN;
+                            return CommonCodes.EXPIRED_TOKEN;
                         default:
                             return { code: -1, message: error.message };
                     }
@@ -131,9 +131,9 @@ export default function useEcoleDirecteAccount(initialAccount, callbacks) {
                     setLoginState(LoginStates.REQUIRE_LOGIN);
                     switch (error.code) {
                         case 520:
-                            return DoubleAuthCodes.INVALID_TOKEN;
+                            return CommonCodes.INVALID_TOKEN;
                         case 525:
-                            return DoubleAuthCodes.EXPIRED_TOKEN;
+                            return CommonCodes.EXPIRED_TOKEN;
                         default:
                             return { code: -1, message: error.message };
                     }

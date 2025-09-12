@@ -85,16 +85,15 @@ export default function useEcoleDirecteSession(initEcoleDirecteSession, callback
                 if (error.type === "ED_ERROR") {
                     switch (error.code) {
                         case 520:
-                            loginStates.set(LoginStates.REQUIRE_LOGIN);
-                            return GradesCodes.INVALID_TOKEN;
+                            return CommonCodes.INVALID_TOKEN;
                         case 525:
-                            loginStates.set(LoginStates.REQUIRE_LOGIN);
-                            return GradesCodes.EXPIRED_TOKEN;
+                            return CommonCodes.EXPIRED_TOKEN;
                         default:
                             return { code: -1, message: error.message };
                     }
                 }
                 if (error.name !== "AbortError") {
+                    loginStates.set(LoginStates.REQUIRE_LOGIN);
                     console.error(error);
                     return { code: -1, message: error.message };
                 }
@@ -131,16 +130,15 @@ export default function useEcoleDirecteSession(initEcoleDirecteSession, callback
                 if (error.type === "ED_ERROR") {
                     switch (error.code) {
                         case 520:
-                            loginStates.set(LoginStates.REQUIRE_LOGIN);
-                            return HomeworksCodes.INVALID_TOKEN;
+                            return CommonCodes.INVALID_TOKEN;
                         case 525:
-                            loginStates.set(LoginStates.REQUIRE_LOGIN);
-                            return HomeworksCodes.EXPIRED_TOKEN;
+                            return CommonCodes.EXPIRED_TOKEN;
                         default:
                             return { code: -1, message: error.message };
                     }
                 }
                 if (error.name !== "AbortError") {
+                    loginStates.set(LoginStates.REQUIRE_LOGIN);
                     console.error(error);
                     return { code: -1, message: error.message };
                 }
@@ -170,16 +168,15 @@ export default function useEcoleDirecteSession(initEcoleDirecteSession, callback
                 if (error.type === "ED_ERROR") {
                     switch (error.code) {
                         case 520:
-                            loginStates.set(LoginStates.REQUIRE_LOGIN);
-                            return GradesCodes.INVALID_TOKEN;
+                            return CommonCodes.INVALID_TOKEN;
                         case 525:
-                            loginStates.set(LoginStates.REQUIRE_LOGIN);
-                            return GradesCodes.EXPIRED_TOKEN;
+                            return CommonCodes.EXPIRED_TOKEN;
                         default:
                             return { code: -1, message: error.message };
                     }
                 }
                 if (error.name !== "AbortError") {
+                    loginStates.set(LoginStates.REQUIRE_LOGIN);
                     console.error(error);
                     return { code: -1, message: error.message };
                 }
