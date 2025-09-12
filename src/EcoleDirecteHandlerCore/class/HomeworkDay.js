@@ -4,6 +4,7 @@ import { mapHomeworksDay } from "../mappers/homeworksDay";
 import fetchHomeworksDay from "../requests/fetchHomeworksDay";
 import SessionContent from "./SessionContent";
 import Task from "./Task";
+import { handleFetchError } from "../utils/requests/handleFetchError";
 
 export default class HomeworkDay {
 	/**
@@ -55,55 +56,29 @@ export default class HomeworkDay {
 
 	async detail(controller) {
 		let response;
-		if (this.account.selectedUser.id === -1) {
-			response = import(/* @vite-ignore */ guestDataPath.detailed_homeworks);
-		} else {
-			response = fetchHomeworksDay(this.ISODate, this.account.selectedUser.id, this.account.token.value, controller);
+
+		try {
+			response = this.account.selectedUser.id < 0
+				? await import(/* @vite-ignore */ guestDataPath.detailed_homeworks)
+				: await fetchHomeworksDay(this.ISODate, this.account.selectedUser.id, this.account.token.value, controller);
+		} catch (error) {
+			return handleFetchError(error, this.account.loginStates.set);
 		}
-		return response.then((response) => {
-			this.account.token.set((old) => (response?.token || old));
-			switch (response.code) {
-				case 200:
-					const { mappedTaskList, mappedSessionContentList } = mapHomeworksDay(response.data);
-					if (this.account.selectedUser.id < 0) {
-						mappedTaskList.forEach(mappedTask => {
-							this.taskList.find((task) => task.id === mappedTask.id).detail(mappedTask);
-						});
-						mappedSessionContentList.forEach(mappedSessionContent => {
-							this.sessionContentList.find((sessionContent) => sessionContent.id === mappedSessionContent.id).detail(mappedSessionContent);
-						});
-					} else {
-						mappedTaskList.forEach(mappedTask => {
-							this.taskList.find((task) => task.id === mappedTask.id).detail(mappedTask);
-						});
-						mappedSessionContentList.forEach(mappedSessionContent => {
-							this.sessionContentList.find((sessionContent) => sessionContent.id === mappedSessionContent.id).detail(mappedSessionContent);
-						});
-					}
-					this.detailed = true;
-					return HomeworksCodes.SUCCESS;
-				default:
-					return { code: -1, message: response.message };
-			}
-		})
-			.catch((error) => {
-				if (error.type === "ED_ERROR") {
-					switch (error.code) {
-						case 520:
-							loginStates.set(LoginStates.REQUIRE_LOGIN);
-							return HomeworksCodes.INVALID_TOKEN;
-						case 525:
-							loginStates.set(LoginStates.REQUIRE_LOGIN);
-							return HomeworksCodes.EXPIRED_TOKEN;
-						default:
-							return { code: -1, message: error.message };
-					}
-				}
-				if (error.name !== "AbortError") {
-					console.error(error);
-					return { code: -1, message: error.message };
-				}
-			})
+		this.account.token.set((old) => (response?.token || old));
+		switch (response.code) {
+			case 200:
+				const { mappedTaskList, mappedSessionContentList } = mapHomeworksDay(response.data);
+				mappedTaskList.forEach(mappedTask => {
+					this.taskList.find((task) => task.id === mappedTask.id).detail(mappedTask);
+				});
+				mappedSessionContentList.forEach(mappedSessionContent => {
+					this.sessionContentList.find((sessionContent) => sessionContent.id === mappedSessionContent.id).detail(mappedSessionContent);
+				});
+				this.detailed = true;
+				return HomeworksCodes.SUCCESS;
+			default:
+				return { code: -1, message: response.message };
+		}
 	}
 
 	static createFromRaw(account, homeworkDayData, ISODate) {
