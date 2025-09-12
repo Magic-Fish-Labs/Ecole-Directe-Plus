@@ -1,5 +1,5 @@
 import { useState, useRef, useContext, useEffect } from 'react';
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays } from 'date-fns';
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, set } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 import { UserDataContext } from '../../../App';
@@ -34,16 +34,21 @@ export default function Calendar({ }) {
         activeHomeworkDate: { value: activeHomeworkDate }
     } = userData;
 
-    const [calendarMonth, setCalendarMonth] = useState(new Date(activeHomeworkDate).getMonth());
+    const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth());
 
     const calendarDays = useRef(generateCalendar(calendarMonth));
 
-    const monthDate = new Date()
+    const monthDate = new Date();
     monthDate.setMonth(calendarMonth);
 
     useEffect(() => {
         calendarDays.current = generateCalendar(calendarMonth);
     }, [calendarMonth]);
+
+    useEffect(() => {
+        if (activeHomeworkDate !== undefined && activeHomeworkDate !== null)
+            setCalendarMonth(new Date(activeHomeworkDate).getMonth());
+    }, [activeHomeworkDate]);
 
     function onClickToPreviousMonth() {
         setCalendarMonth(calendarMonth - 1);
