@@ -41,21 +41,23 @@ export default function Calendar({ }) {
     const monthDate = new Date();
     monthDate.setMonth(calendarMonth);
 
-    useEffect(() => {
-        calendarDays.current = generateCalendar(calendarMonth);
-    }, [calendarMonth]);
+    function changeMonth(newCalendarMonth) {
+        if (newCalendarMonth !== calendarMonth)
+            calendarDays.current = generateCalendar(newCalendarMonth);
+        setCalendarMonth(newCalendarMonth);
+    }
 
     useEffect(() => {
         if (activeHomeworkDate !== undefined && activeHomeworkDate !== null)
-            setCalendarMonth(new Date(activeHomeworkDate).getMonth());
+            changeMonth(new Date(activeHomeworkDate).getMonth());
     }, [activeHomeworkDate]);
 
     function onClickToPreviousMonth() {
-        setCalendarMonth(calendarMonth - 1);
+        changeMonth(calendarMonth - 1);
     }
 
     function onClickToNextMonth() {
-        setCalendarMonth(calendarMonth + 1);
+        changeMonth(calendarMonth + 1);
     }
 
     return (
