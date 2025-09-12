@@ -96,7 +96,7 @@
     margin-bottom: 10px;
 }
 
-.calendar .day {
+.calendar .calendar-day {
     text-align: center;
     padding: 9px;
     border-radius: 100%;
@@ -114,7 +114,7 @@
     user-select: none;
 }
 
-.calendar .day:is(:hover, :focus-visible) {
+.calendar .calendar-day:is(:hover, :focus-visible) {
     background-color: rgba(var(--text-color-alt), 0.2);
 }
 
@@ -139,7 +139,7 @@
 }
 
 .calendar .today {
-    background-color: #3f3cc9;
+    background-color: #8989c0;
 }
 
 .calendar .buttons {

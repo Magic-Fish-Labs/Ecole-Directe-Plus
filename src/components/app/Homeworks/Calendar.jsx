@@ -1,10 +1,11 @@
 import { useState, useRef, useContext, useEffect } from 'react';
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addMonths, addDays } from 'date-fns';
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 import { UserDataContext } from '../../../App';
 
 import DropDownArrow from "../../graphics/DropDownArrow";
+import CalendarDay from './CalendarDay';
 
 import './Calendar.css';
 
@@ -29,12 +30,13 @@ function generateCalendar(month) {
 export default function Calendar({ }) {
     const userData = useContext(UserDataContext);
     const {
+        homeworks: { value: homeworks },
         activeHomeworkDate: { value: activeHomeworkDate }
     } = userData;
 
     const [calendarMonth, setCalendarMonth] = useState(new Date(activeHomeworkDate).getMonth());
 
-    const calendarDays = useRef(generateCalendar());
+    const calendarDays = useRef(generateCalendar(calendarMonth));
 
     const monthDate = new Date()
     monthDate.setMonth(calendarMonth);
@@ -46,7 +48,7 @@ export default function Calendar({ }) {
     function onClickToPreviousMonth() {
         setCalendarMonth(calendarMonth - 1);
     }
-    
+
     function onClickToNextMonth() {
         setCalendarMonth(calendarMonth + 1);
     }
@@ -65,9 +67,12 @@ export default function Calendar({ }) {
             <div className="weekdays">
                 <span>Lun</span><span>Mar</span><span>Mer</span><span>Jeu</span><span>Ven</span><span>Sam</span><span>Dim</span>
             </div>
-            <div className="days">
-
-            </div>
+            {homeworks
+                ? <div className="days">
+                    {calendarDays.current.map((date, i) => <CalendarDay key={i} date={date} calendarMonth={calendarMonth} />)}
+                </div>
+                : "content Loader"
+            }
         </div>
     );
 };
