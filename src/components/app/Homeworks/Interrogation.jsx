@@ -29,11 +29,11 @@ export default function Interrogation({ task }) {
         task.check()
             .catch((error) => {
                 task.isDone = isTaskDone;
-                setHomeworks({ ...homeworks });
+                setHomeworks(homeworks);
                 console.error(error);
             });
         task.isDone = !isTaskDone;
-        setHomeworks({ ...homeworks });
+        setHomeworks(homeworks);
     }
 
     function handleClick() {
