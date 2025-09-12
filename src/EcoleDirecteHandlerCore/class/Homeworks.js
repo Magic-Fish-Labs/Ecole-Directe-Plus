@@ -45,9 +45,8 @@ export default class Homeworks {
 				throw new Error("invalid date.");
 			ISODate = format(date, "yyyy-MM-dd");
 		} else {
-			console.log(ISODate);
-			if (!testISODate(ISODate))
-				throw new Error("invalid ISO date format.");
+			if (!testISODate(date))
+				throw new Error(`invalid ISO date format \`${date}\`.` );
 			ISODate = date;
 		}
 
