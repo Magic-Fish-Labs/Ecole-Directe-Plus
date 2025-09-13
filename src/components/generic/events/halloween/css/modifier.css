@@ -35,3 +35,7 @@
 .halloween-div-patcher {
     background-color: oklch(65% 0.183 55.934) !important;
 }
+
+.halloween-div-patcher-dark {
+    background-color: rgb(0, 0, 0) !important;
+}

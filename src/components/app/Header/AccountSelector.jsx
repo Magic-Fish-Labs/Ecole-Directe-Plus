@@ -136,7 +136,7 @@ export default function AccountSelector({ accountsList, activeAccount, setActive
 
     // JSX
     return (
-        <div ref={accountSelectorRef} id="account-selector" className={`${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "halloween" && "halloween-window-header-sec"}`} data-state={isOpen ? "open" : "closed"} {...props}>
+        <div ref={accountSelectorRef} id="account-selector"  data-state={isOpen ? "open" : "closed"} {...props}>
             <div id="options-wrapper">
                 <div id="active-account" onClick={handleClick} role="button" tabIndex="0" onKeyDown={handleKeyDown}>
                     <div className={`account ${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "halloween" && "halloween-window-header"}`}>

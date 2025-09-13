@@ -1,6 +1,6 @@
 
 .spooky-btn {
-  position: relative;
+  position: static;
   background: rgba(0, 0, 0, 0.5);
   border: .5px solid oklch(75% 0.183 55.934);
   margin: 3rem;
@@ -18,7 +18,7 @@
 }
 
 .spooky-btn {
-    position: relative;
+    position: static;
     background: linear-gradient(145deg, rgba(20, 5, 40, 0.9), rgba(50, 20, 80, 0.7));
     border: 2px solid #ff8c00;
     margin: 3rem;

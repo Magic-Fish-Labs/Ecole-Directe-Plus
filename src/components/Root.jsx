@@ -8,6 +8,7 @@ import ProxyErrorNotification from "./Errors/ProxyErrorNotification";
 
 import { useCreateNotification } from "./generic/PopUps/Notification";
 import A2FLogin from "./Login/A2FLogin";
+import { currentPeriodEvent } from "./generic/events/setPeriodEvent";
 
 export default function Root({ currentEDPVersion, token, accountsList, fakeLogin, resetUserData, syncSettings, createFolderStorage, setDisplayTheme, displayTheme, displayMode, setDisplayModeState, activeAccount, setActiveAccount, setIsFullScreen, globalSettings, useUserSettings, entryURL, logout, isStandaloneApp, isTabletLayout, proxyError, fetchHomeworks, handleEdBan, isEDPUnblockInstalled, setIsEDPUnblockInstalled, isEDPUnblockActuallyInstalled, setIsEDPUnblockActuallyInstalled, requireA2F, setRequireA2F, fetchA2F }) {
     const navigate = useNavigate();
@@ -345,6 +346,12 @@ export default function Root({ currentEDPVersion, token, accountsList, fakeLogin
         // document.querySelector("main.content").focus();
     }
 
+    const forceSeasonalTheme = (theme) => {
+        console.log("theme:", theme);
+        localStorage.setItem("theme", theme);
+        window.location.reload();
+    }
+
     // thème
     const switchDisplayTheme = () => {
         if (displayTheme === "dark") {
@@ -436,6 +443,12 @@ export default function Root({ currentEDPVersion, token, accountsList, fakeLogin
                     <option value="quality">DISPLAY: QUALITY</option>
                     <option value="balanced">DISPLAY: BALANCED</option>
                     <option value="performance">DISPLAY: PERF</option>
+                </select>}
+                {isAdmin && <select title="Seasonal themes" value={currentPeriodEvent} name="period-event" id="period-event-selector" onChange={(event) => forceSeasonalTheme(event.target.value)}>
+                    <option value="auto">Seasonal theme: Auto</option>
+                    <option value="christmas">Seasonal theme: Christmas</option>
+                    <option value="halloween">Seasonal theme: Halloween</option>
+                    <option value="april">Seasonal theme: April prank</option>
                 </select>}
                 {isAdmin && <input type="button" onClick={() => { document.documentElement.classList.remove("dark"); document.documentElement.classList.remove("light"); document.documentElement.classList.add("tritanopia") }} value="TRITANOPIA" />}
                 {isAdmin && <input type="button" onClick={syncSettings} value="SYNC SETTINGS" />}

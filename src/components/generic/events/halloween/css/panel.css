@@ -172,17 +172,17 @@
   z-index: 1;
 }
 
-.text-element {
+.panel .content .text-element {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   margin: 0 0.5rem;
   max-width: 50%;
-  position: relative;
+  gap: .5rem;
 }
 
-.text-element h1 {
+.panel .content .text-element h1 {
   margin-bottom: 2rem;
   font-size: 2.8vw;
   color: oklch(20% 0.1 60);
@@ -194,7 +194,7 @@
   position: relative;
 }
 
-.text-element h3 {
+.panel .content .text-element h3 {
   font-size: 1.1vw;
   color: rgb(214, 200, 173);
   font-family: 'Creepster', cursive;
@@ -202,13 +202,17 @@
   margin-bottom: 0.5rem;
 }
 
-.text-element h3 span {
+.panel .content .text-element h3 span {
   font-size: 1.6vw;
   color: oklch(75% 0.183 55.934);
   text-shadow: 
     0 0 8px oklch(75% 0.183 55.934),
     0 0 15px oklch(75% 0.183 55.934 / 0.5);
   position: relative;
+}
+
+.gap {
+  margin-bottom: 10rem;
 }
 
 .ghost {
@@ -252,6 +256,7 @@
   color: oklch(75% 0.183 55.934);
   text-decoration: none;
   transition: all 0.3s ease;
+  margin-left: 5px;
 }
 
 .footer p a:hover {
@@ -267,15 +272,15 @@
     padding: 1rem;
   }
   
-  .text-element h1 {
+  .panel .content .text-element h1 {
     font-size: 6vw;
   }
   
-  .text-element h3 {
+  .panel .content .text-element h3 {
     font-size: 3vw;
   }
   
-  .text-element h3 span {
+  .panel .content .text-element h3 span {
     font-size: 4vw;
   }
   

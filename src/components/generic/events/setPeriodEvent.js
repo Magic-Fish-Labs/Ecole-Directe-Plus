@@ -1,3 +1,12 @@
+function fetchForcedTheme() {
+    const forcedTheme = localStorage.getItem('theme');
+    if (forcedTheme && forcedTheme !== "auto") {
+        return forcedTheme;
+    } else {
+        return false;
+    }
+}
+
 function getCurrentPeriodEvent() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -10,7 +19,7 @@ function getCurrentPeriodEvent() {
         },
         halloween: {
             name: "halloween",
-            start: new Date(today.getFullYear(), 8, 1, 0, 0, 0),
+            start: new Date(today.getFullYear(), 9, 15, 0, 0, 0),
             end: new Date(today.getFullYear(), 10, 5, 0, 0, 0)
         }
     };
@@ -23,7 +32,11 @@ function getCurrentPeriodEvent() {
         }
     });
 
-    return matchingEvent; // Return the matching event
+    if (fetchForcedTheme()) {
+        matchingEvent = fetchForcedTheme();
+    }
+
+    return matchingEvent;
 }
 
 export const currentPeriodEvent = getCurrentPeriodEvent();

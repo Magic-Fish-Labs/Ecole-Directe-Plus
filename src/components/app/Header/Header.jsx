@@ -238,7 +238,7 @@ export default function Header({ currentEDPVersion, accountsList, setActiveAccou
                 </ul>
             )}
             {!isFullScreen && <div className={`header-container${isStandaloneApp ? " standalone" : ""}`}>
-                <header className={`header-menu ${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "halloween" && "halloween-window-header"}`}>
+                <header className={`header-menu ${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "halloween" && "halloween-div-patcher-dark"}`}>
                     <div className="header-logo-container">
                         <Link to="dashboard" tabIndex="-1" ref={headerLogoRef} onClick={handleClick}>
                             {

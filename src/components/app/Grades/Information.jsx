@@ -20,6 +20,10 @@ import {
     BadgeMehInfo,
 } from "../../generic/badges/BadgeInfo"
 
+import { currentPeriodEvent } from "../../generic/events/setPeriodEvent";
+
+import "../../generic/events/halloween/css/modifier.css";
+
 
 
 // graphics
@@ -30,6 +34,7 @@ import LoadingAnimation from "../../graphics/LoadingAnimation";
 import "./Information.css";
 import ExpandIcon from "../../graphics/ExpandIcon";
 import ReduceIcon from "../../graphics/ReduceIcon";
+import HalloweenCanardman from "../../generic/events/halloween/elements/halloween_canardman";
 
 function findGradesObjectById(list, value) {
     if (value === "") {
@@ -63,6 +68,9 @@ export default function Information({ sortedGrades, activeAccount, selectedPerio
 
     const settings = useUserSettings();
     const grades = useUserData();
+
+    const isPartyModeEnabled = settings.get("isPartyModeEnabled");
+    const isPeriodEventEnabled = settings.get("isPeriodEventEnabled");
 
     let selectedElement = isNaN(parseInt(location.hash.slice(1))) ? undefined : "loading";
     if (sortedGrades && sortedGrades[selectedPeriod]) {
@@ -154,7 +162,7 @@ export default function Information({ sortedGrades, activeAccount, selectedPerio
                         </div>
                     </div>
                 </div> : ["none", undefined].includes(selectedElement) ? <div className="no-selected-grades">
-                    <CanardmanSearching />
+                    {isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "halloween" ? <HalloweenCanardman /> : <CanardmanSearching />}
                     <p>Sélectionnez une note pour en voir les détails ici</p>
                 </div> : selectedElement.elementType === "grade" ? <div className="element-information">
                     <div className="grade-zone">

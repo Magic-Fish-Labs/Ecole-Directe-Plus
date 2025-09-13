@@ -10,6 +10,10 @@ import {
     WindowContent
 } from "../../generic/Window";
 
+import { currentPeriodEvent } from "../../generic/events/setPeriodEvent";
+
+import "../../generic/events/halloween/css/modifier.css";
+
 import InfoButton from "../../generic/Informative/InfoButton";
 import Tabs from "../../generic/UserInputs/Tabs";
 import Grade from "./Grade";
@@ -25,6 +29,9 @@ export default function Results({ activeAccount, sortedGrades, selectedPeriod, s
     const settings = useUserSettings();
     const contentLoadersRandomValues = useRef({ subjectNameWidth: Array.from({ length: 13 }, (_) => Math.round(Math.random() * 100) + 100), gradeNumbers: Array.from({ length: 13 }, (_) => Math.floor(Math.random() * 8) + 2) })
     const location = useLocation();
+
+    const isPartyModeEnabled = settings.get("isPartyModeEnabled");
+    const isPeriodEventEnabled = settings.get("isPeriodEventEnabled");
 
 
     useEffect(() => {
@@ -161,7 +168,7 @@ export default function Results({ activeAccount, sortedGrades, selectedPeriod, s
                             ? <table className="grades-table">
                                 <colgroup>
                                     <col className="subjects-col" />
-                                    <col className="moyennes-col" />
+                                    <col className={`moyennes-col ${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "halloween" ? "halloween-div-patcher" : ""}`} />
                                     <col className="grades-col" />
                                 </colgroup>
                                 <thead>

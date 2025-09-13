@@ -4,6 +4,10 @@ import ContentLoader from "react-content-loader";
 
 import { AppContext } from "../../../App";
 
+import { currentPeriodEvent } from "../../generic/events/setPeriodEvent";
+
+import "../../generic/events/halloween/css/modifier.css";
+
 
 import "./Tabs.css";
 
@@ -11,6 +15,9 @@ export default function Tabs({ tabs, displayedTabs = tabs, selected, fieldsetNam
 
     const { actualDisplayTheme, useUserSettings } = useContext(AppContext);
     const settings = useUserSettings();
+
+    const isPartyModeEnabled = settings.get("isPartyModeEnabled");
+    const isPeriodEventEnabled = settings.get("isPeriodEventEnabled");
 
     const [tabsState, setTabsState] = useState(tabs);
     const firstContentState = useRef(contentLoader);
@@ -31,7 +38,7 @@ export default function Tabs({ tabs, displayedTabs = tabs, selected, fieldsetNam
     return (!contentLoader && tabs.length > 0
         ? <fieldset name={fieldsetName} className={`tabs-container ${dir === "column" ? "d-col" : ""} ${className}`} id={id} {...props} >
             {tabsState.map((option, index) =>
-                <label htmlFor={option} key={option} title={displayedTabs[index]} style={{ "--order": (firstContentState.current ? 0 : index), "animationDuration": (firstContentState.current ? "0s" : "") }} className={"tab " + "selected ".repeat(selected === option)}>
+                <label htmlFor={option} key={option} title={displayedTabs[index]} style={{ "--order": (firstContentState.current ? 0 : index), "animationDuration": (firstContentState.current ? "0s" : "") }} className={`tab ${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "halloween" ? "halloween-div-patcher" : ""}` + "selected ".repeat(selected === option)}>
                     <input name={fieldsetName} type="radio" id={option} value={option} onClick={handleClick} />
                     {displayedTabs[index]}
                 </label>

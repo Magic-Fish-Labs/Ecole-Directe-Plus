@@ -129,7 +129,7 @@ export default function LandingPage({ token, accountsList }) {
 
     }, [])
 
-    return (<div className="landing-page">
+    return (<div className={`landing-page `}>
         {<header id="nav-bar" className="top-section">
             <span className={`nav-logo ${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "christmas" ? "snowy-element" : ""}`}>
                 <EDPLogo className="landing-logo" id="outside-container" alt="Logo Ecole Directe Plus" />Ecole Directe Plus
