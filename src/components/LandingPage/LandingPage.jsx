@@ -157,9 +157,9 @@ export default function LandingPage({ token, accountsList }) {
             && currentPeriodEvent === "halloween"
             && <FloatingParticles />
             && <Spiders />
+            && <HalloweenPanel />
         }
         <section id="home" ref={homeSectionRef}>
-            <HalloweenPanel />
             <Link to="" className={`go-to-top ${isTop ? "unactive" : "active"}`}><UpArrow className="up-arrow" /></Link>
             <div className="affiliation-disclaimer"> <InfoTypoIcon />Service open source non-affilié à Aplim</div>
             <div className="text-center">
