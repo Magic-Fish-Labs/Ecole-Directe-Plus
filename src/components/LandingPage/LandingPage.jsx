@@ -162,7 +162,7 @@ export default function LandingPage({ token, accountsList }) {
         <section id="home" ref={homeSectionRef}>
             <Link to="" className={`go-to-top ${isTop ? "unactive" : "active"}`}><UpArrow className="up-arrow" /></Link>
             <div className="affiliation-disclaimer"> <InfoTypoIcon />Service open source non-affilié à Aplim</div>
-            <div className="text-center">
+            <div className="text-center items-center">
                 <h1>Découvrez <strong className="heading-emphasis">Ecole Directe Plus</strong></h1>
                 <p>EDP augmente EcoleDirecte, avec une interface moderne et intuitive, enrichie de fonctionnalités exclusives, le tout de façon gratuite, libre et open-source.</p>
                 { isPartyModeEnabled && isPartyModeEnabled && currentPeriodEvent === "halloween" ? <SpookyBtn text={"Ouvrir l'app"} onClick={() => navigate("/login")}/> : (

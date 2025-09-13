@@ -316,6 +316,13 @@ html:has(.landing-page) {
     text-align: center;
 }
 
+.landing-page .items-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
 .landing-page h1 {
     font-size: var(--font-size-36);
 }
