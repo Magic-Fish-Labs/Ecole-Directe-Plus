@@ -16,6 +16,8 @@ import { AppContext } from "../../../App";
 import { applyZoom, getZoomedBoudingClientRect } from "../../../utils/zoom";
 import DropDownMenu from "../../generic/UserInputs/DropDownMenu";
 
+import { useSeasonalAnimation } from "../../generic/events/generic/SeasonalAnimation";
+
 import "./Settings.css";
 
 // graphics
@@ -24,6 +26,8 @@ import ToggleEnd from "../../graphics/ToggleEnd";
 
 export default function Settings({ usersSettings, accountsList, getCurrentSchoolYear, resetUserData }) {
     const { isStandaloneApp, promptInstallPWA, useUserSettings, globalSettings, isTabletLayout } = useContext(AppContext);
+
+    const { triggerAnimation, AnimationLayer } = useSeasonalAnimation();
 
     const partyModeCheckbox = useRef(null);
     const periodEventCheckbox = useRef(null);
@@ -39,6 +43,7 @@ export default function Settings({ usersSettings, accountsList, getCurrentSchool
         settings.set("isPeriodEventEnabled", event.target.checked);
         if (event.target.checked) {
             confettiAnimation();
+            triggerAnimation();
         }
     };
 
@@ -220,6 +225,7 @@ export default function Settings({ usersSettings, accountsList, getCurrentSchool
                         checked={isPeriodEventEnabled}
                         onChange={handleIsPeriodEventEnabledChange}
                     />
+                    <AnimationLayer />
                 </div>
 
                 <div className="setting" id="reset-windows-layouts">

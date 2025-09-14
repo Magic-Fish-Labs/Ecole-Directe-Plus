@@ -18,6 +18,7 @@
     display: block;
     margin: 0 auto;
     z-index: 1;
+    isolation: isolate;
 }
 
 .header-menu {
