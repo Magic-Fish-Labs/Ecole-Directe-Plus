@@ -3,13 +3,7 @@ import fetchHomeworksDay from "../requests/fetchHomeworksDay";
 import HomeworkDay from "./HomeworkDay";
 
 export default class Task {
-	// !:! WARNING: This needs to be really really thougt about a bit more because actually event doing a setHomeworks({...homworks}), will not rerender if the only props in a component is an sub object of homeworks,
-	// meaning we have to do a useContext in all component that use the grades or homeworks userData for instance event if they doin't need the full grades/homeworks object.
-	teacher;
-	content;
-	files;
-	sessionContent;
-	sessionContentFiles;
+
 	/**
 	 * 
 	 * @param {object} account 
@@ -22,18 +16,23 @@ export default class Task {
 
 		this.id = id;
 		this.subjectCode = subjectCode;
+		this.subject = subject;
 		this.isDone = isDone;
 		this.isInterrogation = isInterrogation;
-		this.subject = subject;
 		this.addDate = addDate;
 	}
 
-	detail({ teacher, content, files, sessionContent, sessionContentFiles }) {
+	applyDetail({ teacher, content, files, sessionContent, sessionContentFiles }) {
 		this.teacher = teacher;
 		this.content = content;
 		this.files = files;
 		this.sessionContent = sessionContent;
 		this.sessionContentFiles = sessionContentFiles;
+		return this;
+	}
+
+	get detailed() {
+		return this.day.detailed;
 	}
 
 	async check(controller) {

@@ -54,6 +54,30 @@ export default class HomeworkDay {
 		return format(this.date, "yyyy-MM-dd");
 	}
 
+	applyDetail(detailData) {
+		const { mappedTaskList, mappedSessionContentList } = mapHomeworksDay(detailData);
+
+		for (const mappedTask of mappedTaskList) {
+			const existingTask = this.taskList.find((task) => task.id === mappedTask.id);
+
+			if (existingTask)
+				existingTask.applyDetail(mappedTask);
+			else
+				this.taskList.push(new Task(this.account, this, mappedTask).applyDetail(mappedTask));
+		}
+
+		for (const mappedSessionContent of mappedSessionContentList) {
+			const existingSessionContent = this.sessionContentList.find((sessionContent) => sessionContent.id === mappedSessionContent.id);
+
+			if (existingSessionContent)
+				existingSessionContent.applyDetail(mappedSessionContent);
+			else
+				this.sessionContentList.push(new SessionContent(this.account, this, mappedSessionContent).applyDetail(mappedSessionContent));
+		}
+
+		this.detailed = true;
+	}
+
 	async detail(controller) {
 		let response;
 
@@ -67,14 +91,7 @@ export default class HomeworkDay {
 		this.account.token.set((old) => (response?.token || old));
 		switch (response.code) {
 			case 200:
-				const { mappedTaskList, mappedSessionContentList } = mapHomeworksDay(response.data);
-				mappedTaskList.forEach(mappedTask => {
-					this.taskList.find((task) => task.id === mappedTask.id).detail(mappedTask);
-				});
-				mappedSessionContentList.forEach(mappedSessionContent => {
-					this.sessionContentList.find((sessionContent) => sessionContent.id === mappedSessionContent.id).detail(mappedSessionContent);
-				});
-				this.detailed = true;
+				this.applyDetail(response.data);
 				return HomeworksCodes.SUCCESS;
 			default:
 				return { code: -1, message: response.message };

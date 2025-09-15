@@ -6,11 +6,15 @@ import SessionContent from "./SessionContent";
 import DetailedTask from "./DetailedTask";
 import DetailedSessionContent from "./DetailedSessionContent";
 import { capitalizeFirstLetter } from "../../../../utils/utils";
+import { daysToWeeks } from "date-fns";
+import { useCreateNotification } from "../../../generic/PopUps/Notification";
 
 /**
  * @param {{day: HomeworkDay}} props
  */
 export default function NotebookDay({ day, isNotebookGrabed }) {
+	const createNotification = useCreateNotification();
+
 	const userData = useContext(UserDataContext);
 	const {
 		homeworks: { value: homeworks, set: setHomeworks },
@@ -25,9 +29,16 @@ export default function NotebookDay({ day, isNotebookGrabed }) {
 
 	useEffect(() => {
 		if (selected && !day.detailed) {
-			day.detail().then(() => setHomeworks(homeworks));
+			day.detail()
+				.then(() => setHomeworks(homeworks))
+				.catch((err) => {
+					console.error(err);
+					createNotification("Une erreur inconnue s'est produite lors de la communication avec les serveurs de EcoleDirecte.", {customClass: "extension-warning"});
+				});
 		}
 	}, [selected, day.detailed]);
+
+	if (day.empty) return null;
 
 	return <div
 		key={day.ISODate}

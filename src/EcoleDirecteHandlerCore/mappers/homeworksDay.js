@@ -5,14 +5,13 @@ import Task from "../class/Task";
 const tomorrow = getToday();
 tomorrow.setDate(tomorrow.getDate() + 1);
 
-export function mapHomeworksDay(homeworksDay) {
+export function mapHomeworksDay(detailedHomeworksDayData) {
     const mappedTaskList = [];
     const mappedSessionContentList = [];
-    homeworksDay.matieres.forEach((homeworkElement) => {
-        const { aFaire, id, nomProf } = homeworkElement;
-        let contenuDeSeance = homeworkElement.contenuDeSeance;
+
+    for (let { aFaire, id, codeMatiere, matiere, nomProf, contenuDeSeance, interrogation } of detailedHomeworksDayData.matieres) {
         if (!contenuDeSeance) {
-            if (!aFaire) return;
+            if (!aFaire) continue;
             contenuDeSeance = aFaire.contenuDeSeance;
         }
 
@@ -20,7 +19,10 @@ export function mapHomeworksDay(homeworksDay) {
             const { donneLe, effectue, contenu, documents } = aFaire;
             mappedTaskList.push({
                 id: id,
+                subjectCode: codeMatiere,
+                subject: matiere,
                 isDone: effectue,
+                isInterrogation: interrogation,
                 teacher: nomProf,
                 addDate: donneLe,
                 content: decodeBase64(contenu),
@@ -31,11 +33,15 @@ export function mapHomeworksDay(homeworksDay) {
         } else {
             mappedTaskList.push({
                 id: id,
+                subjectCode: codeMatiere,
+                subject: matiere,
                 teacher: nomProf,
+                addDate: donneLe,
                 sessionContent: contenuDeSeance.contenu,
                 sessionContentFiles: contenuDeSeance.documents.map((e) => (new File(e.id, e.type, e.libelle)))
             });
         }
-    });
+    }
+
     return { mappedTaskList, mappedSessionContentList };
 }

@@ -5,12 +5,15 @@ import DropDownArrow from "../../graphics/DropDownArrow";
 
 import './Notification.css'
 
+/**
+ * @returns {(newNotificationContent: import('react').ReactNode, {customClass = "", timer = 3000} = {}) => void}
+ */
+export function useCreateNotification() {
+    return useContext(notificationContext);
+}
+
 const notificationContext = createContext();
 
-export function useCreateNotification() {
-    const addNotification = useContext(notificationContext)
-    return addNotification
-}
 
 export default function DOMNotification({ children }) {
     const [notificationList, setNotificationList] = useState([])
