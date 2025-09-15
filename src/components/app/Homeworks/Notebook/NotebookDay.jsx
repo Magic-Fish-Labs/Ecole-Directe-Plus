@@ -33,7 +33,7 @@ export default function NotebookDay({ day, isNotebookGrabed }) {
 				.then(() => setHomeworks(homeworks))
 				.catch((err) => {
 					console.error(err);
-					createNotification("Une erreur inconnue s'est produite lors de la communication avec les serveurs de EcoleDirecte.", {customClass: "extension-warning"});
+					createNotification("Une erreur inconnue s'est produite lors de la communication avec les serveurs de EcoleDirecte.", {className: "extension-warning"});
 				});
 		}
 	}, [selected, day.detailed]);

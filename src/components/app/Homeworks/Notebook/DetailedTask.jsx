@@ -46,7 +46,7 @@ export default function DetailedTask({ task, ...props }) {
     }
 
     // !:!
-    const summonNotification = useCreateNotification();
+    const createNotification = useCreateNotification();
 
     return task?.content
         ? <div ref={detailedTaskRef} onClick={(e) => { setActiveHomeworkId(task.id); e.stopPropagation() }} className={`detailed-task ${task.isDone ? "done" : ""}`} id={"task-" + task.id} {...props} >
@@ -71,8 +71,8 @@ export default function DetailedTask({ task, ...props }) {
             <div className="task-footer">
                 {/* <Link to={`#${day};${task.id};s`} onClick={(e) => e.stopPropagation()} replace={true} className={`task-footer-button ${EMPTY_SESSION_CONTENT.includes(task.sessionContent) ? "disabled" : ""}`}><PatchNotesIcon className="session-content-icon" />Contenu de séance</Link>
                 <Link to={`#${day};${task.id};f`} onClick={(e) => e.stopPropagation()} replace={true} className={`task-footer-button ${task.files.length === 0 ? "disabled" : ""}`}><DownloadIcon className="download-icon" />Fichiers</Link> */}
-                <button onClick={(e) => {summonNotification(<p>Il faut mettre les contenus de séance</p>, {timer: 3000}); e.stopPropagation()}} disabled={EMPTY_SESSION_CONTENT.includes(task.sessionContent)} className={`task-footer-button ${EMPTY_SESSION_CONTENT.includes(task.sessionContent) ? "disabled" : ""}`}><PatchNotesIcon className="session-content-icon" />Contenu de séance</button>
-                <button onClick={(e) => {summonNotification(<p>Il faut mettre les fichiers</p>, {timer: 3000}); e.stopPropagation()}} disabled={task.files.length === 0} className={`task-footer-button ${task.files.length === 0 ? "disabled" : ""}`}><DownloadIcon className="download-icon" />Fichiers</button>
+                <button onClick={(e) => {createNotification(<p>Il faut mettre les contenus de séance</p>); e.stopPropagation()}} disabled={EMPTY_SESSION_CONTENT.includes(task.sessionContent)} className={`task-footer-button ${EMPTY_SESSION_CONTENT.includes(task.sessionContent) ? "disabled" : ""}`}><PatchNotesIcon className="session-content-icon" />Contenu de séance</button>
+                <button onClick={(e) => {createNotification(<p>Il faut mettre les fichiers</p>); e.stopPropagation()}} disabled={task.files.length === 0} className={`task-footer-button ${task.files.length === 0 ? "disabled" : ""}`}><DownloadIcon className="download-icon" />Fichiers</button>
             </div>
         </div>
         : <div className={`detailed-task`} {...props} >

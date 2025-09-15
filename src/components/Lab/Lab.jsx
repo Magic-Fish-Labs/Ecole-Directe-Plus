@@ -71,7 +71,7 @@ export default function Lab({ fetchGrades }) {
     // } = userData;
     // const subjectArray = Object.keys(Object.values(grades)[0].subjects);
     // console.log(JSON.stringify(subjectArray));
-    const addNotification = useCreateNotification()
+    const createNotification = useCreateNotification()
     // States
     const [jsp, rerenderer] = useState(0);
     const [test, setTest] = useState(["Signaler un bug", "Suggestion", "Retour d'expérience", "Autre", "Celui qui ne se souvient pas du passé est condamné à le répéter.", "option1", "option2", "option3", "option4", "option5", "option6", "option7", "option8", "option10 OH non j'ai oublié option9"]);
@@ -268,7 +268,7 @@ export default function Lab({ fetchGrades }) {
             </div>
             <h3>Notifications</h3>
             <div>
-                <Button value="New notification" onClick={() => { addNotification(<h1>NOTIFICATION TRÈS PERTINENTE</h1>) }} />
+                <Button value="New notification" onClick={() => { createNotification(<h1>NOTIFICATION TRÈS PERTINENTE</h1>, {timeToLive: 10000}) }} />
             </div>
             <h3>StoreCallToAction</h3>
             <div id="store-call-to-action">

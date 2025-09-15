@@ -611,7 +611,7 @@ export default function App() {
                 <a href="/edp-unblock#about">En savoir plus</a>
                 <a href={browserExtensionDownloadLink[userBrowser]} target={(![Browsers.SAFARI, Browsers.FIREFOX].includes(userBrowser) ? "_blank" : "")}>Télécharger</a>
             </div>
-        </>, { customClass: "extension-warning", timer: "infinite" })
+        </>, { className: "extension-warning", timeToLive: "infinite" })
     }
 
     async function fetchHomeworksSequentially(controller = new AbortController(), date = "incoming") {

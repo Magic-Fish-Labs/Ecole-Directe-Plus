@@ -42,7 +42,7 @@
     animation: del-notification 0.5s ease-in forwards;
 }
 
-.fast-closing {
+.force-closing {
     animation: del-notification 0.2s ease-in forwards;
 }
 
