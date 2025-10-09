@@ -3,8 +3,8 @@ import CheckBox from "../../../generic/UserInputs/CheckBox";
 import { AppContext, SettingsContext, UserDataContext } from "../../../../App";
 import ContentLoader from "react-content-loader";
 
-import "./Task.css";
-export default function Task({ task, isNotebookGrabed, ...props }) {
+import "./TaskComponent.css";
+export default function TaskComponent({ task, isNotebookGrabed, ...props }) {
     const { usedDisplayTheme } = useContext(AppContext)
 
     const userData = useContext(UserDataContext);

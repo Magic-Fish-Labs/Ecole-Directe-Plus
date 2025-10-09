@@ -2,7 +2,7 @@ import { useContext, useRef } from "react";
 import ContentLoader from "react-content-loader";
 
 import { AppContext, SettingsContext, UserDataContext } from "../../../../App";
-import Task from "./Task";
+import Task from "./TaskComponent";
 import DetailedTask from "./DetailedTask";
 import DateSelector from "./DateSelector";
 import NotebookDay from "./NotebookDay";
@@ -14,9 +14,9 @@ export default function Notebook({ hideDateController = false }) {
 
     const userData = useContext(UserDataContext);
     const {
-        homeworks: { value: homeworks, get: getHomeworks },
+        homeworks: { value: homeworks },
         activeHomeworkDate: { value: activeHomeworkDate, set: setActiveHomeworkDate },
-        activeHomeworkId: { value: activeHomeworkId, set: setActiveHomeworkId },
+        activeHomeworkId: { value: activeHomeworkId },
     } = userData;
 
     const settings = useContext(SettingsContext);
@@ -115,7 +115,7 @@ export default function Notebook({ hideDateController = false }) {
                     ? <p className="no-homework-placeholder">Vous n'avez aucun devoir à venir. Profitez de ce temps libre pour venir discuter sur le <a href="https://discord.gg/AKAqXfTgvE" target="_blank">serveur Discord d'Ecole Directe Plus</a> et contribuer au projet via le <a href="https://github.com/Magic-Fish-Lab/Ecole-Directe-Plus" target="_blank">dépôt Github</a> !</p>
                     : Object.entries(homeworks.days).sort(([_a, dayA], [_b, dayB]) => dayA.date - dayB.date).map(([ISODate, day]) => {
                         return <NotebookDay key={ISODate} day={day} isNotebookGrabed={isNotebookGrabed} />
-                    }).filter(e => e)
+                    })
                 : contentLoadersRandomValues.current.days.map((el, index) => {
                     return <div className={`notebook-day ${index === 0 ? "selected" : ""}`} key={index} >
                         <div className="notebook-day-header">

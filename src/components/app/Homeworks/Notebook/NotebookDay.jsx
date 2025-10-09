@@ -1,17 +1,15 @@
 import { useContext, useEffect } from "react";
 import { UserDataContext } from "../../../../App";
-import HomeworkDay from "../../../../EcoleDirecteHandlerCore/class/HomeworkDay";
-import Task from "./Task";
+import TaskComponent from "./TaskComponent";
 import SessionContent from "./SessionContent";
 import DetailedTask from "./DetailedTask";
 import DetailedSessionContent from "./DetailedSessionContent";
 import { capitalizeFirstLetter } from "../../../../utils/utils";
-import { daysToWeeks } from "date-fns";
 import { useCreateNotification } from "../../../generic/PopUps/Notification";
 
-/**
- * @param {{day: HomeworkDay}} props
- */
+import HomeworkDay from "../../../../EcoleDirecteHandlerCore/class/HomeworkDay";
+// import Task from "../../../../EcoleDirecteHandlerCore/class/Task";
+
 export default function NotebookDay({ day, isNotebookGrabed }) {
 	const createNotification = useCreateNotification();
 
@@ -26,6 +24,10 @@ export default function NotebookDay({ day, isNotebookGrabed }) {
 	const sessionContents = day.sessionContentList;
 	const progression = tasks.filter((task) => task.isDone).length / tasks.length;
 	const selected = day.ISODate === activeHomeworkDate;
+
+	useEffect(() => {
+		
+	}, [activeHomeworkDate, activeHomeworkId]);
 
 	useEffect(() => {
 		if (selected && !day.detailed) {
@@ -72,7 +74,7 @@ export default function NotebookDay({ day, isNotebookGrabed }) {
 					}
 					return result;
 				}
-				return <Task key={task.id} task={task} isNotebookGrabed={isNotebookGrabed} />;
+				return <TaskComponent key={task.id} task={task} isNotebookGrabed={isNotebookGrabed} />;
 			})}
 			{sessionContents.length !== 0 && (selected
 				? <div className="detailed-section-separator"><hr /><span>Contenus de Séances</span><hr /></div>

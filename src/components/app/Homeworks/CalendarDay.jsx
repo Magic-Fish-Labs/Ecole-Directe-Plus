@@ -2,7 +2,6 @@ import { format } from "date-fns";
 import classBuilder from "../../../utils/classBuilder";
 import { UserDataContext } from "../../../App";
 import { useContext } from "react";
-import Task from "../../../EcoleDirecteHandlerCore/class/Task";
 
 const DayColorsClass = {
     COMPLETED: "completed",         // #48d948 all done
