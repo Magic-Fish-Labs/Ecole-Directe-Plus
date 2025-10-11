@@ -41,7 +41,6 @@ import EncodedHTMLDiv from "../generic/CustomDivs/EncodedHTMLDiv";
 import { textToHSL } from "../../utils/utils"
 import DefaultFileIcon from "../graphics/file/DefaultFileIcon"
 import OutlineEffectDiv from "../generic/CustomDivs/OutlineEffectDiv";
-import useInitializer from "../../EcoleDirecteHandlerCore/hooks/utils/useInitializer";
 import { BrowserLabels, OperatingSystemLabels } from "../../utils/constants/constants";
 import LinkableButton from "../generic/buttons/LinkableButton";
 import { AppContext, UserDataContext } from "../../App";
@@ -79,7 +78,6 @@ export default function Lab({ fetchGrades }) {
     const [isOpen, setIsOpen] = useState(false);
     const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
     const [testState, setTestState] = useState(false);
-    const [initializer, setInitializer] = useInitializer("StartValue", "defaultValue", (old, newValue) => { console.log("state has been initialized to", newValue); return newValue });
 
     const [isInputPopUpOpen, setIsInputPopUpOpen] = useState(false);
     const [number1, setNumber1] = useState(0)
