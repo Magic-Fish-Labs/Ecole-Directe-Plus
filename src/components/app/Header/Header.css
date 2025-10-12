@@ -17,8 +17,7 @@
     max-width: 2360px;
     display: block;
     margin: 0 auto;
-    z-index: 1;
-    isolation: isolate;
+    z-index: 2;
 }
 
 .header-menu {

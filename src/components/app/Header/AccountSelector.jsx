@@ -18,7 +18,6 @@ import { AppContext } from "../../../App";
 import { currentPeriodEvent } from "../../generic/events/setPeriodEvent";
 
 import "./AccountSelector.css";
-import "../../generic/events/halloween/css/modifier.css";
 
 export default function AccountSelector({ accountsList, activeAccount, setActiveAccount, isTabletLayout, logout, ...props }) {
 
@@ -139,7 +138,7 @@ export default function AccountSelector({ accountsList, activeAccount, setActive
         <div ref={accountSelectorRef} id="account-selector"  data-state={isOpen ? "open" : "closed"} {...props}>
             <div id="options-wrapper">
                 <div id="active-account" onClick={handleClick} role="button" tabIndex="0" onKeyDown={handleKeyDown}>
-                    <div className={`account ${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "halloween" && "halloween-window-header"}`}>
+                    <div className={`account`}>
                         <div className="pp-container">
                             <img ref={(el) => (profilePictureRefs.current[0] = el)} className="profile-picture" src={((accountsList[activeAccount].firstName !== "Guest")
                                 ? settings.get("isStreamerModeEnabled") ? "/images/scholar-canardman.png" : accountsList[activeAccount].picture
@@ -155,7 +154,7 @@ export default function AccountSelector({ accountsList, activeAccount, setActive
                     </div>
                 </div>
                 <div className="animation-wrapper">
-                    <div className={`options-container ${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "halloween" && "halloween-div-patcher"}`}>
+                    <div className={`options-container`}>
                         <div className="alt-accounts">
                             {accountsList.map((account, index) => {
                                 if (index !== activeAccount) {
@@ -175,16 +174,16 @@ export default function AccountSelector({ accountsList, activeAccount, setActive
                             })}
                         </div>
                         <div className="links">
-                            <Link to={`/app/${activeAccount}/settings`} className={`${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "halloween" && "halloween-window"}`} id="settings-page" onClick={handleClose}><SettingsIcon /> <span className="link-text">Paramètres</span></Link>
-                            <Link to={`/app/${activeAccount}/account`} className={`${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "halloween" && "halloween-window"}`} id="account-page" onClick={handleClose}><AccountIcon /> <span className="link-text">Compte</span></Link>
+                            <Link to={`/app/${activeAccount}/settings`} id="settings-page" onClick={handleClose}><SettingsIcon /> <span className="link-text">Paramètres</span></Link>
+                            <Link to={`/app/${activeAccount}/account`}  id="account-page" onClick={handleClose}><AccountIcon /> <span className="link-text">Compte</span></Link>
                             {/* TODO: REMOVE THAT SHIT ↓ */}
-                            <Link to={(location.pathname.endsWith("dashboard") || location.pathname.endsWith("homeworks")) ? "/feedback" : "#feedback"} replace={true} className={`${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "halloween" && "halloween-window"}`} id="feedback" onClick={handleClose}><FeedbackIcon /> <span className="link-text">Faire un retour</span></Link>
-                            <Link to="#patch-notes" replace={true} className={`${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "halloween" && "halloween-window"}`} id="patch-notes" onClick={handleClose}><PatchNotesIcon /> <span className="link-text">Patch Notes</span></Link>
+                            <Link to={(location.pathname.endsWith("dashboard") || location.pathname.endsWith("homeworks")) ? "/feedback" : "#feedback"} replace={true} id="feedback" onClick={handleClose}><FeedbackIcon /> <span className="link-text">Faire un retour</span></Link>
+                            <Link to="#patch-notes" replace={true} id="patch-notes" onClick={handleClose}><PatchNotesIcon /> <span className="link-text">Patch Notes</span></Link>
                         </div>
-                        <div className={`change-display-theme-shortcut ${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "halloween" && "halloween-window"}`}>
-                            <DisplayThemeController selected={settings.get("displayTheme")} className={`${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "halloween" && "halloween-div-patcher"}`} onChange={(newValue) => settings.set("displayTheme", newValue)} fieldsetName="display-theme-shortcut" />
+                        <div className={`change-display-theme-shortcut`}>
+                            <DisplayThemeController selected={settings.get("displayTheme")} onChange={(newValue) => settings.set("displayTheme", newValue)} fieldsetName="display-theme-shortcut" />
                         </div>
-                        <div className={`logout ${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "halloween" && "halloween-window"}`}>
+                        <div className={`logout`}>
                             <button id="logout-button" onClick={logout}><span>Se déconnecter</span><LogoutIcon className="logout-icon" /></button>
                         </div>
                     </div>

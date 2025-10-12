@@ -27,8 +27,8 @@ import { FloatingParticles } from "../../generic/events/halloween/particles";
 import { Spiders } from "../../generic/events/halloween/elements/spiders";
 
 import "./Header.css";
-import Moon from "../../generic/events/halloween/elements/moon";
 import Jumpscare from "../../generic/events/halloween/jumpscare";
+import HalloweenLogo from "../../generic/events/halloween/elements/halloweenLogo";
 
 
 export default function Header({ currentEDPVersion, accountsList, setActiveAccount, activeAccount, carpeConviviale, isLoggedIn, fetchUserTimeline, timeline, isFullScreen, isTabletLayout, logout }) {
@@ -238,14 +238,12 @@ export default function Header({ currentEDPVersion, accountsList, setActiveAccou
                 </ul>
             )}
             {!isFullScreen && <div className={`header-container${isStandaloneApp ? " standalone" : ""}`}>
-                <header className={`header-menu ${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "halloween" && "halloween-div-patcher-dark"}`}>
+                <header className={`header-menu`}>
                     <div className="header-logo-container">
                         <Link to="dashboard" tabIndex="-1" ref={headerLogoRef} onClick={handleClick}>
                             {
                                 isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "halloween" ? (
-                                    <div style={{ width: "7.5rem", height: "7.5rem", marginTop: ".2rem" }}>
-                                        <Moon />
-                                    </div>
+                                    <HalloweenLogo id="header-logo" />
                                 ) : (
                                     <EDPLogo id="header-logo" />
                                 )

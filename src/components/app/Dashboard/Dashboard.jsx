@@ -4,8 +4,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 import { AppContext } from "../../../App";
 
-import "../../generic/events/halloween/css/modifier.css"
-
 import {
     WindowsContainer,
     WindowsLayout,

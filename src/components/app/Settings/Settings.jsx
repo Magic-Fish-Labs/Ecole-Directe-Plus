@@ -225,7 +225,6 @@ export default function Settings({ usersSettings, accountsList, getCurrentSchool
                         checked={isPeriodEventEnabled}
                         onChange={handleIsPeriodEventEnabledChange}
                     />
-                    <AnimationLayer />
                 </div>
 
                 <div className="setting" id="reset-windows-layouts">
@@ -243,7 +242,7 @@ export default function Settings({ usersSettings, accountsList, getCurrentSchool
                     </div>
                     : null
                 }
-                {false && <div id="face-your-fears">
+                {true && <div id="face-your-fears">
                     <h2 className="heading">AFFRONTER LA RÉALITÉ</h2>
                     <div className="setting" id="show-old-streak">
                         <CheckBox id="show-old-streak-cb" label={<span>Afficher les Streak passées</span>} />

@@ -13,10 +13,6 @@ import {
 
 import { AppContext } from "../../../App";
 
-import { currentPeriodEvent } from "../../generic/events/setPeriodEvent";
-
-import "../../generic/events/halloween/css/modifier.css";
-
 import "./Grades.css";
 import DOMSimulation from "./GradeSimulation";
 
@@ -25,12 +21,6 @@ export default function Grades({ grades, fetchUserGrades, activeAccount, isLogge
 
     const [selectedDisplayType, setSelectedDisplayType] = useState("Évaluations");
     const [selectedPeriod, setSelectedPeriod] = useState(userData.get("activePeriod"));
-
-    const { useUserSettings } = useContext(AppContext);
-    const settings = useUserSettings();
-
-    const isPeriodEventEnabled = settings.get("isPeriodEventEnabled");
-    const isPartyModeEnabled = settings.get("isPartyModeEnabled");
 
     const sortedGrades = userData.get("sortedGrades");
 

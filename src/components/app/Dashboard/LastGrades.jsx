@@ -16,7 +16,6 @@ import "./LastGrades.css"
 import { formatDateRelative } from "../../../utils/date";
 import ContentLoader from "react-content-loader"
 
-import "../../generic/events/halloween/css/modifier.css"
 import { currentPeriodEvent } from "../../generic/events/setPeriodEvent";
 
 export default function LastGrades({ activeAccount, className = "", ...props }) {
@@ -40,7 +39,7 @@ export default function LastGrades({ activeAccount, className = "", ...props }) 
                     ? lastGrades.length > 0
                         ? lastGrades.map((el) => <li key={el.id} className="last-grade-container">
                         <Link to={`/app/${activeAccount}/grades#` + el.id} className="last-grade-wrapper">
-                            <span className={`last-grade-value ${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "halloween" && "halloween-div-patcher"}`}><Grade grade={{ value: el.value ?? "N/A", scale: el.scale }} /></span>
+                            <span className={`last-grade-value`}><Grade grade={{ value: el.value ?? "N/A", scale: el.scale }} /></span>
                             <span className={`last-grade-name`}>{el.subjectName}</span>
                             <span className="badges-container">
                                 {el.badges.includes("star") && <BadgeStarInfo />}

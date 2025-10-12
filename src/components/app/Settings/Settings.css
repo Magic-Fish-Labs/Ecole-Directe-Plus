@@ -2,10 +2,13 @@ body:has(#settings) {
     background-color: rgb(var(--background-color-1));
 }
 
+#settings {
+    overflow: auto;
+    height: 100%;
+}
+
 #settings #settings-box {
     width: 100%;
-    max-width: 1000px;
-    height: 100%;
     margin: 0 auto;
     /* background-color: rgb(var(--background-color-1)); */
     padding: 50px clamp(10px, calc(4vw - 5px), 30px);

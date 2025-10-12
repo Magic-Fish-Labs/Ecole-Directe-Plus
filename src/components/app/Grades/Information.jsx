@@ -22,10 +22,6 @@ import {
 
 import { currentPeriodEvent } from "../../generic/events/setPeriodEvent";
 
-import "../../generic/events/halloween/css/modifier.css";
-
-
-
 // graphics
 import CanardmanSearching from "../../graphics/CanardmanSearching";
 import DownloadIcon from "../../graphics/DownloadIcon";
