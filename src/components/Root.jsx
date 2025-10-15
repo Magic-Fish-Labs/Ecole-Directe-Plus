@@ -12,7 +12,7 @@ import DoubleAuthLogin from "./Login/DoubleAuthLogin";
 import { EDPVersion } from "../utils/constants/configs";
 import { AccountContext, SettingsContext, UserDataContext } from "../App";
 
-export default function Root({ accountsList, fakeLogin, resetUserData, syncSettings, createFolderStorage, displayTheme, displayMode, setDisplayModeState, activeAccount, setActiveAccount, setIsFullScreen, globalSettings, entryURL, isStandaloneApp, isTabletLayout, proxyError, handleEdBan, isEDPUnblockInstalled, setIsEDPUnblockInstalled, isEDPUnblockActuallyInstalled, setIsEDPUnblockActuallyInstalled, }) {
+export default function Root({ accountsList, fakeLogin, resetUserData, syncSettings, createFolderStorage, displayTheme, displayMode, setDisplayModeState, activeAccount, setActiveAccount, setIsFullScreen, globalSettings, entryURL, isStandaloneApp, isTabletLayout, handleEdBan, isEDPUnblockInstalled, setIsEDPUnblockInstalled, isEDPUnblockActuallyInstalled, setIsEDPUnblockActuallyInstalled, }) {
 
     const { requireDoubleAuth } = useContext(AccountContext)
     const {
@@ -478,7 +478,6 @@ export default function Root({ accountsList, fakeLogin, resetUserData, syncSetti
             {location.pathname.endsWith("/login") ? "true" : "false"} */}
             {popUp === "newUser" && <WelcomePopUp EDPVersion={EDPVersion} onClose={() => { setIsNewUser(false); localStorage.setItem("EDPVersion", EDPVersion); }} />}
             {popUp === "newEDPVersion" && <PatchNotes EDPVersion={EDPVersion} onClose={() => { setIsNewEDPVersion(false); localStorage.setItem("EDPVersion", EDPVersion); }} />}
-            {proxyError && <ProxyErrorNotification />}
             <Outlet />
             {requireDoubleAuth && <DoubleAuthLogin />}
         </>

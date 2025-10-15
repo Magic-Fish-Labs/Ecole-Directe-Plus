@@ -204,7 +204,6 @@ export default function App() {
     const [isEDPUnblockActuallyInstalled, setIsEDPUnblockActuallyInstalled] = useState(false);
     const [isStandaloneApp, setIsStandaloneApp] = useState(((window.navigator.standalone ?? false) || window.matchMedia('(display-mode: standalone)').matches)); // détermine si l'utilisateur a installé le site comme application, permet également de modifier le layout en conséquence
     const [appKey, setAppKey] = useState(() => crypto.randomUUID());
-    const [proxyError, setProxyError] = useState(false); // en cas d'erreur sur le serveur proxy d'EDP (toutes les requêtes passent par lui pour contourner les restrictions d'EcoleDirecte)
 
     // diverse
     const abortControllers = useRef([]); // permet d'abort tous les fetch en cas de déconnexion de l'utilisateur pendant une requête
@@ -1249,7 +1248,6 @@ export default function App() {
                     setIsEDPUnblockActuallyInstalled={setIsEDPUnblockActuallyInstalled}
                     requireDoubleAuth={requireDoubleAuth}
 
-                    proxyError={proxyError}
                 />
             ,
 
