@@ -214,7 +214,7 @@ export default function Header({ accountsList, setActiveAccount, activeAccount, 
                     <Outlet />
                 </Suspense>
             </main>
-            {location.hash === "#feedback" && <BottomSheet className="feedback-bottom-sheet" heading="Faire un retour" onClose={handleCloseAnchorLinks} close={closeFeedbackBottomSheet} ><FeedbackForm activeUser={accountsList[activeAccount]} onSubmit={() => setCloseFeedbackBottomSheet(true)} carpeConviviale={carpeConviviale} /></BottomSheet>}
+            {location.hash === "#feedback" && <BottomSheet className="feedback-bottom-sheet" heading="Faire un retour" onClose={handleCloseAnchorLinks} forceClose={closeFeedbackBottomSheet} ><FeedbackForm activeUser={accountsList[activeAccount]} onSubmit={() => setCloseFeedbackBottomSheet(true)} carpeConviviale={carpeConviviale} /></BottomSheet>}
             {location.hash === "#patch-notes" && <PatchNotes version={EDPVersion} onClose={() => { handleCloseAnchorLinks(); localStorage.setItem("EDPVersion", EDPVersion) }} />}
             {location.hash === "#policy" && <Policy onCloseNavigateURL="#" />}
             {

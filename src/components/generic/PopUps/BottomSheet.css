@@ -5,9 +5,7 @@ body:has(#bottom-sheet) {
 #bottom-sheet {
     position: fixed;
     inset: 0;
-    
-    background-color: rgba(0, 0, 0, 0.4);
-    animation: 0.5s ease 0s fade-in;
+
     animation-fill-mode: forwards;
     z-index: 99;
     overscroll-behavior: none;
@@ -17,7 +15,6 @@ body:has(#bottom-sheet) {
     animation: 0.5s ease 0s fade-out;
     animation-fill-mode: forwards;
 }
-
 
 #bottom-sheet-box {
     position: fixed;

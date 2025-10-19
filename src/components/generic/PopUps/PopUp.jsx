@@ -5,11 +5,13 @@ import "./PopUp.css"
 
 const closingCooldown = 300; // milliseconds
 
-export default function PopUp({ type, onClose, externalClosing = false, defaultClosingCross = true, children, className = "", ...props }) {
+export default function PopUp({ type = "info", onClose = () => { }, forceClose = false, defaultClosingCross = true, children, className = "", ...props }) {
     const [isClosing, setIsClosing] = useState(false);
 
     const PopUpRef = useRef(null);
     const clickedInsidePopUp = useRef(false);
+
+    type = ["info", "warning", "error"].includes(type) ? type : "info";
 
     // fermeture avec échap
     useEffect(() => {
@@ -54,16 +56,16 @@ export default function PopUp({ type, onClose, externalClosing = false, defaultC
     }
 
     useEffect(() => {
-        if (externalClosing) {
+        if (forceClose) {
             handleClose()
         }
-    }, [externalClosing])
+    }, [forceClose])
 
     return (
         <div className={(isClosing ? "closing " : "") + className} id="pop-up" onClick={() => !clickedInsidePopUp.current ? handleClose() : null} {...props}>
-            <div ref={PopUpRef} className={(isClosing ? "closing " : "") + (["info", "warning", "error"].includes(type) ? type : "info")} id="pop-up-background" onClick={(event) => event.stopPropagation()} onPointerDown={() => clickedInsidePopUp.current = true} onPointerUp={() => setTimeout(() => clickedInsidePopUp.current = false, 0)}> {/* Cancel clic detection by the background if user clic on pop-up */}
+            <div ref={PopUpRef} className={(isClosing ? "closing " : "") + type} id="pop-up-background" onClick={(event) => event.stopPropagation()} onPointerDown={() => clickedInsidePopUp.current = true} onPointerUp={() => setTimeout(() => clickedInsidePopUp.current = false, 0)}> {/* Cancel clic detection by the background if user clic on pop-up */}
                 {defaultClosingCross
-                    ? <div className="default-closing-cross" onClick={handleClose} onKeyDown={(event) => event.key === "Enter" && handleClose() } role="button" tabIndex={0}>✕</div>
+                    ? <div className="default-closing-cross" onClick={handleClose} onKeyDown={(event) => event.key === "Enter" && handleClose()} role="button" tabIndex={0}>✕</div>
                     : null}
                 {children}
             </div>

@@ -1,4 +1,4 @@
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation, Navigate } from "react-router-dom";
 import EDPVersionButton from "../generic/buttons/EDPVersionButton";
 import Policy from "../generic/Policy";
 import LoginForm from "./LoginForm";
@@ -64,6 +64,7 @@ export default function Login({ logout, isEDPUnblockInstalledActuallyInstalled }
             </p>
             {location.hash === "#policy" && <Policy onCloseNavigateURL={""} />}
             <EDPVersionButton />
+            <Navigate />
             <Outlet />
         </div>
     );

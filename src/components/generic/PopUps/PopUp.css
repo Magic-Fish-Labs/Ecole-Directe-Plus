@@ -5,10 +5,9 @@ body:has(#bottom-sheet) {
 #pop-up {
     position: fixed;
     inset: 0;
-    
-    background-color: rgba(0, 0, 0, 0.4);
-    animation: 0.3s ease 0s fade-in;
-    animation-fill-mode: forwards;
+
+    /* animation: 0.3s ease 0s fade-in;
+    animation-fill-mode: forwards; */
     z-index: 99;
 }
 

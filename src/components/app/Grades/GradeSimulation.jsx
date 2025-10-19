@@ -69,7 +69,7 @@ export default function DOMSimulation({ children }) {
 
     return <simulationContext.Provider value={openGradeSimulation}>
         {children}
-        {gradeSimulationPopUp && <PopUp className="grade-simulation-pop-up" onClose={() => { setGradeSimulationPopUp(false) }} externalClosing={!gradeSimulationPopUpClosing}>
+        {gradeSimulationPopUp && <PopUp className="grade-simulation-pop-up" onClose={() => { setGradeSimulationPopUp(false) }} forceClose={!gradeSimulationPopUpClosing}>
             <form id="SUN-form" onSubmit={handleSubmit} noValidate> {/* On utilise le noValidate pour éviter que les navigateurs valident pas le formulaire quand le number input contient un 10.01 au lieu d'un 10 parcequ'on a mis le step à 1 */}
                 <div className="grade-simulation-wrapper">
                     <h2>Simuler une note</h2>

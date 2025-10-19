@@ -1,4 +1,8 @@
 
+#lab-page {
+    overflow: auto;
+}
+
 #lab-page h1#lab-page-heading {
     text-align: center;
     margin-block: 20px;

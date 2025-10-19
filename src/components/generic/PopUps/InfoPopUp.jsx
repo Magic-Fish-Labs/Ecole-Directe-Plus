@@ -5,7 +5,7 @@ import "./InfoPopUp.css";
 
 const closingCooldown = 300; // milliseconds
 
-export default function InfoPopUp({ type, header = "", subHeader = "", contentTitle, onClose, children }) {
+export default function InfoPopUp({ type, header = "", subHeader = "", contentTitle, onClose, forceClose = false, children }) {
     const [isClosing, setIsClosing] = useState(false);
 
     const handleClose = () => {
@@ -13,9 +13,8 @@ export default function InfoPopUp({ type, header = "", subHeader = "", contentTi
         setTimeout(onClose, closingCooldown);
     }
 
-
     return (
-        <PopUp type={type} externalClosing={isClosing} onClose={onClose} defaultClosingCross={false} >
+        <PopUp type={type} forceClose={isClosing | forceClose} onClose={onClose} defaultClosingCross={false} >
             <div id="info-pop-up">
                 <div className="relative-container">
                     <button className="close-button" onClick={handleClose}>✕</button>

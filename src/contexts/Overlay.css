@@ -1,0 +1,14 @@
+.overlay-shadow {
+	position: fixed;
+    inset: 0;
+
+	pointer-events: none;
+	transition: 0.5s ease;
+	z-index: 99;
+	overscroll-behavior: none;
+}
+
+.overlay-shadow.active {
+	background-color: rgba(0, 0, 0, 0.4);
+	
+}

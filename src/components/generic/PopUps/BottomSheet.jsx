@@ -1,24 +1,48 @@
 
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, ReactNode } from "react";
 import { disableBodyScroll, clearAllBodyScrollLocks } from "body-scroll-lock";
 import { applyZoom, getZoomedBoudingClientRect } from "../../../utils/zoom";
 
 import ScrollShadedDiv from "../CustomDivs/ScrollShadedDiv";
 
 import "./BottomSheet.css";
+import classBuilder from "../../../utils/classBuilder";
 
-export default function BottomSheet({ heading, children, onClose, resizingBreakpointsProps, firstResizingBreakpoint, close=false, className="", id="", ...props }) {
-    const closingCooldown = 500; // milliseconds
-    const resizingBreakpoints = resizingBreakpointsProps ?? [0, 60, 95]; // ascendant order
-    // const resizingBreakpoints = [0, 15, 30, 45, 60, 75,  95]; // ascendant order
-    // const resizingBreakpoints = [0, 10, 20, 30, 40, 50,  60, 70, 80, 90, 100]; // ascendant order
-    const [targetSheetHeight, setTargetSheetHeight] = useState(resizingBreakpoints[firstResizingBreakpoint] ?? resizingBreakpoints[resizingBreakpoints.length - 1]);
+const CLOSING_COOLDOWN = 500; // ms
+const DEFAULT_BREAKPOINTS = [0, 60, 95] ;
+
+/**
+ * @typedef {Object} ResizeOptions
+ * @property {any} [resizingBreakpoints]
+ * @property {number} [selectedBreakpoint]
+ */
+
+/**
+ * @typedef {Object} BottomSheetProps
+ * @property {string} className
+ * @property {string} heading
+ * @property {ResizeOptions} [resizeOptions]
+ * @property {boolean} [forceClose]
+ * @property {() => void} [onClose]
+ * @property {ReactNode} [children]
+ */
+
+/**
+ * @param {BottomSheetProps} props
+ * @returns {JSX.Element}
+ */
+export default function BottomSheet({ children, heading, onClose = () => { }, resizeOptions, forceClose = false, className = "" }) {
+    const initialBreakpoints = (resizeOptions && resizeOptions.resizingBreakpoints) ?? DEFAULT_BREAKPOINTS;
+    const initialSelectedBreakpoint = (resizeOptions && resizeOptions.selectedBreakpoint) ?? initialBreakpoints[initialBreakpoints.length - 1];
+
+    const resizingBreakpoints = initialBreakpoints;
+    const [targetSheetHeight, setTargetSheetHeight] = useState(initialSelectedBreakpoint);
     const [isResizing, setIsResizing] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
     const [isOpen, setIsOpen] = useState(true);
     const [oldHeight, setOldHeight] = useState(targetSheetHeight);
     const [currentHeight, setCurrentHeight] = useState(targetSheetHeight);
-    
+
     const targetSheetHeightVar = useRef(false);
     const openingTime = useRef(Date.now());
 
@@ -38,22 +62,22 @@ export default function BottomSheet({ heading, children, onClose, resizingBreakp
     }, [targetSheetHeight]);
 
     useEffect(() => {
-        if (close) {
+        if (forceClose) {
             handleClose();
         }
-    }, [close])
-    
+    }, [forceClose])
+
     useEffect(() => {
         const handleKeyDown = (event) => {
             if (event.key === "Escape") {
                 handleClose();
             } else {
-                if (event.target !== contentRef.current &&  !contentRef.current.contains(event.target)) {
+                if (event.target !== contentRef.current && !contentRef.current.contains(event.target)) {
                     // event.preventDefault();
                     if (event.key === "Home") {
-                        resizeBottomSheetHeight(resizingBreakpoints[resizingBreakpoints.length-1]);                    
+                        resizeBottomSheetHeight(resizingBreakpoints[resizingBreakpoints.length - 1]);
                     } else if (event.key === "End") {
-                        resizeBottomSheetHeight(resizingBreakpoints[1]);                        
+                        resizeBottomSheetHeight(resizingBreakpoints[1]);
                     } else {
                         let nextResizingBreakpointIdx = resizingBreakpoints.indexOf(targetSheetHeightVar.current);
                         if (nextResizingBreakpointIdx > 0) {
@@ -62,12 +86,12 @@ export default function BottomSheet({ heading, children, onClose, resizingBreakp
                             if (nextResizingBreakpointIdx <= 0) {
                                 nextResizingBreakpointIdx = 1;
                             } else if (nextResizingBreakpointIdx >= resizingBreakpoints.length) {
-                                nextResizingBreakpointIdx = resizingBreakpoints.length-1;
+                                nextResizingBreakpointIdx = resizingBreakpoints.length - 1;
                             }
                             resizeBottomSheetHeight(resizingBreakpoints[nextResizingBreakpointIdx]);
-                        }                    
+                        }
                     }
-                }                
+                }
             }
         }
 
@@ -80,7 +104,7 @@ export default function BottomSheet({ heading, children, onClose, resizingBreakp
         }
     }, []);
 
-    
+
     useEffect(() => {
         const FAST_RESIZE_TRIGGERING_SHIFT = 8; // décalage avec la souris pour que ce soit considéré comme un clic et donc déclencher un fast resize
         if (!isResizing && !isClosing) {
@@ -96,8 +120,8 @@ export default function BottomSheet({ heading, children, onClose, resizingBreakp
     // closing
     const handleClose = () => {
         setIsClosing(true);
-        setTimeout(onClose, closingCooldown);
-        setTimeout(setIsOpen, closingCooldown, false);
+        setTimeout(onClose, CLOSING_COOLDOWN);
+        setTimeout(setIsOpen, CLOSING_COOLDOWN, false);
     }
 
     // enlève le tabIndex des éléments hors de la BottomSheet pour empêcher la navigation clavier
@@ -215,7 +239,7 @@ export default function BottomSheet({ heading, children, onClose, resizingBreakp
         }
         window.removeEventListener('mouseup', handleMouseUp);
     }
-    
+
     const handleTouchEnd = () => {
         clearAllBodyScrollLocks();
         window.removeEventListener('touchmove', handleTouchResize);
@@ -302,7 +326,7 @@ export default function BottomSheet({ heading, children, onClose, resizingBreakp
     }
 
     return (isOpen &&
-        <div className={(isClosing ? "closing " : "") + className} id="bottom-sheet" onPointerDown={(event) => !isResizing && !clickedInsideBottomSheet.current && (Date.now() - openingTime.current > closingCooldown ) ? handleClose() : null} {...props}>
+        <div className={classBuilder(className, { "closing": isClosing })} id="bottom-sheet" onPointerDown={(event) => !isResizing && !clickedInsideBottomSheet.current && (Date.now() - openingTime.current > CLOSING_COOLDOWN) ? handleClose() : null}>
             <div ref={bottomSheetRef} style={{ height: targetSheetHeight.toString() + "%" }} className={isClosing ? "closing" : ""} id="bottom-sheet-box" onPointerDown={() => clickedInsideBottomSheet.current = true} onPointerUp={() => setTimeout(() => clickedInsideBottomSheet.current = false, 0)} >
                 <div id="bottom-sheet-container">
                     <div id="resize-handle" tabIndex="0" ref={resizeHandlerRef} onMouseDown={handleGrab} onTouchStart={handleGrab}>

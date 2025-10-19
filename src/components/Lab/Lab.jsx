@@ -45,6 +45,7 @@ import useInitializer from "../../EcoleDirecteHandlerCore/hooks/utils/useInitial
 import { BrowserLabels, OperatingSystemLabels } from "../../utils/constants/constants";
 import LinkableButton from "../generic/buttons/LinkableButton";
 import { AppContext, UserDataContext } from "../../App";
+import { useOverlay } from "../../contexts/OverlayContext";
 
 const subjectArray = [
     "FRANC",
@@ -99,6 +100,14 @@ export default function Lab({ fetchGrades }) {
     const [colorSeedVIMin, setColorSeedVIMin] = useState(52);
     const [colorSeedVLMax, setColorSeedVLMax] = useState(63);
     const [colorSeedVLMin, setColorSeedVLMin] = useState(83);
+
+    const {
+        createOverlay,
+        createBottomSheet,
+        createPopUp,
+        createInfoPopUp,
+        closeOverlay,
+    } = useOverlay();
 
     const initialTestState2 = {
         a: {
@@ -268,7 +277,7 @@ export default function Lab({ fetchGrades }) {
             </div>
             <h3>Notifications</h3>
             <div>
-                <Button value="New notification" onClick={() => { createNotification(<h1>NOTIFICATION TRÈS PERTINENTE</h1>, {timeToLive: 10000}) }} />
+                <Button value="New notification" onClick={() => { createNotification(<h1>NOTIFICATION TRÈS PERTINENTE</h1>, { timeToLive: 10000 }) }} />
             </div>
             <h3>StoreCallToAction</h3>
             <div id="store-call-to-action">
@@ -308,7 +317,7 @@ export default function Lab({ fetchGrades }) {
 
 
             <Button onClick={() => { setIsInputPopUp2Open(true) }} value="number2" />
-            {isInputPopUp2Open && <PopUp onClose={() => { setIsInputPopUp2Open(false); setIsFormSubmitted(false) }} externalClosing={isFormSubmitted}>
+            {isInputPopUp2Open && <PopUp onClose={() => { setIsInputPopUp2Open(false); setIsFormSubmitted(false) }} forceClose={isFormSubmitted}>
                 <form onSubmit={(event) => { event.preventDefault(); setNumber2(formNumber2); setIsFormSubmitted(true) }}>
                     <NumberInput min={0} max={20} value={formNumber2} onChange={setFormNumber2} />
                     <Button type="submit" />
@@ -441,6 +450,20 @@ export default function Lab({ fetchGrades }) {
                     >{subject}</div>
                 })}
             </div>
+            <h4>Nouveau système de pop-up</h4>
+            <Button onClick={() => {
+                const popUpId = createInfoPopUp({ overlayType: 0, content: "cette pop-up ne dure que 3 secondes", props: { header: "CETTE POP-UP NE DURE QUE 3 SECONDES", contentTitle: "TEST" } })
+                setTimeout(closeOverlay, 3000, popUpId);
+            }}>pop-up temporaire 🤔</Button>
+            <Button onClick={() => {
+                function openThePopUp() {
+                    createInfoPopUp({ overlayType: 0, content: <Button onClick={openThePopUp}/>, props: { header: "COUCOU", subHeader: "les gens", contentTitle: "le CACA" } });
+                }
+                openThePopUp();
+            }}>pop-up récursive 😵‍💫</Button>
+            <Button onClick={() => {
+                createOverlay({overlayType: Math.floor(Math.random() * 3), onClose: () => console.log("bonjour")});
+            }}>overlay aléatoire 🤡</Button>
             {/* FOOTER */}
             <div style={{ height: "100px" }}></div>
         </div>
