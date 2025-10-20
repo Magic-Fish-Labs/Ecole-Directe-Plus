@@ -2,11 +2,11 @@
     position: relative;
 }
 
-#pop-up-background:has(#info-pop-up) {
+.pop-up-background:has(.info-pop-up) {
     padding: 25px;
 }
 
-#info-pop-up .close-button {
+.info-pop-up .close-button {
     position: absolute;
     top: -12px; /*valeurs négatives pour counter le padding du pop-up-background*/
     right: -10px;
@@ -19,14 +19,14 @@
     cursor: pointer;
     transition: .1s;
 }
-#info-pop-up .close-button:is(:hover, :focus-visible) {
+.info-pop-up .close-button:is(:hover, :focus-visible) {
     color: rgb(var(--text-color-main));
 }
-#info-pop-up .close-button:active {
+.info-pop-up .close-button:active {
     color: rgba(var(--text-color-main), .7);
 }
 
-#close-info-pop-up {
+.close-info-pop-up {
     display: block;
     width: 100%;
     text-align: center;
@@ -41,29 +41,29 @@
 
 }
 
-#close-info-pop-up:hover {
+.close-info-pop-up:hover {
     text-decoration: none;
 }
 
 /* content heading */
 
-#info-pop-up-header {
+.info-pop-up-header {
     margin-bottom: 25px; /*= padding pop-up-background*/
 }
 
-#info-pop-up h2 {
+.info-pop-up h2 {
     font-size: var(--font-size-20);
     color: rgb(var(--text-color-main));
     margin-right: 20px; /*laisse de l'espace à la croix*/
 }
 
-#info-pop-up h4 {
+.info-pop-up h4 {
     font-size: var(--font-size-14);
     color: rgb(var(--text-color-main));
     font-weight: var(--font-weight-regular);
 }
 
-#info-pop-up-content h3 {
+.info-pop-up-content h3 {
     display: block;
     position: sticky; /* sticky dans la box de contenu lors du scroll */
     top: -10px;
@@ -78,7 +78,7 @@
     box-shadow: 0 0 8px rgb(var(--background-color-0));
 }
 
-.warning #info-pop-up-content h3 {
+.warning .info-pop-up-content h3 {
     /* background-color: rgb(var(--background-color-warning-0)); */
     background-color: rgb(var(--background-color-warning-0));
     /* box-shadow: 0 0 8px rgb(var(--background-color-warning-0)); */
@@ -86,7 +86,7 @@
                 0 0 10px rgba(var(--background-color-0), 0.5);
 }
 
-#info-pop-up-content {
+.info-pop-up-content {
     position: relative;
     margin: 0 auto;
     background-color: rgb(var(--background-color-0));
@@ -101,18 +101,18 @@
     list-style-position: inside;
 }
 
-.warning #info-pop-up-content {
+.warning .info-pop-up-content {
     background-color: rgb(var(--background-color-warning-0));
 }
 
 @media only screen and (max-width: 400px) {    
-    #info-pop-up-header {
+    .info-pop-up-header {
         margin-inline: 10px;
     }
-    #pop-up-background:has(#info-pop-up) {
+    .pop-up-background:has(.info-pop-up) {
         padding-inline: 15px;
     }
-    #info-pop-up .close-button {
+    .info-pop-up .close-button {
         right: 0;
     }
 }

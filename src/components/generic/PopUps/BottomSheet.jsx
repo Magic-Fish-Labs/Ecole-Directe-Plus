@@ -24,6 +24,7 @@ const DEFAULT_BREAKPOINTS = [0, 60, 95] ;
  * @property {ResizeOptions} [resizeOptions]
  * @property {boolean} [forceClose]
  * @property {() => void} [onClose]
+ * @property {(timer: number) => void} [onClosing]
  * @property {ReactNode} [children]
  */
 
@@ -31,7 +32,7 @@ const DEFAULT_BREAKPOINTS = [0, 60, 95] ;
  * @param {BottomSheetProps} props
  * @returns {JSX.Element}
  */
-export default function BottomSheet({ children, heading, onClose = () => { }, resizeOptions, forceClose = false, className = "" }) {
+export default function BottomSheet({ children, heading, onClose = () => { }, onClosing = () => { }, resizeOptions, forceClose = false, className = "" }) {
     const initialBreakpoints = (resizeOptions && resizeOptions.resizingBreakpoints) ?? DEFAULT_BREAKPOINTS;
     const initialSelectedBreakpoint = (resizeOptions && resizeOptions.selectedBreakpoint) ?? initialBreakpoints[initialBreakpoints.length - 1];
 
@@ -120,6 +121,7 @@ export default function BottomSheet({ children, heading, onClose = () => { }, re
     // closing
     const handleClose = () => {
         setIsClosing(true);
+        onClosing();
         setTimeout(onClose, CLOSING_COOLDOWN);
         setTimeout(setIsOpen, CLOSING_COOLDOWN, false);
     }
@@ -326,13 +328,13 @@ export default function BottomSheet({ children, heading, onClose = () => { }, re
     }
 
     return (isOpen &&
-        <div className={classBuilder(className, { "closing": isClosing })} id="bottom-sheet" onPointerDown={(event) => !isResizing && !clickedInsideBottomSheet.current && (Date.now() - openingTime.current > CLOSING_COOLDOWN) ? handleClose() : null}>
-            <div ref={bottomSheetRef} style={{ height: targetSheetHeight.toString() + "%" }} className={isClosing ? "closing" : ""} id="bottom-sheet-box" onPointerDown={() => clickedInsideBottomSheet.current = true} onPointerUp={() => setTimeout(() => clickedInsideBottomSheet.current = false, 0)} >
-                <div id="bottom-sheet-container">
-                    <div id="resize-handle" tabIndex="0" ref={resizeHandlerRef} onMouseDown={handleGrab} onTouchStart={handleGrab}>
-                        <div id="inner-resize-handle" ></div>
-                        <button id="close-button" onClick={handleClose}>✕</button>
-                        {heading && <h1 id="bottom-sheet-heading">{heading}</h1>}
+        <div className={classBuilder(`bottom-sheet ${className}`, { "closing": isClosing })} onPointerDown={(event) => !isResizing && !clickedInsideBottomSheet.current && (Date.now() - openingTime.current > CLOSING_COOLDOWN) ? handleClose() : null}>
+            <div ref={bottomSheetRef} style={{ height: targetSheetHeight.toString() + "%" }} className={classBuilder("bottom-sheet-box", {"closing": isClosing})} onPointerDown={() => clickedInsideBottomSheet.current = true} onPointerUp={() => setTimeout(() => clickedInsideBottomSheet.current = false, 0)} >
+                <div className="bottom-sheet-container">
+                    <div className="resize-handle" tabIndex="0" ref={resizeHandlerRef} onMouseDown={handleGrab} onTouchStart={handleGrab}>
+                        <div className="inner-resize-handle" ></div>
+                        <button className="bottom-sheet-close-button" onClick={handleClose}>✕</button>
+                        {heading && <h1 className="bottom-sheet-heading">{heading}</h1>}
                     </div>
                     <ScrollShadedDiv setRef={(ref) => { contentRef.current = ref.current }} id="bottom-sheet-content" onTouchStart={handleContentGrab} onTouchEnd={document.removeEventListener("touchmove", handleTouchMove)}>
                         {children}

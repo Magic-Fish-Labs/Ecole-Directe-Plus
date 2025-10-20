@@ -38,11 +38,11 @@
     border: 1px solid rgb(var(--border-color-2));
 }
 
-.closing {
+.pop-up-notification.closing {
     animation: del-notification 0.5s ease-in forwards;
 }
 
-.force-closing {
+.pop-up-notification.force-closing {
     animation: del-notification 0.2s ease-in forwards;
 }
 

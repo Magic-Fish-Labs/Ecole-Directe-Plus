@@ -1,4 +1,4 @@
-import React, { useContext, createContext, useState, ReactNode, useRef } from "react";
+import React, { useContext, createContext, useState, useRef, useEffect, ReactNode } from "react";
 import PopUp from "../components/generic/PopUps/PopUp";
 import InfoPopUp from "../components/generic/PopUps/InfoPopUp";
 import BottomSheet from "../components/generic/PopUps/BottomSheet";
@@ -14,21 +14,22 @@ export enum OverlayTypes {
 
 type OverlayCommonParams = {
 	onClose?: () => void
+	onClosing?: (timer: number) => void
 	content: React.ReactNode
 }
 
 type OverlayParams =
 	| OverlayCommonParams & {
 		overlayType: OverlayTypes.BOTTOM_SHEET,
-		props: Omit<React.ComponentProps<typeof BottomSheet>, "onClose" | "children" | "forceClose">
+		props: Omit<React.ComponentProps<typeof BottomSheet>, "onClose" | "onClosing" | "children" | "forceClose">
 	}
 	| OverlayCommonParams & {
 		overlayType: OverlayTypes.POP_UP,
-		props: Omit<React.ComponentProps<typeof PopUp>, "onClose" | "children" | "forceClose">
+		props: Omit<React.ComponentProps<typeof PopUp>, "onClose" | "onClosing" | "children" | "forceClose">
 	}
 	| OverlayCommonParams & {
 		overlayType: OverlayTypes.INFO_POP_UP,
-		props: Omit<React.ComponentProps<typeof InfoPopUp>, "onClose" | "children" | "forceClose">
+		props: Omit<React.ComponentProps<typeof InfoPopUp>, "onClose" | "onClosing" | "children" | "forceClose">
 	};
 
 type BottomSheetParams = Omit<Extract<OverlayParams, { overlayType: OverlayTypes.BOTTOM_SHEET }>, 'overlayType'>;
@@ -38,7 +39,7 @@ type InfoPopUpParams = Omit<Extract<OverlayParams, { overlayType: OverlayTypes.I
 type OverlayObject = OverlayParams & { overlayId: number, forceClose: boolean };
 
 type OverlayContextType = {
-	createOverlay: (overlayParams: OverlayParams) => number,
+	createOverlay: <T extends OverlayTypes>(overlayType: T, params: Omit<Extract<OverlayParams, { overlayType: T }>, 'overlayType'>) => number,
 	createBottomSheet: (bottomSheetParams: BottomSheetParams) => number,
 	createPopUp: (popUpParams: PopUpParams) => number,
 	createInfoPopUp: (infoPopUpParams: InfoPopUpParams) => number,
@@ -49,11 +50,46 @@ const OverlayContext = createContext<OverlayContextType | null>(null);
 
 export function OverlayProvider({ children }: { children: ReactNode }) {
 	const [overlayStack, setOverlayStack] = useState<OverlayObject[]>([]);
+	const [shadow, setShadow] = useState(false);
 
+	const activeOverlays = useRef(0);
 	const nextOverlayId = useRef(0);
+
+	function handleClosing() {
+		activeOverlays.current--;
+		if (activeOverlays.current === 0)
+			setShadow(false);
+	}
 
 	function removeOverlay(targetOverlayId: number) {
 		setOverlayStack((old) => old.filter(({ overlayId }) => overlayId != targetOverlayId));
+	}
+
+	function pushOverlay(overlayParams: OverlayParams) {
+		const overlayId = nextOverlayId.current;
+		nextOverlayId.current++;
+		activeOverlays.current++;
+		setShadow(true);
+		setOverlayStack((previous) => {
+			const next = [...previous];
+			next.push({
+				...overlayParams,
+				overlayId: overlayId,
+				onClose: () => {
+					removeOverlay(overlayId);
+					if (overlayParams.onClose)
+						overlayParams.onClose();
+				},
+				onClosing: (timer: number) => {
+					handleClosing();
+					if (overlayParams.onClosing)
+						overlayParams.onClosing(timer);
+				},
+				forceClose: false
+			});
+			return next;
+		});
+		return overlayId;
 	}
 
 	function closeOverlay(targetOverlayId: number) {
@@ -66,58 +102,25 @@ export function OverlayProvider({ children }: { children: ReactNode }) {
 		})
 	}
 
-	function createOverlay(overlayParams: OverlayParams) {
-		const overlayId = nextOverlayId.current;
-		nextOverlayId.current++;
-		setOverlayStack((previous) => {
-			const next = [...previous];
-			next.push({
-				...overlayParams,
-				overlayId: overlayId,
-				onClose: () => {
-					removeOverlay(overlayId);
-					if (overlayParams.onClose)
-						overlayParams.onClose();
-				},
-				forceClose: false
-			});
-			return next;
-		});
-		return overlayId;
-	}
-
-	function createBottomSheet(bottomSheetParams: BottomSheetParams) {
-		return createOverlay({ ...bottomSheetParams, overlayType: OverlayTypes.BOTTOM_SHEET })
-	}
-
-	function createPopUp(popUpParams: PopUpParams) {
-		return createOverlay({ ...popUpParams, overlayType: OverlayTypes.POP_UP })
-	}
-
-	function createInfoPopUp(popUpParams: InfoPopUpParams) {
-		return createOverlay({ ...popUpParams, overlayType: OverlayTypes.INFO_POP_UP })
-	}
-
 	const overlayContextValue = {
-		createOverlay,
-		createBottomSheet,
-		createPopUp,
-		createInfoPopUp,
+		createOverlay: (overlayType: OverlayTypes, params: any) => pushOverlay({ ...params, overlayType }),
+		createBottomSheet: (bottomSheetParams: BottomSheetParams) => pushOverlay({ ...bottomSheetParams, overlayType: OverlayTypes.BOTTOM_SHEET }),
+		createPopUp: (popUpParams: PopUpParams) => pushOverlay({ ...popUpParams, overlayType: OverlayTypes.POP_UP }),
+		createInfoPopUp: (popUpParams: InfoPopUpParams) => pushOverlay({ ...popUpParams, overlayType: OverlayTypes.INFO_POP_UP }),
 		closeOverlay
 	}
 
 	return <OverlayContext.Provider value={overlayContextValue}>
 		{children}
-		{(() => {console.log(overlayStack.length); return null;})()}
-		<div className={classBuilder("overlay-shadow", { "active": overlayStack.length })}></div>
-		{overlayStack.map(({ overlayId, overlayType, content, onClose, forceClose, props }) => {
+		<div className={classBuilder("overlay-shadow", { "active": shadow })}></div>
+		{overlayStack.map(({ overlayId, overlayType, content, onClose, onClosing, forceClose, props }) => {
 			switch (overlayType) {
 				case OverlayTypes.BOTTOM_SHEET:
-					return <BottomSheet key={overlayId} onClose={onClose} forceClose={forceClose} {...props} >{content}</BottomSheet>
+					return <BottomSheet key={overlayId} onClose={onClose} onClosing={onClosing} forceClose={forceClose} {...props} >{content}</BottomSheet>
 				case OverlayTypes.POP_UP:
-					return <PopUp key={overlayId} onClose={onClose} forceClose={forceClose} {...props} >{content}</PopUp>
+					return <PopUp key={overlayId} onClose={onClose} onClosing={onClosing} forceClose={forceClose} {...props} >{content}</PopUp>
 				case OverlayTypes.INFO_POP_UP:
-					return <InfoPopUp key={overlayId} onClose={onClose} forceClose={forceClose} {...props} >{content}</InfoPopUp>
+					return <InfoPopUp key={overlayId} onClose={onClose} onClosing={onClosing} forceClose={forceClose} {...props} >{content}</InfoPopUp>
 			}
 		})}
 	</OverlayContext.Provider>
