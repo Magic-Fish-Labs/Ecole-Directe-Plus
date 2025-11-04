@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client"
 import DOMEdpNotification from "./components/generic/PopUps/Notification";
 import App from "./App";
+import { OverlayProvider } from "./contexts/OverlayContext";
 // import reportWebVitals from './reportWebVitals';
 
 // import { HelmetProvider } from 'react-helmet';
@@ -14,9 +15,11 @@ setTimeout(() => splashScreen?.remove(), 500);
 createRoot(document.getElementById("root")).render(
     <StrictMode>
         <DOMEdpNotification>
-            {/* <HelmetProvider> */}
-            <App />
-            {/* </HelmetProvider> */}
+            <OverlayProvider>
+                {/* <HelmetProvider> */}
+                <App />
+                {/* </HelmetProvider> */}
+            </OverlayProvider>
         </DOMEdpNotification>
     </StrictMode>
 );

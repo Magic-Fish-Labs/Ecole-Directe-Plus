@@ -44,6 +44,7 @@ import OutlineEffectDiv from "../generic/CustomDivs/OutlineEffectDiv";
 import { BrowserLabels, OperatingSystemLabels } from "../../utils/constants/constants";
 import LinkableButton from "../generic/buttons/LinkableButton";
 import { AppContext, UserDataContext } from "../../App";
+import { OverlayTypes, useOverlay } from "../../contexts/OverlayContext";
 
 const subjectArray = [
     "FRANC",
@@ -98,6 +99,14 @@ export default function Lab({ fetchGrades }) {
     const [colorSeedVLMax, setColorSeedVLMax] = useState(63);
     const [colorSeedVLMin, setColorSeedVLMin] = useState(83);
 
+    const {
+        createOverlay,
+        createBottomSheet,
+        createPopUp,
+        createInfoPopUp,
+        closeOverlay,
+    } = useOverlay();
+
     const initialTestState2 = {
         a: {
             b: "123"
@@ -128,7 +137,29 @@ export default function Lab({ fetchGrades }) {
     return (
         <div id="lab-page">
             <h1 id="lab-page-heading">Lab</h1>
-            {/* Insérer élément à test ici */}
+            {/* POP UP */}
+            <h3>Nouveau système de pop-up</h3>
+            <Button onClick={() => {
+                const popUpId = createInfoPopUp({ content: "cette pop-up ne dure que 3 secondes", props: { header: "CETTE POP-UP NE DURE QUE 3 SECONDES", contentTitle: "TEST" } })
+                setTimeout(closeOverlay, 3000, popUpId);
+            }}>pop-up temporaire 🤔</Button>
+            <Button onClick={() => {
+                function openThePopUp() {
+                    createInfoPopUp({ content: <Button onClick={openThePopUp} >pop-up récursive 😵‍💫</Button>, props: { header: "COUCOU", subHeader: "les gens", contentTitle: "regarde :" } });
+                }
+                openThePopUp();
+            }}>pop-up récursive 😵‍💫</Button>
+            <Button onClick={() => {
+                switch (Math.floor(Math.random() * 3)) {
+                    case OverlayTypes.BOTTOM_SHEET:
+                        return createOverlay(OverlayTypes.BOTTOM_SHEET, { content: <div>JE DETESTE LES BOTTOMSHEETS 🤬</div>, onClose: () => console.log("au revoir bottomsheet"), props: {heading: "BOTTOM SHEET"} });
+                    case OverlayTypes.POP_UP:
+                        return createOverlay(OverlayTypes.POP_UP, { content: <div><h1>JE PREFERE LES POP-UPS ✨</h1></div>, onClose: () => console.log("au revoir pop-up") });
+                    case OverlayTypes.INFO_POP_UP:
+                        return createOverlay(OverlayTypes.INFO_POP_UP, { content: <div>ET ENCORE PLUS LES POP-UPS D'INFORMATION 😍</div>, onClose: () => console.log("au revoir pop-up d'info"), props: {header: "POP-UP D'INFORMATIONS"} });
+                }
+            }}>overlay aléatoire 🤡</Button>
+
             <h3>Drop Down Menu</h3>
             <DropDownMenu name="feedback-type-choice" options={test} selected={test2} onChange={testOnChange} />
             <h3>Scroll Shaded Div</h3>
@@ -266,7 +297,7 @@ export default function Lab({ fetchGrades }) {
             </div>
             <h3>Notifications</h3>
             <div>
-                <Button value="New notification" onClick={() => { createNotification(<h1>NOTIFICATION TRÈS PERTINENTE</h1>, {timeToLive: 10000}) }} />
+                <Button value="New notification" onClick={() => { createNotification(<h1>NOTIFICATION TRÈS PERTINENTE</h1>, { timeToLive: 10000 }) }} />
             </div>
             <h3>StoreCallToAction</h3>
             <div id="store-call-to-action">
@@ -306,7 +337,7 @@ export default function Lab({ fetchGrades }) {
 
 
             <Button onClick={() => { setIsInputPopUp2Open(true) }} value="number2" />
-            {isInputPopUp2Open && <PopUp onClose={() => { setIsInputPopUp2Open(false); setIsFormSubmitted(false) }} externalClosing={isFormSubmitted}>
+            {isInputPopUp2Open && <PopUp onClose={() => { setIsInputPopUp2Open(false); setIsFormSubmitted(false) }} forceClose={isFormSubmitted}>
                 <form onSubmit={(event) => { event.preventDefault(); setNumber2(formNumber2); setIsFormSubmitted(true) }}>
                     <NumberInput min={0} max={20} value={formNumber2} onChange={setFormNumber2} />
                     <Button type="submit" />

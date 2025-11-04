@@ -1,15 +1,34 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, ReactNode } from "react";
 import { clearAllBodyScrollLocks } from "body-scroll-lock";
 
 import "./PopUp.css"
+import classBuilder from "../../../utils/classBuilder";
 
-const closingCooldown = 300; // milliseconds
+const CLOSING_COOLDOWN = 300; // ms
 
-export default function PopUp({ type, onClose, externalClosing = false, defaultClosingCross = true, children, className = "", ...props }) {
+/**
+ * @typedef PopUpProps
+ * @property {"info" | "warning" | "error"} [type]
+ * @property {string} [className]
+ * @property {() => void} [onClose]
+ * @property {(timer: number) => void} [onClosing]
+ * @property {boolean} [forceClose]
+ * @property {boolean} [defaultClosingCross]
+ * @property {ReactNode} [children]
+ */
+
+/**
+ * 
+ * @param {PopUpProps} props
+ * @returns {ReactNode}
+ */
+export default function PopUp({ type = "info", onClose = (timer) => { }, onClosing = () => { }, forceClose = false, defaultClosingCross = true, children, className = "" }) {
     const [isClosing, setIsClosing] = useState(false);
 
     const PopUpRef = useRef(null);
     const clickedInsidePopUp = useRef(false);
+
+    type = ["info", "warning", "error"].includes(type) ? type : "info";
 
     // fermeture avec échap
     useEffect(() => {
@@ -50,20 +69,21 @@ export default function PopUp({ type, onClose, externalClosing = false, defaultC
 
     const handleClose = () => {
         setIsClosing(true);
-        setTimeout(onClose, closingCooldown);
+        onClosing(CLOSING_COOLDOWN);
+        setTimeout(onClose, CLOSING_COOLDOWN);
     }
 
     useEffect(() => {
-        if (externalClosing) {
+        if (forceClose) {
             handleClose()
         }
-    }, [externalClosing])
+    }, [forceClose])
 
     return (
-        <div className={(isClosing ? "closing " : "") + className} id="pop-up" onClick={() => !clickedInsidePopUp.current ? handleClose() : null} {...props}>
-            <div ref={PopUpRef} className={(isClosing ? "closing " : "") + (["info", "warning", "error"].includes(type) ? type : "info")} id="pop-up-background" onClick={(event) => event.stopPropagation()} onPointerDown={() => clickedInsidePopUp.current = true} onPointerUp={() => setTimeout(() => clickedInsidePopUp.current = false, 0)}> {/* Cancel clic detection by the background if user clic on pop-up */}
+        <div className={classBuilder(`pop-up ${className}`, { "closing": isClosing })} onClick={() => !clickedInsidePopUp.current ? handleClose() : null}>
+            <div ref={PopUpRef} className={classBuilder(`pop-up-background ${type}`, { "closing": isClosing })} onClick={(event) => event.stopPropagation()} onPointerDown={() => clickedInsidePopUp.current = true} onPointerUp={() => setTimeout(() => clickedInsidePopUp.current = false, 0)}> {/* Cancel clic detection by the background if user clic on pop-up */}
                 {defaultClosingCross
-                    ? <div className="default-closing-cross" onClick={handleClose} onKeyDown={(event) => event.key === "Enter" && handleClose() } role="button" tabIndex={0}>✕</div>
+                    ? <div className="default-closing-cross" onClick={handleClose} onKeyDown={(event) => event.key === "Enter" && handleClose()} role="button" tabIndex={0}>✕</div>
                     : null}
                 {children}
             </div>

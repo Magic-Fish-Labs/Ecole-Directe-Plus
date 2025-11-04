@@ -1,23 +1,20 @@
-body:has(#bottom-sheet) {
+body:has(.bottom-sheet) {
     overflow: hidden;
 }
 
-#pop-up {
+.pop-up {
     position: fixed;
     inset: 0;
-    
-    background-color: rgba(0, 0, 0, 0.4);
-    animation: 0.3s ease 0s fade-in;
-    animation-fill-mode: forwards;
+
     z-index: 99;
 }
 
-#pop-up.closing {
+.pop-up.closing {
     animation: 0.3s ease 0s fade-out;
     animation-fill-mode: forwards;
 }
 
-#pop-up-background {
+.pop-up-background {
     position: fixed;
     top: 50%;
     left: 50%;
@@ -39,7 +36,7 @@ body:has(#bottom-sheet) {
     /* animation-fill-mode: forwards; */
 }
 
-#pop-up-background.info .default-closing-cross {
+.pop-up-background.info .default-closing-cross {
     position: absolute;
     top: 12px;
     right: 12px;
@@ -56,53 +53,49 @@ body:has(#bottom-sheet) {
     width: 20px;
     height: 20px;
 }
-#pop-up-background.info .default-closing-cross:is(:hover, :focus-visible) {
+.pop-up-background.info .default-closing-cross:is(:hover, :focus-visible) {
     color: rgb(var(--text-color-main));
 }
-#pop-up-background.info .default-closing-cross:active {
+.pop-up-background.info .default-closing-cross:active {
     color: rgba(var(--text-color-main), .7);
 }
 
-#pop-up-background.info {
+.pop-up-background.info {
     background-color: rgb(var(--background-color-2));
 }
 
-#pop-up-background.warning {
+.pop-up-background.warning {
     background-color: rgb(var(--background-color-warning-1));
     box-shadow: rgb(var(--background-color-warning-1))
 }
 
-#pop-up-background.error {
+.pop-up-background.error {
     background-color: rgb(var(--background-color-error));
     box-shadow: rgb(var(--background-color-error))
 }
 
-#pop-up-background.closing {
+.pop-up-background.closing {
     animation: 0.3s ease-out 0s blur-out;
     animation-fill-mode: forwards;
 }
 
-@keyframes fade-in {
+/* @keyframes fade-in {
     from {
-        background-color: rgba(0, 0, 0, 0);
         backdrop-filter: blur(0px);
     }
     to {
-        background-color: rgba(0, 0, 0, 0.4);
         backdrop-filter: blur(10px);
     }
 }
 
 @keyframes fade-out {
     from {
-        background-color: rgba(0, 0, 0, 0.4);
-        backdrop-filter: blur(14px);
+        
     }
     to {
-        background-color: rgba(0, 0, 0, 0);
         backdrop-filter: blur(0px);
     }
-}
+} */
 
 @keyframes blur-in {
     from {

@@ -77,7 +77,7 @@ export default function DoubleAuthLogin({ ...props }) {
 
     // JSX
     return (
-        <PopUp className="double-auth-login" externalClosing={!isOpen} {...props}>
+        <PopUp className="double-auth-login" forceClose={!isOpen} {...props}>
             <h2>Authentification à deux facteurs</h2>
             <p className="explanation">Ce formulaire est une mesure de sécurité mise en place par EcoleDirecte afin de vérifier votre identité.</p>
             <form id="double-auth-login-form" onSubmit={handleDoubleAuthSubmit}>
