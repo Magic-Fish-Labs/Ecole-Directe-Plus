@@ -1,4 +1,3 @@
-import { lightFormat } from "date-fns"
 import { getCurrentSchoolYear } from "../date"
 
 export const defaultGlobalSettings = {

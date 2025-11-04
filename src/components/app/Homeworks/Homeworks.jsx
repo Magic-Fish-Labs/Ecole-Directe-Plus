@@ -1,6 +1,6 @@
 
 import { useContext, useEffect } from "react";
-import { useNavigate, useLocation, Navigate, Link } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import {
     WindowsContainer,
@@ -12,16 +12,9 @@ import {
 
 import { AccountContext, UserDataContext } from "../../../App";
 import Notebook from "./Notebook/Notebook";
-import BottomSheet from "../../generic/PopUps/BottomSheet";
-import EncodedHTMLDiv from "../../generic/CustomDivs/EncodedHTMLDiv";
 import UpcomingAssignments from "./UpcomingAssignments";
-import PopUp from "../../generic/PopUps/PopUp";
-import { formatDateRelative } from "../../../utils/date";
-import FileComponent from "../../generic/FileComponent";
-import { getISODate } from "../../../utils/utils";
 import Calendar from "./Calendar";
 import InfoButton from "../../generic/Informative/InfoButton";
-import DownloadIcon from "../../graphics/DownloadIcon"
 
 import "./Homeworks.css";
 
@@ -38,9 +31,6 @@ export default function Homeworks() {
 
     const account = useContext(AccountContext);
     const { loginStates: { isLoggedIn } } = account;
-
-    const navigate = useNavigate();
-    const location = useLocation();
 
     useEffect(() => {
         document.title = "Cahier de texte • Ecole Directe Plus";

@@ -19,7 +19,7 @@ const stateClasses = [
     "invalid",
 ]
 
-export default function Button({ type=ButtonTypes.BUTTON, children, value, onClick, disabled=false, state=ButtonStates.NEUTRAL, className="", id="", ...props }) {
+export default function Button({ type=ButtonTypes.BUTTON, children, value, onClick, disabled=false, state=ButtonStates.NEUTRAL, className="", ...props }) {
     if (!Object.values(ButtonTypes).includes(type)) {
         type = ButtonTypes.BUTTON;
     }
@@ -30,7 +30,6 @@ export default function Button({ type=ButtonTypes.BUTTON, children, value, onCli
             value={value}
             onClick={onClick}
             className={`button ${className} ${(type === "submit" ? "submitter" : "")} ${stateClasses[state]} ${disabled ? "disabled" : ""}`}
-            id={id}
             disabled={disabled}
             {...props}
         >
