@@ -13,6 +13,7 @@ export async function requestLogin(account, onLogin, localUsername, localPasswor
 
 	return response
 		.then((response) => {
+			console.error(response)
 			switch (response.code) {
 				case 200:
 					account.token.set(response.token); // collecte du token
@@ -30,7 +31,8 @@ export async function requestLogin(account, onLogin, localUsername, localPasswor
 					return LoginCodes.SUCCESS;
 				case 250:
 					account.doubleAuthKey.current = null;
-					account.token.set(response.token); // collecte du token pour la double authentification
+					account.token.set(response.token); // collecte du token pour l'a2f
+					account.doubleAuthToken.set(response.doubleAuthToken); // collecte de l'autre token pour l'a2f
 					account.loginStates.set(LoginStates.REQUIRE_DOUBLE_AUTH);
 					return LoginCodes.REQUIRE_DOUBLE_AUTH;
 				case 202:
@@ -41,6 +43,7 @@ export async function requestLogin(account, onLogin, localUsername, localPasswor
 					return LoginCodes.EMPTY_RESPONSE;
 				default: // UNHANDLED ERROR
 					// !:! report l'erreur
+					console.error(response);
 					return { code: -1, message: response.message };
 			}
 		})

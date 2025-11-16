@@ -63,19 +63,24 @@ export default async function fetchLogin(username, password, A2FKey, controller 
             error.type = "FETCH_ERROR"
             throw error;
         })
-        .then((response) => {
-			if (response.ok) return response.json();
+        .then(async (response) => {
+			if (response.ok) return [response.headers, await response.json()];
 
 			const error = new Error();
 			error.type = "FETCH_ERROR"
 			throw error;
 		})
-        .then((data) => {
+        .then(([headers, data]) => {
             if (!data) {
                 throw new EdpError(FetchErrorBuilders.EMPTY_RESPONSE);
             }
             if (data.code < 300) {
-                return data;
+                return {
+                    token: headers.get("x-token"),
+                    doubleAuthToken: headers.get("2fa-token"),
+                    data: data.data, // !:! I hate my life
+                    code: data.code
+                };
             }
             switch (data.code) {
                 case 505:

@@ -6,7 +6,6 @@ import { LoginStates, CommonCodes } from "../constants/codes";
 import { guestDataPath, guestCredentials } from "../constants/config";
 
 // split
-import fetchLogin from "../requests/fetchLogin";
 import mapLogin from "../mappers/login";
 import fetchDoubleAuthAnswer from "../requests/fetchDoubleAuthAnswer";
 import fetchDoubleAuthQuestions from "../requests/fetchDoubleAuthQuestions";
@@ -38,6 +37,7 @@ export default function useEcoleDirecteAccount(initialAccount, callbacks) {
     const [username, setUsername] = useState(initialAccount.username ?? DefaultEcoleDirecteAccount.username);
     const [password, setPassword] = useState(initialAccount.password ?? DefaultEcoleDirecteAccount.password);
     const [token, setToken] = useState(initialAccount.token ?? DefaultEcoleDirecteAccount.token);
+    const [doubleAuthToken, setDoubleAuthToken] = useState(initialAccount.token ?? DefaultEcoleDirecteAccount.token);
     const [selectedUserIndex, setSelectedUserIndex] = useState(initialAccount.selectedUserIndex ?? DefaultEcoleDirecteAccount.selectedUserIndex);
     const [users, setUsers] = useState(initialAccount.users ?? DefaultEcoleDirecteAccount.users);
 
@@ -57,6 +57,7 @@ export default function useEcoleDirecteAccount(initialAccount, callbacks) {
         },
         doubleAuthKey,
         token: { value: token, set: setToken },
+        doubleAuthToken: { value: doubleAuthToken, set: setDoubleAuthToken },
         selectedUserIndex: { value: selectedUserIndex, set: (newIndex) => { setSelectedUserIndex(newIndex); callbacks.onUserChange(users[newIndex], newIndex) } },
         loginStates: {
             requireLogin,
