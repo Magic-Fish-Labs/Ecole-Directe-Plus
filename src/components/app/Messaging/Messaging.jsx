@@ -9,7 +9,7 @@ import {
     WindowContent
 } from "../../generic/Window";
 
-import { AppContext } from "../../../App";
+import { AccountContext, AppContext, UserDataContext } from "../../../App";
 
 import "./Messaging.css";
 import Inbox from "./Inbox";
@@ -33,25 +33,24 @@ export default function Messaging({ isLoggedIn, activeAccount, fetchMessages, fe
     const navigate = useNavigate();
     const location = useLocation();
 
-    const { accountsListState, useUserData, isTabletLayout } = useContext(AppContext);
+    const { selectedUser } = useContext(AccountContext);
     const [selectedMessage, setSelectedMessage] = useState(null);
     const [selectedFolder, setSelectedFolder] = useState(0);
     const oldSelectedMessage = useRef(selectedMessage);
-    const messages = useUserData("sortedMessages");
-    const [folders, setFolders] = useState(useUserData("messageFolders").get());
-    useEffect(() => {
-        // Update the local state with the latest data
-        setFolders(useUserData("messageFolders").get());
-    }, [useUserData("messageFolders").get()]);
 
+    const userData = useContext(UserDataContext);
+    const {
+        messageFolders: { value: folders },
+        messages: { value: messages }
+    } = userData;
 
-    const module = accountsListState[activeAccount].modules?.find(module => module.code === "MESSAGERIE");
-    let canSendMessages =   (module?.params?.destAdmin ?? "1") === "1" || 
-                            (module?.params?.destEleve ?? "1") === "1" || 
-                            (module?.params?.destFamille ?? "1") === "1" || 
-                            (module?.params?.destProf ?? "1") === "1" || 
-                            (module?.params?.destEspTravail ?? "1") === "1";
-    if (accountsListState[activeAccount].accountType !== "E") {
+    const edModule = selectedUser.modules?.find(edModule => edModule.code === "MESSAGERIE");
+    let canSendMessages = (edModule?.params?.destAdmin ?? "1") === "1" ||
+        (edModule?.params?.destEleve ?? "1") === "1" ||
+        (edModule?.params?.destFamille ?? "1") === "1" ||
+        (edModule?.params?.destProf ?? "1") === "1" ||
+        (edModule?.params?.destEspTravail ?? "1") === "1";
+    if (selectedUser.accountType !== "E") {
         canSendMessages = true;
     }
 
@@ -74,10 +73,10 @@ export default function Messaging({ isLoggedIn, activeAccount, fetchMessages, fe
         return () => {
             controller.abort();
         }
-    }, [isLoggedIn, activeAccount, selectedFolder, messages.get(), folders]);
+    }, [isLoggedIn, activeAccount, selectedFolder, messages, folders]);
 
     useEffect(() => {
-        if (messages.get() === undefined) {
+        if (messages === undefined) {
             return;
         }
         if (["#patch-notes", "#policy", "#feedback"].includes(location.hash)) {
@@ -89,7 +88,7 @@ export default function Messaging({ isLoggedIn, activeAccount, fetchMessages, fe
             const parsedHashMessage = parseInt(location.hash.slice(location.hash.lastIndexOf('-') + 1));
             const parsedHashFolder = parseInt(location.hash.slice(1, location.hash.lastIndexOf('-')));
             if (parsedHashMessage !== selectedMessage || parsedHashFolder !== selectedFolder) {
-                const newHash = "#" +  selectedFolder + '-' + selectedMessage;
+                const newHash = "#" + selectedFolder + '-' + selectedMessage;
                 navigate(newHash);
             }
         } else {
@@ -101,7 +100,7 @@ export default function Messaging({ isLoggedIn, activeAccount, fetchMessages, fe
         return () => {
             controller.abort();
         }
-    }, [location, selectedMessage, messages.get()]);
+    }, [location, selectedMessage, messages]);
 
     useEffect(() => {
         if (oldSelectedMessage.current !== selectedMessage) {
@@ -113,9 +112,9 @@ export default function Messaging({ isLoggedIn, activeAccount, fetchMessages, fe
         const parsedHashMessage = parseInt(location.hash.slice(location.hash.lastIndexOf('-') + 1));
         const parsedHashFolder = parseInt(location.hash.slice(1, location.hash.lastIndexOf('-')));
 
-        if (!isNaN(parsedHashMessage) && !isNaN(parsedHashFolder)  && parsedHashMessage !== selectedMessage) {
-            if (messages.get()) {
-                const doesMessageExist = messages.get()?.findIndex((item) => item.id === parsedHashMessage) !== -1;
+        if (!isNaN(parsedHashMessage) && !isNaN(parsedHashFolder) && parsedHashMessage !== selectedMessage) {
+            if (messages) {
+                const doesMessageExist = messages?.findIndex((item) => item.id === parsedHashMessage) !== -1;
                 if (doesMessageExist) {
                     setSelectedFolder(parsedHashFolder);
                     setSelectedMessage(parsedHashMessage);
@@ -132,7 +131,7 @@ export default function Messaging({ isLoggedIn, activeAccount, fetchMessages, fe
                 }
             }
         }
-    }, [location, messages.get(), oldSelectedMessage.current, selectedMessage]);
+    }, [location, messages, oldSelectedMessage.current, selectedMessage]);
 
     useEffect(() => {
         oldSelectedMessage.current = selectedMessage;
@@ -228,7 +227,7 @@ export default function Messaging({ isLoggedIn, activeAccount, fetchMessages, fe
             document.removeEventListener('keypress', handleKeyDown);
         };
     }, [isEditingFolder, newFolderName]);
-            
+
     // changing folder should exit editing mode
     useEffect(() => {
         setIsEditingFolder(false);
@@ -262,11 +261,11 @@ export default function Messaging({ isLoggedIn, activeAccount, fetchMessages, fe
                                                 })
                                                 .map((folder) => (
                                                     <li key={folder.id} className="folder-button-container">
-                                                        <button 
+                                                        <button
                                                             onClick={() => {
                                                                 setSelectedFolder(folder.id)
                                                                 setSelectedMessage(null);
-                                                            }} 
+                                                            }}
                                                             className={`folder-button ${folder.id === selectedFolder ? 'selected-folder' : ''}`}
                                                         >
                                                             {folder.id === 0 ? <InboxIcon className="folder-icon-tooltip" /> : folder.id === -1 ? <SendIcon className="folder-icon-tooltip" /> : folder.id === -2 ? <ArchiveIcon className="folder-icon-tooltip" /> : folder.id === -4 ? <DraftIcon className="folder-icon-tooltip" /> : <FolderIcon className="folder-icon-tooltip" />}
@@ -304,8 +303,8 @@ export default function Messaging({ isLoggedIn, activeAccount, fetchMessages, fe
                                             <li className="edit-folder-button-container">
                                                 <button className="edit-folder-button delete" onClick={async () => {
                                                     // if the folder dosn't contain any message, we can delete it directly but if it contains messages, we need to move them to the inbox
-                                                    if (messages.get().filter((message) => message.folderId === selectedFolder).length > 0) {
-                                                        await moveMessage(messages.get().filter((message) => message.folderId === selectedFolder).map((message) => message.id), 0);
+                                                    if (messages.filter((message) => message.folderId === selectedFolder).length > 0) {
+                                                        await moveMessage(messages.filter((message) => message.folderId === selectedFolder).map((message) => message.id), 0);
                                                     }
                                                     deleteFolder(selectedFolder);
                                                     setSelectedFolder(0);
@@ -316,7 +315,7 @@ export default function Messaging({ isLoggedIn, activeAccount, fetchMessages, fe
                                 </Tooltip>
                                 : null
                             }
-                            
+
                             {isEditingFolder ? (
                                 <div className="edit-folder-name-container">
                                     <TextInput
@@ -325,18 +324,18 @@ export default function Messaging({ isLoggedIn, activeAccount, fetchMessages, fe
                                         className="edit-folder-name-input"
                                         autoFocus
                                         onFocus={(e) => e.target.select()}
-                                        enterKeyHint = "done"
+                                        enterKeyHint="done"
                                     />
                                 </div>
                             ) : (
-                                    <div className="MessagesTitle-container">
-                                        <h2 id="MessagesTitle" onClick={() => { if (selectedFolder !== 0 && selectedFolder !== -1 && selectedFolder !== -2 && selectedFolder !== -4) { setIsEditingFolder(true) } }} className={selectedFolder === 0 || selectedFolder === -1 || selectedFolder === -2 || selectedFolder === -4 ? "prevent-highlight" : ""}>
-                                            {selectedFolder !== -3
-                                                ? capitalizeFirstLetter(folders?.find((item) => item.id === selectedFolder)?.name ?? "Boîte de réception")
-                                                : "Créer un dossier"
-                                            }
-                                        </h2>
-                                    </div>
+                                <div className="MessagesTitle-container">
+                                    <h2 id="MessagesTitle" onClick={() => { if (selectedFolder !== 0 && selectedFolder !== -1 && selectedFolder !== -2 && selectedFolder !== -4) { setIsEditingFolder(true) } }} className={selectedFolder === 0 || selectedFolder === -1 || selectedFolder === -2 || selectedFolder === -4 ? "prevent-highlight" : ""}>
+                                        {selectedFolder !== -3
+                                            ? capitalizeFirstLetter(folders?.find((item) => item.id === selectedFolder)?.name ?? "Boîte de réception")
+                                            : "Créer un dossier"
+                                        }
+                                    </h2>
+                                </div>
                             )}
                         </WindowHeader>
                         <WindowContent>

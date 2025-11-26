@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import { useNavigate, useLocation, Navigate, Link } from "react-router-dom";
 import ContentLoader from "react-content-loader";
-import { AppContext } from "../../../App";
+import { AppContext, SettingsContext, UserDataContext } from "../../../App";
 
 import "./MessageReader.css";
 import EncodedHTMLDiv from "../../generic/CustomDivs/EncodedHTMLDiv";
@@ -24,23 +24,25 @@ export default function MessageReader({ selectedMessage, fetchMessageMarkAsUnrea
 
     // States
     const location = useLocation();
-    const { useUserData, usedDisplayTheme, useUserSettings } = useContext(AppContext);
-    const settings = useUserSettings();
-    const messages = useUserData("sortedMessages").get();
-    const message = messages ? messages.find((item) => item.id === selectedMessage) : null;
-    const [spoiler, setSpoiler] = useState(settings.get("isStreamerModeEnabled"));
-    const [folders, setFolders] = useState(useUserData("messageFolders").get());
+    const { usedDisplayTheme } = useContext(AppContext);
 
-    useEffect(() => {
-        // Update the local state with the latest data
-        setFolders(useUserData("messageFolders").get());
-    }, [useUserData("messageFolders").get()]);
+    const settings = useContext(SettingsContext)
+    const {
+        isStreamerModeEnabled: { value: isStreamerModeEnabled }
+    } = settings.user;
+
+    const [spoiler, setSpoiler] = useState(isStreamerModeEnabled);
+    const userData = useContext(UserDataContext);
+    const {
+        messageFolders: { value: folders },
+        messages: { value: messages, set: setMessages }
+    } = userData;
+
+    const message = messages ? messages.find((item) => item.id === selectedMessage) : null;
 
     // behavior
     useEffect(() => {
-        if (settings.get("isStreamerModeEnabled")) {
-            setSpoiler(settings.get("isStreamerModeEnabled"))
-        }
+        setSpoiler(isStreamerModeEnabled);
     }, [selectedMessage])
 
     const handleMarkAsUnread = (event, msg) => {
@@ -54,12 +56,11 @@ export default function MessageReader({ selectedMessage, fetchMessageMarkAsUnrea
         }
 
         // mark as unread locally and kick the content so as to trigger a refetch the next reading (as the "mark as read" feature is trigger when fetching the message)
-        const messagesUnread = useUserData("sortedMessages");
-        const oldMsg = messagesUnread.get()
+        const oldMsg = messages
         const msgIdx = oldMsg.findIndex((item) => item.id === msg.id);
         oldMsg[msgIdx].read = false;
         oldMsg[msgIdx].content = null;
-        messagesUnread.set(oldMsg);
+        setMessages([...oldMsg]);
     }
 
     // JSX

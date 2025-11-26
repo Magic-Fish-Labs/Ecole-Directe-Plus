@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useContext } from "react";
 import ContentLoader from "react-content-loader";
-import { AppContext } from "../../../App";
+import { AppContext, SettingsContext, UserDataContext } from "../../../App";
 
 import "./Inbox.css";
 import ScrollShadedDiv from "../../generic/CustomDivs/ScrollShadedDiv";
@@ -12,13 +12,22 @@ import MarkAsUnread from "../../graphics/MarkAsUnread";
 
 export default function Inbox({ selectedMessage, setSelectedMessage, selectedFolder, fetchMessageMarkAsUnread }) {
     // States
-    const { useUserData, usedDisplayTheme, useUserSettings } = useContext(AppContext);
-    const settings = useUserSettings();
+    const { usedDisplayTheme } = useContext(AppContext);
+    const settings = useContext(SettingsContext);
+    const {
+        isStreamerModeEnabled: { value: isStreamerModeEnabled },
+        displayMode: { value: displayMode }
+    } = settings.user;
     const [search, setSearch] = useState("");
 
-    const [messages, setMessages] = useState([]);
+    const userData = useContext(UserDataContext);
+    const {
+        messages: { value: messages },
+        messageFolders: { value: messageFolders }
+    } = userData;
 
-    const messageFolders = useUserData("messageFolders");
+    const isDisplayModeQuality = displayMode === "quality";
+
     const contentLoadersRandomValues = useRef({ authorWidth: Array.from({ length: 13 }, (_) => Math.round(Math.random() * 100) + 100), subjectWidth: Array.from({ length: 13 }, (_) => Math.floor(Math.random() * 150) + 150), dateWidth: Array.from({ length: 13 }, (_) => Math.floor(Math.random() * 50) + 50), containsFiles: Array.from({ length: 13 }, (_) => (Math.random() > .6)) })
 
     // behavior
@@ -77,22 +86,16 @@ export default function Inbox({ selectedMessage, setSelectedMessage, selectedFol
         return false;
     }
 
-    useEffect(() => {
-        const newMessages = useUserData("sortedMessages").get();
-        setMessages(newMessages);
-    }, [useUserData("sortedMessages").get()]);
-
-
     // JSX
     return (
         <div id="inbox">
             <TextInput onChange={handleChange} value={search} textType={"text"} placeholder={"Rechercher"} className="inbox-search-input" />
-            {messages !== undefined && (messageFolders.get() !== undefined && messageFolders.get()?.find((folder) => folder.id === selectedFolder)?.fetched)
+            {messages !== undefined && (messageFolders !== undefined && messageFolders?.find((folder) => folder.id === selectedFolder)?.fetched)
                 ? (messages.filter((message) => message.folderId === selectedFolder).length > 0
                     ? <ScrollShadedDiv className="messages-container">
                         <ul>
                             {messages.filter((message) => message.folderId === selectedFolder).filter(filterResearch).map((message, index) => <li style={{ "--order": index }} className={"message-container" + (selectedMessage === message.id ? " selected" : "")} data-read={message.read} onClick={() => handleClick(message)} onKeyDown={(event) => handleKeyDown(event, message)} key={message.id} role="button" tabIndex={0}>
-                                <h4 className="message-subject"><span className="author-name">{message.from.civilite + " " + (settings.get("isStreamerModeEnabled") ? "-".repeat((message.from.nom).length) : message.from.nom)}</span> <span className="actions"><button disabled={!message.read} onClick={(event) => handleMarkAsUnread(event, message)} className="mark-as-unread" title="Marquer comme non lu"><MarkAsUnread className="mark-as-unread-icon" /></button> {message.files?.length > 0 && <AttachmentIcon className="attachment-icon" />}</span></h4>
+                                <h4 className="message-subject"><span className="author-name">{message.from.civilite + " " + (isStreamerModeEnabled ? "-".repeat((message.from.nom).length) : message.from.nom)}</span> <span className="actions"><button disabled={!message.read} onClick={(event) => handleMarkAsUnread(event, message)} className="mark-as-unread" title="Marquer comme non lu"><MarkAsUnread className="mark-as-unread-icon" /></button> {message.files?.length > 0 && <AttachmentIcon className="attachment-icon" />}</span></h4>
                                 <p className="message-author">{message.subject}</p>
                                 <p className="message-date">{(new Date(message.date)).toLocaleDateString("fr-FR", {
                                     month: "long",
@@ -111,7 +114,7 @@ export default function Inbox({ selectedMessage, setSelectedMessage, selectedFol
                     <ul>
                         {Array.from({ length: 13 }, (_, index) => <li key={index} style={{ "--order": -69 /* skip the animation */ }} className={"message-container"}>
                             <h4 className="message-subject"><span className="author-name"><ContentLoader
-                                animate={settings.get("displayMode") === "quality"}
+                                animate={isDisplayModeQuality}
                                 speed={1}
                                 backgroundColor={usedDisplayTheme === "dark" ? "#7878ae" : "#75759a"}
                                 foregroundColor={usedDisplayTheme === "dark" ? "#9292d4" : "#9292c0"}
@@ -120,7 +123,7 @@ export default function Inbox({ selectedMessage, setSelectedMessage, selectedFol
                                 <rect x="0" y="0" rx="5" ry="5" width="100%" height="100%" />
                             </ContentLoader></span><span className="actions">{contentLoadersRandomValues.current.containsFiles[index] && <AttachmentIcon className="attachment-icon" />}</span></h4>
                             <p className="message-author"><ContentLoader
-                                animate={settings.get("displayMode") === "quality"}
+                                animate={isDisplayModeQuality}
                                 speed={1}
                                 backgroundColor={usedDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
                                 foregroundColor={usedDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
@@ -129,7 +132,7 @@ export default function Inbox({ selectedMessage, setSelectedMessage, selectedFol
                                 <rect x="0" y="0" rx="5" ry="5" width="100%" height="100%" />
                             </ContentLoader></p>
                             <p className="message-date"><ContentLoader
-                                animate={settings.get("displayMode") === "quality"}
+                                animate={isDisplayModeQuality}
                                 speed={1}
                                 backgroundColor={usedDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
                                 foregroundColor={usedDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
