@@ -146,42 +146,42 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: edp-${{ matrix.target }}-msi
-          path: target/${{ matrix.target }}/release/bundle/msi/*.msi
+          path: src-tauri/target/${{ matrix.target }}/release/bundle/msi/*.msi
 
       - name: (Windows) distribute NSIS (.exe)
         if: matrix.platform == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
           name: edp-${{ matrix.target }}-nsis
-          path: target/${{ matrix.target }}/release/bundle/nsis/*.exe
+          path: src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*.exe
 
       - name: (Linux) distribute .deb
         if: matrix.platform == 'ubuntu-22.04'
         uses: actions/upload-artifact@v4
         with:
           name: edp-${{ matrix.target }}-deb
-          path: target/${{ matrix.target }}/release/bundle/deb/*.deb
+          path: src-tauri/target/${{ matrix.target }}/release/bundle/deb/*.deb
 
       - name: (Linux) distribute .rpm
         if: matrix.platform == 'ubuntu-22.04'
         uses: actions/upload-artifact@v4
         with:
           name: edp-${{ matrix.target }}-rpm
-          path: target/${{ matrix.target }}/release/bundle/rpm/*.rpm
+          path: src-tauri/target/${{ matrix.target }}/release/bundle/rpm/*.rpm
 
       - name: (Linux) distribute .appimage
         if: matrix.platform == 'ubuntu-22.04'
         uses: actions/upload-artifact@v4
         with:
           name: edp-${{ matrix.target }}-appimage
-          path: target/${{ matrix.target }}/release/bundle/appimage/*.AppImage
+          path: src-tauri/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage
 
       - name: (macOS) distribute .dmg
         if: matrix.platform == 'macos-15'
         uses: actions/upload-artifact@v4
         with:
           name: edp-${{ matrix.target }}-dmg
-          path: target/${{ matrix.target }}/release/bundle/dmg/*.dmg
+          path: src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
 
   build-mobile:
     permissions:
@@ -248,7 +248,7 @@ jobs:
       - name: (Android) setup signing
         if: matrix.os == 'android'
         run: |
-          cd gen/android
+          cd src-tauri/gen/android
           echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" > keystore.properties
           echo "password=${{ secrets.ANDROID_KEY_PASSWORD }}" >> keystore.properties
           base64 -d <<< "${{ secrets.ANDROID_KEY_BASE64 }}" > $RUNNER_TEMP/keystore.jks
@@ -296,7 +296,7 @@ jobs:
         with:
           name: edp-android-${{ matrix.target-short }}-apk
           path: |
-            gen/android/app/build/outputs/apk/universal/release/*.apk
+            src-tauri/gen/android/app/build/outputs/apk/universal/release/*.apk
 
       - name: (iOS) distribute .ipa
         if: matrix.os == 'ios'
@@ -304,4 +304,4 @@ jobs:
         with:
           name: edp-ios-${{ matrix.target-short }}-ipa
           path: |
-            gen/apple/build/arm64/*.ipa
+            src-tauri/gen/apple/build/arm64/*.ipa

@@ -133,6 +133,7 @@ const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)');
 
 // get data from localstorage
 const tokenFromLs = localStorage.getItem("token") ?? "";
+const token2faFromLs = localStorage.getItem("token2fa") ?? "";
 const accountListFromLs = JSON.parse(localStorage.getItem("accountsList") ?? "[]");
 const oldActiveAccountFromLs = parseInt(localStorage.getItem("oldActiveAccount") ?? 0);
 let userSettingsFromLs = JSON.parse((localStorage.getItem("userSettings") ?? "[{}]"));
@@ -256,6 +257,7 @@ window.addEventListener("appinstalled", () => { promptInstallPWA = null });
 export default function App({ edpFetch }) {
     // global account data
     const [tokenState, setTokenState] = useState(tokenFromLs); // token d'identification
+    const [token2faState, setToken2faState] = useState(token2faFromLs); // token d'identification 2FA
     const [accountsListState, setAccountsListState] = useState(accountListFromLs); // liste des profils sur le compte (notamment si compte parent)
     const [userIds, setUserIds] = useState(userIdsFromLs); // identifiants de connexion (username, pwd)
     const [bufferUserIds, setBufferUserIds] = useState(userIdsFromLs); // identifiants de connexion (username, pwd) | uniquement pour la gestion de la reconnexion auto après l'A2F
@@ -482,6 +484,12 @@ export default function App({ edpFetch }) {
             localStorage.setItem("token", tokenState);
         }
     }, [tokenState]);
+
+    useEffect(() => {
+        if (token2faState !== "") {
+            localStorage.setItem("token2fa", token2faState);
+        }
+    }, [token2faState]);
 
     useEffect(() => {
         if (accountsListState?.length > 0) {
@@ -1498,119 +1506,125 @@ export default function App({ edpFetch }) {
             identifiant: encodeURIComponent(username),
             motdepasse: encodeURIComponent(password),
             isReLogin: false,
-            uuid: 0,
+            ...A2FInfo,
             fa: Object.keys(A2FInfo).length > 0 ? [A2FInfo] : []
         }
 
-        const options = {
-            body: "data=" + JSON.stringify(payload),
-            method: "POST",
-            signal: controller.signal,
-            referrerPolicy: "no-referrer"
-        }
+        try {
+            const nresponse = await fetch(`https://api.ecoledirecte.com/v3/login.awp?v=${apiVersion}`, {
+                body: "data=" + JSON.stringify(payload),
+                method: "POST",
+                signal: controller.signal,
+                referrerPolicy: "no-referrer",
+                headers: {
+                  "X-Token": tokenState,
+                  "2FA-Token": token2faState,
+                  "Content-Type": "application/x-www-form-urlencoded"
+                }
+            });
 
-        edpFetch(`https://api.ecoledirecte.com/v3/login.awp?v=${apiVersion}`, options, "text")
-            .then((response) => {
-                if (!response) {
-                    setIsEDPUnblockInstalled(false);
-                } else {
-                    return JSON.parse(response);
+            const text = await nresponse.text();
+            if (!text) {
+                setIsEDPUnblockInstalled(false);
+                return;
+            }
+            const response = JSON.parse(text);
+
+            const token = nresponse.headers.get("x-token")
+            const token2fa = nresponse.headers.get("2fa-token")
+
+            // GESTION DATA
+            let statusCode = response.code;
+            if (statusCode === 200) {
+                messages.submitButtonText = "Connecté";
+                setUserIds({ username: username, password: password })
+                if (keepLoggedIn) {
+                    localStorage.setItem(lsIdName, encrypt(JSON.stringify({ username: username, password: password })))
                 }
-            })
-            .then((response) => {
-                // GESTION DATA
-                let statusCode = response.code;
-                if (statusCode === 200) {
-                    messages.submitButtonText = "Connecté";
-                    setUserIds({ username: username, password: password })
-                    if (keepLoggedIn) {
-                        localStorage.setItem(lsIdName, encrypt(JSON.stringify({ username: username, password: password })))
-                    }
-                    let token = response.token // collecte du token
-                    let accountsList = [];
-                    let accounts = response.data.accounts.find((account) => account.typeCompte !== "P") ?? response.data.accounts[0];
-                    if (response.data.accounts.some((account) => account.typeCompte === "P")) {
-                        messages.submitButtonText = "Échec de la connexion";
-                        messages.submitErrorMessage = "Les comptes enseignants ne sont pas supportés par Ecole Directe Plus";
-                        return;
-                    }
-                    const accountType = accounts.typeCompte; // collecte du type de compte
-                    if (accountType === "E") {
-                        // compte élève
-                        accountsList.push({
-                            accountType: "E", // type de compte
-                            lastConnection: accounts.lastConnexion,
-                            id: accounts.id, // id du compte
-                            firstName: accounts.prenom, // prénom de l'élève
-                            lastName: accounts.nom, // nom de famille de l'élève
-                            email: accounts.email, // email du compte
-                            picture: accounts.profile.photo, // url de la photo
-                            schoolName: accounts.profile.nomEtablissement, // nom de l'établissement
-                            class: (accounts.profile.classe ? [accounts.profile.classe.code, accounts.profile.classe.libelle] : ["inconnu", "inconnu"]), // classe de l'élève, code : 1G4, libelle : Première G4 
-                            modules: accounts.modules
-                        });
-                    } else {
-                        // compte parent
-                        const email = accounts.email;
-                        accounts.profile.eleves.map((account) => {
-                            accountsList.push({
-                                accountType: "P",
-                                lastConnection: accounts.lastConnexion,
-                                id: account.id,
-                                familyId: accounts.id,
-                                firstName: account.prenom,
-                                lastName: account.nom,
-                                email: email,
-                                picture: account.photo,
-                                schoolName: account.nomEtablissement,
-                                class: (account.classe ? [account.classe.code, account.classe.libelle] : ["inconnu", "inconnu"]), // classe de l'élève, code : 1G4, libelle : Première G4
-                                modules: account.modules.concat(accounts.modules) // merge modules with those of parents
-                            })
-                        });
-                    }
-                    // ! : si une edit dans les 3 lignes en dessous, il est probable qu'il faille changer également dans loginFromOldAuthInfo //
-                    if (accountsListState.length > 0 && (accountsListState.length !== accountsList.length || accountsListState[0].id !== accountsList[0].id)) {
-                        resetUserData();
-                    }
-                    setUserInfo(token, accountsList);
-                    setIsLoggedIn(true);
-                } else {
-                    // si ED renvoie une erreur
-                    messages.submitButtonText = "Invalide";
-                    if (referencedErrors.hasOwnProperty(statusCode)) {
-                        messages.submitErrorMessage = referencedErrors[statusCode];
-                        if (statusCode === 250) {
-                            setBufferUserIds({ username: username, password: password })
-                            console.log("A2F required")
-                            setA2FInfo({});
-                            setRequireA2F(true)
-                        }
-                        let token = response.token
-                        if (token) {
-                            setTokenState(token);
-                        }
-                    } else {
-                        messages.submitErrorMessage = ("Erreur : " + response.message);
-                        const error = {
-                            errorMessage: response,
-                        };
-                        if (getUserSettingValue("allowAnonymousReports")) {
-                            sendToWebhook(sardineInsolente, error);
-                        }
-                    }
-                }
-            })
-            .catch((error) => {
-                if (error.name !== 'AbortError') {
-                    console.error(error);
+                let accountsList = [];
+                let accounts = response.data.accounts.find((account) => account.typeCompte !== "P") ?? response.data.accounts[0];
+                if (response.data.accounts.some((account) => account.typeCompte === "P")) {
                     messages.submitButtonText = "Échec de la connexion";
-                    messages.submitErrorMessage = "Error: " + error.message;
+                    messages.submitErrorMessage = "Les comptes enseignants ne sont pas supportés par Ecole Directe Plus";
+                    return;
                 }
-            })
-            .finally(() => {
-                loginAbortControllers.current.forEach((e) => { e.abort() })
-                callback(messages);
-            })
+                const accountType = accounts.typeCompte; // collecte du type de compte
+                if (accountType === "E") {
+                    // compte élève
+                    accountsList.push({
+                        accountType: "E", // type de compte
+                        lastConnection: accounts.lastConnexion,
+                        id: accounts.id, // id du compte
+                        firstName: accounts.prenom, // prénom de l'élève
+                        lastName: accounts.nom, // nom de famille de l'élève
+                        email: accounts.email, // email du compte
+                        picture: accounts.profile.photo, // url de la photo
+                        schoolName: accounts.profile.nomEtablissement, // nom de l'établissement
+                        class: (accounts.profile.classe ? [accounts.profile.classe.code, accounts.profile.classe.libelle] : ["inconnu", "inconnu"]), // classe de l'élève, code : 1G4, libelle : Première G4
+                        modules: accounts.modules
+                    });
+                } else {
+                    // compte parent
+                    const email = accounts.email;
+                    accounts.profile.eleves.map((account) => {
+                        accountsList.push({
+                            accountType: "P",
+                            lastConnection: accounts.lastConnexion,
+                            id: account.id,
+                            familyId: accounts.id,
+                            firstName: account.prenom,
+                            lastName: account.nom,
+                            email: email,
+                            picture: account.photo,
+                            schoolName: account.nomEtablissement,
+                            class: (account.classe ? [account.classe.code, account.classe.libelle] : ["inconnu", "inconnu"]), // classe de l'élève, code : 1G4, libelle : Première G4
+                            modules: account.modules.concat(accounts.modules) // merge modules with those of parents
+                        })
+                    });
+                }
+                // ! : si une edit dans les 3 lignes en dessous, il est probable qu'il faille changer également dans loginFromOldAuthInfo //
+                if (accountsListState.length > 0 && (accountsListState.length !== accountsList.length || accountsListState[0].id !== accountsList[0].id)) {
+                    resetUserData();
+                }
+                setUserInfo(token, accountsList);
+                setToken2faState(token2fa)
+                setIsLoggedIn(true);
+            } else {
+                // si ED renvoie une erreur
+                messages.submitButtonText = "Invalide";
+                if (referencedErrors.hasOwnProperty(statusCode)) {
+                    messages.submitErrorMessage = referencedErrors[statusCode];
+                    if (statusCode === 250) {
+                        setBufferUserIds({ username: username, password: password })
+                        console.log("A2F required")
+                        setA2FInfo({});
+                        setRequireA2F(true)
+                    }
+                    setTokenState(token);
+                    setToken2faState(token2fa)
+
+                } else {
+                    messages.submitErrorMessage = ("Erreur : " + response.message);
+                    const error = {
+                        errorMessage: response,
+                    };
+                    if (getUserSettingValue("allowAnonymousReports")) {
+                        sendToWebhook(sardineInsolente, error);
+                    }
+                }
+            }
+        }
+        catch (error) {
+            if (error.name !== 'AbortError') {
+                console.error(error);
+                messages.submitButtonText = "Échec de la connexion";
+                messages.submitErrorMessage = "Error: " + error.message;
+            }
+        }
+        finally {
+            loginAbortControllers.current.forEach((e) => { e.abort() })
+            callback(messages);
+        }
     }
 
     async function fetchUserTimeline(controller = (new AbortController())) {
@@ -1624,7 +1638,8 @@ export default function App({ edpFetch }) {
                 method: "POST",
                 headers: {
                     // "user-agent": navigator.userAgent,
-                    "x-token": tokenState,
+                    "X-Token": tokenState,
+                    "2FA-Token": token2faState,
                 },
                 body: `data=${JSON.stringify(data)}`,
                 signal: controller.signal,
@@ -1672,7 +1687,8 @@ export default function App({ edpFetch }) {
             {
                 method: "POST",
                 headers: {
-                    "x-token": tokenState
+                    "X-Token": tokenState,
+                    "2FA-Token": token2faState,
                 },
                 body: `data=${JSON.stringify(data)}`,
                 signal: controller.signal,
@@ -1741,7 +1757,8 @@ export default function App({ edpFetch }) {
                 {
                     method: "POST",
                     headers: {
-                        "x-token": tokenState
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
                     },
                     body: "data={}",
                     signal: controller.signal
@@ -1806,7 +1823,8 @@ export default function App({ edpFetch }) {
                     {
                         method: "POST",
                         headers: {
-                            "x-token": tokenState
+                            "X-Token": tokenState,
+                            "2FA-Token": token2faState,
                         },
                         body: "data={}",
                         signal: controller.signal
@@ -1855,7 +1873,8 @@ export default function App({ edpFetch }) {
             {
                 method: "POST",
                 headers: {
-                    "x-token": tokenState
+                    "X-Token": tokenState,
+                    "2FA-Token": token2faState,
                 },
                 body: "data=" + JSON.stringify({ idDevoirsEffectues: tasksDone, idDevoirsNonEffectues: tasksNotDone }),
                 signal: controller.signal
@@ -1917,7 +1936,8 @@ export default function App({ edpFetch }) {
             {
                 method: "POST",
                 headers: {
-                    "x-token": tokenState
+                    "X-Token": tokenState,
+                    "2FA-Token": token2faState,
                 },
                 body: `data=${JSON.stringify(data)}`,
                 signal: controller.signal,
@@ -1991,7 +2011,8 @@ export default function App({ edpFetch }) {
             {
                 method: "POST",
                 headers: {
-                    "x-token": tokenState
+                    "X-Token": tokenState,
+                    "2FA-Token": token2faState,
                 },
                 body: `data=${JSON.stringify(data)}`,
                 signal: controller.signal,
@@ -2040,7 +2061,8 @@ export default function App({ edpFetch }) {
             {
                 method: "POST",
                 headers: {
-                    "x-token": tokenState
+                    "X-Token": tokenState,
+                    "2FA-Token": token2faState,
                 },
                 body: `data=${JSON.stringify(data)}`,
                 signal: controller.signal,
@@ -2080,7 +2102,8 @@ export default function App({ edpFetch }) {
                 method: "POST",
                 headers: {
                     // "user-agent": navigator.userAgent,
-                    "x-token": tokenState,
+                    "X-Token": tokenState,
+                    "2FA-Token": token2faState,
                 },
                 body: `data=${JSON.stringify(data)}`,
                 signal: controller.signal,
@@ -2119,12 +2142,14 @@ export default function App({ edpFetch }) {
 
     function fetchA2F({ method = "get", choice = "", callback = (() => { }), errorCallback = (() => { }), controller = (new AbortController()) }) {
         abortControllers.current.push(controller);
-        edpFetch(
+        fetch(
             `https://api.ecoledirecte.com/v3/connexion/doubleauth.awp?verbe=${method}&v=${apiVersion}`,
             {
                 method: "POST",
                 headers: {
-                    "x-token": tokenState
+                    "X-Token": tokenState,
+                    "2FA-Token": token2faState,
+                    "Content-Type": "application/x-www-form-urlencoded"
                 },
                 body: `data=${choice ? JSON.stringify({ choix: choice }) : "{}"}`,
                 signal: controller.signal,
@@ -2132,7 +2157,13 @@ export default function App({ edpFetch }) {
             },
             "json"
         )
-            .then((response) => {
+            .then(response =>
+              response.json().then(json => [response.headers, json])
+            )
+            .then(([headers, response]) => {
+                const rtoken = headers.get("x-token")
+                const rtoken2fa = headers.get("2fa-token")
+
                 let code = response.code;
                 if (code === 200) {
                     if (method === "post") {
@@ -2146,7 +2177,8 @@ export default function App({ edpFetch }) {
                 } else {
                     errorCallback(response)
                 }
-                setTokenState((old) => (response?.token || old));
+                setTokenState((old) => (rtoken || old));
+                setToken2faState((old) => (rtoken2fa || old))
             })
             .finally(() => {
                 abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
@@ -2161,7 +2193,8 @@ export default function App({ edpFetch }) {
             {
                 method: "POST",
                 headers: {
-                    "x-token": tokenState,
+                    "X-Token": tokenState,
+                    "2FA-Token": token2faState,
                 },
                 body: `data=${JSON.stringify(data)}`,
                 referrerPolicy: "no-referrer"
@@ -2193,7 +2226,8 @@ export default function App({ edpFetch }) {
             {
                 method: "POST",
                 headers: {
-                    "x-token": tokenState,
+                    "X-Token": tokenState,
+                    "2FA-Token": token2faState,
                     'Content-Type': 'application/x-www-form-urlencoded'
                 },
                 body: 'data={}',

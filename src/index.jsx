@@ -27,7 +27,7 @@ createRoot(document.getElementById("root")).render(
     <StrictMode>
         <DOMNotification>
             {/* <HelmetProvider> */}
-                <App edpFetch={["Windows", "Linux"].includes(getOS()) ? edpFetch : iframeRequest.fetch.bind(iframeRequest)} />
+                <App edpFetch={edpFetch} />
                 <iframe onLoad={handleIframeLoad} sandbox="allow-scripts" style={{display: "none"}} srcDoc='data:text/html, <!DOCTYPE HTML><html><head></head><body><script>IFRAME_JS_PLACEHOLDER</script></body></html>'></iframe> {/* The IFRAME_JS_PLACEHOLDER placeholder will be replace by the content of the file src/utils/iframeRequest/iframe.js when npm run dev or npn run build is launched*/}
             {/* </HelmetProvider> */}
         </DOMNotification>
