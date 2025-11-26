@@ -13,7 +13,6 @@ export async function requestLogin(account, onLogin, localUsername, localPasswor
 
 	return response
 		.then((response) => {
-			console.error(response)
 			switch (response.code) {
 				case 200:
 					account.token.set(response.token); // collecte du token

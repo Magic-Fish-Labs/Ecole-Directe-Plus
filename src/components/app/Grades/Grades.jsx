@@ -63,8 +63,6 @@ export default function Grades({ activeAccount, isLoggedIn, isTabletLayout }) {
                         <DOMSimulation>
                             {isTabletLayout
                                 ? <MobileResults
-                                    activeAccount={activeAccount}
-                                    grades={grades}
                                     selectedDisplayType={selectedDisplayType}
                                     setSelectedDisplayType={setSelectedDisplayType} />
                                 : <Results

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useContext } from "react";
 import ContentLoader from "react-content-loader";
 import { Link, useLocation } from "react-router-dom";
-import { AppContext } from "../../../App";
+import { AppContext, SettingsContext, UserDataContext } from "../../../App";
 import {
     MoveableContainer,
     Window,
@@ -21,11 +21,22 @@ import { GradeSimulationTrigger } from "./GradeSimulation"
 import "./MobileResults.css";
 import { DisplayTypes } from "./Grades";
 
-export default function Results({ activeAccount, grades, selectedPeriod, setSelectedPeriod, selectedDisplayType, setSelectedDisplayType, ...props }) {
-    const { isMobileLayout, isTabletLayout, usedDisplayTheme, useUserSettings } = useContext(AppContext);
-    const settings = useUserSettings();
-    const contentLoadersRandomValues = useRef({ subjectNameWidth: Array.from({ length: 13 }, (_) => Math.round(Math.random() * 100) + 100), gradeNumbers: Array.from({ length: 13 }, (_) => Math.floor(Math.random() * 8) + 2) });
+export default function MobileResults({ selectedDisplayType, setSelectedDisplayType }) {
+    const { isMobileLayout, isTabletLayout, usedDisplayTheme } = useContext(AppContext);
+
+    const userData = useContext(UserDataContext);
+    const {
+        grades: { value: grades },
+        activePeriod: { value: activePeriod, set: setActivePeriod }
+    } = userData;
+
+    const settings = useContext(SettingsContext);
+    const { displayMode } = settings.user;
+
+    const contentLoadersRandomValues = useRef({ subjectNameWidth: Array.from({ length: 13 }, (_) => Math.round(Math.random() * 100) + 100), gradeNumbers: Array.from({ length: 13 }, (_) => Math.floor(Math.random() * 8) + 2) })
     const location = useLocation();
+
+    const isDisplayModeQuality = displayMode === "quality";
 
     useEffect(() => {
         if (location.hash) {
@@ -33,6 +44,8 @@ export default function Results({ activeAccount, grades, selectedPeriod, setSele
             if (element !== null) {
                 if (element.scrollIntoViewIfNeeded !== undefined) {
                     element.scrollIntoViewIfNeeded();
+                } else {
+                    element.scrollIntoView();
                 }
             }
         }
@@ -45,7 +58,7 @@ export default function Results({ activeAccount, grades, selectedPeriod, setSele
     }, [isTabletLayout])
 
     return (
-        <MoveableContainer className="results-container" style={{ flex: "1", display: "flex", flexFlow: "row nowrap", gap: "20px" }} {...props}>
+        <MoveableContainer className="results-container" style={{ flex: "1", display: "flex", flexFlow: "row nowrap", gap: "20px" }} >
             {!isTabletLayout ? <MoveableContainer style={{ display: "flex", flexFlow: "column nowrap", gap: "20px" }} >
                 <GradeScaleToggle />
                 <Tabs tabs={Object.values(DisplayTypes)} displayedTabs={["Évaluations", "Graphiques"]} selected={selectedDisplayType} onChange={setSelectedDisplayType} fieldsetName="displayType" dir="column" style={{ flex: 1 }} />
@@ -53,9 +66,9 @@ export default function Results({ activeAccount, grades, selectedPeriod, setSele
             <MoveableContainer className="results-container" style={{ flex: "1", display: "flex", flexFlow: "column nowrap", gap: "20px" }}>
                 <MoveableContainer>
                     {!isTabletLayout
-                        ? <Tabs contentLoader={grades === undefined} tabs={grades ? Object.keys(grades) : [""]} displayedTabs={grades ? Object.values(grades).map((period) => period.name) : [""]} selected={selectedPeriod} onChange={setSelectedPeriod} fieldsetName="period" dir="row" />
+                        ? <Tabs contentLoader={grades === undefined} tabs={grades ? Object.keys(grades) : [""]} displayedTabs={grades ? Object.values(grades).map((period) => period.name) : [""]} selected={activePeriod} onChange={setActivePeriod} fieldsetName="period" dir="row" />
                         : <div className="results-options-container">
-                            <DropDownMenu id="periods-ddm" name="periods" options={grades ? Object.keys(grades) : [""]} displayedOptions={grades ? Object.values(grades).map((period) => period.name) : [""]} selected={selectedPeriod} onChange={setSelectedPeriod} />
+                            <DropDownMenu id="periods-ddm" name="periods" options={grades ? Object.keys(grades) : [""]} displayedOptions={grades ? Object.values(grades).map((period) => period.name) : [""]} selected={activePeriod} onChange={setActivePeriod} />
                             {/* <DropDownMenu id="display-type-ddm" name="displayType" options={["Évaluations", "Graphiques"]} selected={selectedDisplayType} onChange={setSelectedDisplayType} /> */}
                         </div>
                     }
@@ -106,12 +119,12 @@ export default function Results({ activeAccount, grades, selectedPeriod, setSele
                         </div>
                         <div className="general-average">
                             <span>{isMobileLayout ? "Moy. G." : "Moyenne Générale"}</span>
-                            {grades && grades[selectedPeriod] && grades[selectedPeriod].classGeneralAverage !== undefined && grades[selectedPeriod].classGeneralAverage !== null && grades[selectedPeriod].classGeneralAverage !== ""
+                            {grades && grades[activePeriod] && grades[activePeriod].classGeneralAverage !== undefined && grades[activePeriod].classGeneralAverage !== null && grades[activePeriod].classGeneralAverage !== ""
                                 ? <Tooltip >
                                     <TooltipTrigger>
                                         <span>
-                                            {grades && grades[selectedPeriod]
-                                                ? <Grade grade={{ value: grades[selectedPeriod].generalAverage ?? "N/A", scale: 20, coef: 1, isSignificant: true }} />
+                                            {grades && grades[activePeriod]
+                                                ? <Grade grade={{ value: grades[activePeriod].generalAverage ?? "N/A", scale: 20, coef: 1, isSignificant: true }} />
                                                 : <ContentLoader
                                                     animate={settings.get("displayMode") === "quality"}
                                                     speed={1}
@@ -130,7 +143,7 @@ export default function Results({ activeAccount, grades, selectedPeriod, setSele
                                             <Grade
                                                 grade={{
                                                     value:
-                                                        grades[selectedPeriod].classGeneralAverage ?? "N/A",
+                                                        grades[activePeriod].classGeneralAverage ?? "N/A",
                                                     scale: 20,
                                                     coef: 1,
                                                     isSignificant: true,
@@ -139,8 +152,8 @@ export default function Results({ activeAccount, grades, selectedPeriod, setSele
                                         </span>
                                     </TooltipContent>
                                 </Tooltip>
-                                : grades && grades[selectedPeriod]
-                                    ? <Grade grade={{ value: grades[selectedPeriod].generalAverage ?? "-", scale: 20, coef: 1, isSignificant: true }} />
+                                : grades && grades[activePeriod]
+                                    ? <Grade grade={{ value: grades[activePeriod].generalAverage ?? "-", scale: 20, coef: 1, isSignificant: true }} />
                                     : <ContentLoader
                                         animate={settings.get("displayMode") === "quality"}
                                         speed={1}
@@ -156,9 +169,9 @@ export default function Results({ activeAccount, grades, selectedPeriod, setSele
                     </WindowHeader>
                     <WindowContent className="mobile-results">
                         {selectedDisplayType === DisplayTypes.EVALUATIONS
-                            ? grades && grades[selectedPeriod]
-                                ? Object.keys(grades[selectedPeriod].subjects).map((idx) => {
-                                    const el = grades[selectedPeriod].subjects[idx]
+                            ? grades && grades[activePeriod]
+                                ? Object.keys(grades[activePeriod].subjects).map((idx) => {
+                                    const el = grades[activePeriod].subjects[idx]
                                     if (el.isCategory) {
                                         return [
                                             <div key={"category-" + (el.id || crypto.randomUUID())} className="mobile-category-row mobile-row">
@@ -187,7 +200,7 @@ export default function Results({ activeAccount, grades, selectedPeriod, setSele
                                                         <Grade grade={grade} key={grade.id} className={`${(grade.id && location.hash === "#" + grade.id) ? " selected" : ""}`} />
                                                     )
                                                 })}
-                                                <GradeSimulationTrigger subjectKey={idx} selectedPeriod={selectedPeriod} />
+                                                <GradeSimulationTrigger subjectKey={idx} periodKey={activePeriod} />
                                                 {el.grades.filter(el => el.isSimulated).map((grade) => {
                                                     return (
                                                         <Grade grade={grade} key={grade.id} className={`${(grade.id && location.hash === "#" + grade.id) ? " selected" : ""}`} />
@@ -294,6 +307,6 @@ export default function Results({ activeAccount, grades, selectedPeriod, setSele
                 </Window>
             </MoveableContainer>
         </MoveableContainer>
-        
+
     )
 }
