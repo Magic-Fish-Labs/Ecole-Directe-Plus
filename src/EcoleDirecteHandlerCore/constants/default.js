@@ -1,6 +1,6 @@
 export const DefaultEcoleDirecteAccount = {
-	username: "EDFAMILLE",
-	password: "@plim2023-2024",
+	username: import.meta.env.VITE_DEFAULT_USERNAME,
+	password: import.meta.env.VITE_DEFAULT_PASSWORD,
 	token: "",
 	selectedUserIndex: 0,
 	users: null,
