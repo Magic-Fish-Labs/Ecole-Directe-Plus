@@ -10,6 +10,10 @@ import {
     calcClassAverage
 } from "../../utils/gradesTools";
 
+function toUsablePeriodCode(perdioCode) {
+    return periodCode.slice(0, 4);
+}
+
 export function mapGrades(grades) {
     /**
      * Filtre le JSON envoyé par l'API d'ED et le tri pour obtenir un objet plus facile d'utilisation
@@ -65,6 +69,8 @@ export function mapGrades(grades) {
                     } else {
                         newSubject.name = matiere.discipline.replaceAll(". ", ".").replaceAll(".", ". ");
                     }
+                    console.log(newSubject.name);
+                    console.log(matiere.id);
                     newSubject.classAverage = safeParseFloat(matiere.moyenneClasse);
                     newSubject.minAverage = safeParseFloat(matiere.moyenneMin);
                     newSubject.maxAverage = safeParseFloat(matiere.moyenneMax);
@@ -105,15 +111,16 @@ export function mapGrades(grades) {
 
         const lastGrades = [...gradesFromJson].sort((elA, elB) => (new Date(elA.dateSaisie)).getTime() - (new Date(elB.dateSaisie)).getTime()).slice(-3);
 
+        let virtualPeriodId = -1;
+
         for (let grade of (gradesFromJson ?? [])) {
             // handle mock exam periods
-            let tempPeriodCode = grade.codePeriode;
-            let newPeriodCode = tempPeriodCode;
-            if (periods[tempPeriodCode].isMockExam) {
-                newPeriodCode = tempPeriodCode.slice(0, 4);
+            const exactPeriodCode = grade.codePeriode;
+            let newPeriodCode = exactPeriodCode;
+            if (periods[exactPeriodCode].isMockExam) {
+                newPeriodCode = exactPeriodCode.slice(0, 4);
                 if (periods[newPeriodCode] === undefined) {
-                    newPeriodCode = Object.keys(periods)[Object.keys(periods).indexOf(tempPeriodCode) - 1];
-                    newPeriodCode = Object.keys(periods)[Object.keys(periods).indexOf(tempPeriodCode) - 1];
+                    newPeriodCode = Object.keys(periods)[Object.keys(periods).indexOf(exactPeriodCode) - 1];
                 }
             }
 
@@ -121,7 +128,10 @@ export function mapGrades(grades) {
             const subjectCode = grade.codeMatiere + grade.codeSousMatiere;
             // try to rebuild the subject if it doesn't exist (happen when changing school year)
             if (periods[periodCode].subjects[subjectCode] === undefined) {
+                // should not create subject if the grade is only from a mock exam not concerning a subject of the main period
+                if (periods[exactPeriodCode].isMockExam) continue ;
                 periods[periodCode].subjects[subjectCode] = {
+                    id: (virtualPeriodId--).toString(),
                     code: subjectCode,
                     elementType: "subject",
                     name: subjectCode,
@@ -347,6 +357,6 @@ export function mapGrades(grades) {
         gradesEnabledFeatures: enabledFeatures,
         lastGrades: newLastGrades.reverse(),
         activePeriod,
-        activeGradeElement: null, // set this will change the default element selected by user when loading grades.
+        selectedGradeElement: null, // set this will change the default element selected by user when loading grades.
     }
 }
