@@ -30,6 +30,7 @@ import useAccountSettings from "./utils/hooks/useAccountSettings";
 import { Browsers, LocalStorageKeys } from "./utils/constants/constants";
 import { useLocalStorageEffect, useDisplayModeEffect, useDisplayThemeEffect, useBrowserDisplayThemeChange } from "./utils/hooks/useCustomEffect";
 import NavigateSave from "./components/generic/router/NavigateSave";
+import { apiVersion } from "./EcoleDirecteHandlerCore/constants/config";
 
 // CODE-SPLITTING - DYNAMIC IMPORTS
 const Lab = lazy(() => import("./components/app/CoreApp").then((module) => { return { default: module.Lab } }));
@@ -46,111 +47,32 @@ const Account = lazy(() => import("./components/app/CoreApp").then((module) => {
 const Feedback = lazy(() => import("./components/app/CoreApp").then((module) => { return { default: module.Feedback } }));
 const LoginBottomSheet = lazy(() => import("./components/app/CoreApp").then((module) => { return { default: module.LoginBottomSheet } }));
 
-const apiVersion = "4.64.0";
 
+// !:! Bouger ca :
 // secret webhooks
 const carpeConviviale = "CARPE_CONVIVIALE_WEBHOOK_URL";
 const sardineInsolente = "SARDINE_INSOLENTE_WEBHOOK_URL";
 const thonFrustre = "THON_FRUSTRE_WEBHOOK_URL";
 
-const lsIdName = "encryptedUserIds"
+// !:! Bouger ca :
 const WINDOW_WIDTH_BREAKPOINT_MOBILE_LAYOUT = 450; // px
 const WINDOW_WIDTH_BREAKPOINT_TABLET_LAYOUT = 869; // px
 
 const userBrowser = getBrowser();
 
-// get data from localstorage
-const accountListFromLs = JSON.parse(localStorage.getItem("accountsList") ?? "[]");
-let userSettingsFromLs = JSON.parse((localStorage.getItem("userSettings") ?? "[{}]"));
-
-/*
-function initSettings(accountList) {
-    // comment ajouter un setting :
-    // userSettings ici ; defaultAccountSettings
-    const userSettings = [];
-    for (let i = 0; i < (accountList?.length || 1); i++) { //Si au login, il y a aucun compte d'enregistré on considère qu'il y a un seul compte
-        userSettings.push({
-            displayTheme: {
-                value: getSetting("displayTheme", i),
-                values: ["light", "auto", "dark"]
-            },
-            displayMode: {
-                value: getSetting("displayMode", i),
-                values: ["quality", "balanced", "performance"]
-            },
-            selectedChart: {
-                value: getSetting("selectedChart", i),
-                values: [0, 1, 2]
-            },
-            isSepiaEnabled: {
-                value: getSetting("isSepiaEnabled", i),
-            },
-            isHighContrastEnabled: {
-                value: getSetting("isHighContrastEnabled", i),
-            },
-            isGrayscaleEnabled: {
-                value: getSetting("isGrayscaleEnabled", i),
-            },
-            isPhotoBlurEnabled: {
-                value: getSetting("isPhotoBlurEnabled", i),
-            },
-            isPartyModeEnabled: {
-                value: getSetting("isPartyModeEnabled", i),
-            },
-            isPeriodEventEnabled: {
-                value: getSetting("isPeriodEventEnabled", i),
-            },
-            isStreamerModeEnabled: {
-                value: getSetting("isStreamerModeEnabled", i),
-            },
-            gradeScale: {
-                value: getSetting("gradeScale", i),
-                min: 1,
-                max: 100,
-            },
-            isGradeScaleEnabled: {
-                value: getSetting("isGradeScaleEnabled", i),
-            },
-            schoolYear: {
-                value: getSetting("schoolYear", i),
-            },
-            isSchoolYearEnabled: {
-                value: getSetting("isSchoolYearEnabled", i),
-            },
-            isLucioleFontEnabled: {
-                value: getSetting("isLucioleFontEnabled", i),
-            },
-            windowArrangement: {
-                value: getSetting("windowArrangement", i),
-            },
-            allowWindowsArrangement: {
-                value: getSetting("allowWindowsArrangement", i),
-            },
-            dynamicLoading: {
-                value: getSetting("dynamicLoading", i),
-            },
-            negativeBadges: {
-                value: getSetting("negativeBadges", i),
-            },
-            allowAnonymousReports: {
-                value: getSetting("allowAnonymousReports", i),
-            }
-        })
-    }
-    return userSettings;
-}
-*/
-// optimisation possible avec useCallback
+// !:! bouger les contexte en dehors de l'App
 export const AppContext = createContext(null);
 export const AccountContext = createContext(null);
 export const SettingsContext = createContext(null);
 export const UserDataContext = createContext(null);
 
+// !:! Bouger ca :
 let promptInstallPWA = () => { };
 window.addEventListener("beforeinstallprompt", (event) => { event.preventDefault(); promptInstallPWA = () => event.prompt() });
 window.addEventListener("appinstalled", () => { promptInstallPWA = null });
 
 logEDPLogo();
+
 export default function App() {
     const {
         userSettings,
@@ -159,6 +81,7 @@ export default function App() {
             setSelectedUserSettingIndex
         }
     } = useAccountSettings([defaultAccountSettings], defaultAccountSettings);
+
     const {
         displayTheme,
         displayMode
@@ -172,15 +95,18 @@ export default function App() {
             setSelectedUserSettingIndex(userIndex);
         }
     });
+
     const {
         userData,
     } = userSession;
+
     const {
         token,
         loginStates,
         selectedUserIndex,
         selectedUser,
     } = userSession.account;
+
     const { isLoggedIn, requireDoubleAuth, doubleAuthAcquired } = loginStates;
     const tokenState = token.value;
     const setTokenState = token.set;
@@ -344,7 +270,7 @@ export default function App() {
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //                                                                                                                                                                                  //
-    //                                                                                  Data Functions                                                                                 //
+    //                                                                                  Data Functions                                                                                  //
     //                                                                                                                                                                                  //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
