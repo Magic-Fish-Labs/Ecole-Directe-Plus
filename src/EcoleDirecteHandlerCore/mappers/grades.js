@@ -69,8 +69,6 @@ export function mapGrades(grades) {
                     } else {
                         newSubject.name = matiere.discipline.replaceAll(". ", ".").replaceAll(".", ". ");
                     }
-                    console.log(newSubject.name);
-                    console.log(matiere.id);
                     newSubject.classAverage = safeParseFloat(matiere.moyenneClasse);
                     newSubject.minAverage = safeParseFloat(matiere.moyenneMin);
                     newSubject.maxAverage = safeParseFloat(matiere.moyenneMax);
