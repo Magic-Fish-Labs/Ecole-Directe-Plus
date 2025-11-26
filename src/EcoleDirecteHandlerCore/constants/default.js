@@ -23,7 +23,7 @@ export const DefaultAccountdata = {
     lastGrades: undefined,
 
     activePeriod: undefined,
-    activeGradeElement: undefined,
+    selectedGradeElement: undefined,
     activeHomeworkDate: undefined,
     activeHomeworkId: undefined,
 }
