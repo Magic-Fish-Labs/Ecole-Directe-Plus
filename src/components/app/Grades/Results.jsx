@@ -20,6 +20,7 @@ import { GradeSimulationTrigger } from "./GradeSimulation"
 
 import "./Results.css";
 import { DisplayTypes } from "./Grades";
+import classBuilder from "../../../utils/classBuilder";
 
 export default function Results({ selectedDisplayType, setSelectedDisplayType, ...props }) {
     const { isTabletLayout, usedDisplayTheme } = useContext(AppContext);
@@ -27,7 +28,8 @@ export default function Results({ selectedDisplayType, setSelectedDisplayType, .
     const userData = useContext(UserDataContext);
     const {
         grades: { value: grades },
-        activePeriod: { value: activePeriod, set: setActivePeriod }
+        activePeriod: { value: activePeriod, set: setActivePeriod },
+        selectedGradeElement: { value: selectedGradeElement, set: setSelectedGradeElement }
     } = userData;
 
     const settings = useContext(SettingsContext);
@@ -187,7 +189,7 @@ export default function Results({ selectedDisplayType, setSelectedDisplayType, .
                                                     <th className="head-cell">
                                                         {el.isCategory
                                                             ? <div className="head-name">{el.name}</div>
-                                                            : <Link to={"#" + (el.id ?? "")} id={(el.id ?? "")} className={`head-name${(el.id && location.hash === "#" + el.id) ? " selected" : ""}`} replace={true}>{el.name}</Link>
+                                                            : <span onClick={() => setSelectedGradeElement(el)} id={(el.id ?? "")} className={classBuilder("head-name", {"selected": el.id && selectedGradeElement?.id === el.id})} >{el.name}</span>
                                                         }
                                                     </th>
                                                     <td className="moyenne-cell">
@@ -203,11 +205,11 @@ export default function Results({ selectedDisplayType, setSelectedDisplayType, .
                                                             </div>
                                                             : <div className="grades-values">
                                                                 {el.grades.filter(el => !el.isSimulated).map((grade) => {
-                                                                    return <Grade grade={grade} key={grade.id} className={`${(grade.id && location.hash === "#" + grade.id) ? " selected" : ""}`} />
+                                                                    return <Grade selectable grade={grade} key={grade.id} className={classBuilder({"selected": grade.id && selectedGradeElement?.id === grade.id})} />
                                                                 })}
                                                                 <GradeSimulationTrigger subjectKey={idx} periodKey={activePeriod} />
                                                                 {el.grades.filter(el => el.isSimulated).map((grade) => {
-                                                                    return <Grade grade={grade} key={grade.id} className={`${(grade.id && location.hash === "#" + grade.id) ? " selected" : ""}`} />
+                                                                    return <Grade selectable grade={grade} key={grade.id} className={classBuilder({"selected": grade.id && selectedGradeElement?.id === grade.id})} />
                                                                 })}
                                                             </div>}
                                                     </td>

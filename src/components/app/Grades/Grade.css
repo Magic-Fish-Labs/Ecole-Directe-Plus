@@ -1,5 +1,5 @@
 
-a.grade {
+span.grade {
     text-decoration: none;
     /* padding-inline: 10px; */
     height: 2.5em;
@@ -9,7 +9,7 @@ a.grade {
     cursor: default;
 }
 
-a.grade.selectable {
+span.grade.selectable {
     margin-right: 10px;
     border: 2px solid transparent;
     border-radius: 50px;
@@ -17,40 +17,40 @@ a.grade.selectable {
     cursor: pointer;
 }
 
-/* a.grade.not-significant {
+/* span.grade.not-significant {
     opacity: .5 !important;
 } */
 
 /* This part has for goal to replace the opacity: 0.5 and make the opacity not inheritable */
 
-a.grade.selectable.selected.not-significant {
+span.grade.selectable.selected.not-significant {
     border-color: rgba(var(--text-color-main), .35);
 }
 
-a.grade.selectable.not-significant:is(:hover, :focus-visible) {
+span.grade.selectable.not-significant:is(:hover, :focus-visible) {
     background-color: rgba(var(--text-color-main), .05);
 }
 
-a.grade.selectable.not-significant * {
+span.grade.selectable.not-significant * {
     color: rgba(var(--text-color-main), 0.5);
 }
 
 
 
-a.grade.selectable:is(:hover, :focus-visible) {
+span.grade.selectable:is(:hover, :focus-visible) {
     background-color: rgba(var(--text-color-main), .10);
 }
 
-a.grade.selectable:active {
+span.grade.selectable:active {
     background-color: rgba(var(--text-color-main), .15);
 }
 
 
-a.grade.selectable.selected {
+span.grade.selectable.selected {
     border-color: rgba(var(--text-color-main), 0.7);
 }
 
-a.grade.selectable .grade-container {
+span.grade.selectable .grade-container {
     height: 100%;
     width: 100%;
     padding-inline: 10px;
@@ -60,11 +60,11 @@ a.grade.selectable .grade-container {
     justify-content: center;
 }
 
-a.grade:is(.new-grade, .sim-grade) {
+span.grade:is(.new-grade, .sim-grade) {
     position: relative;
 }
 
-a.grade.new-grade::after {
+span.grade.new-grade::after {
     display: block;
     content: "";
     color: transparent;
@@ -81,41 +81,41 @@ a.grade.new-grade::after {
     pointer-events: none;
     transition: top 0.1s;
 }
-a.grade.new-grade:is(.selected, .streak-grade, :hover, :focus-visible)::after {
+span.grade.new-grade:is(.selected, .streak-grade, :hover, :focus-visible)::after {
     top: calc(100% + 5px);
 }
 
-a.grade.streak-grade.new-grade:not(.maybe-streak)::after {
+span.grade.streak-grade.new-grade:not(.maybe-streak)::after {
     background-color: rgb(var(--background-color-streak-1));
 }
 
 
 /* streak */
-a.grade.streak-grade {
+span.grade.streak-grade {
     border: 2px solid #FFEACC;
     border-inline-width: 0px;
     padding-block: 3px;
     border-radius: 0;
 }
-a.grade.streak-grade.selectable:is(:hover, :focus-visible):not(.selected, .maybe-streak, :active) {
+span.grade.streak-grade.selectable:is(:hover, :focus-visible):not(.selected, .maybe-streak, :active) {
     background-color: #FFEACC77;
 }
 
-a.grade.streak-grade.selectable.selected {
+span.grade.streak-grade.selectable.selected {
     border-color: rgb(var(--background-color-streak-1));
 }
 
-a.grade.streak-grade.selectable:active {
+span.grade.streak-grade.selectable:active {
     border-color: rgb(var(--background-color-streak-1));
 }
 
-a.grade.streak-grade .grade-container {
+span.grade.streak-grade .grade-container {
     background-color: rgb(var(--background-color-streak-1));
 }
 
 /* début de row */
-/* a.grade:not(.streak-grade) + a.grade.streak-grade, */
-a.grade.streak-grade.start-row {
+/* span.grade:not(.streak-grade) + span.grade.streak-grade, */
+span.grade.streak-grade.start-row {
     border-top-left-radius: 50px;
     border-bottom-left-radius: 50px;
     /* border-left: 2px solid #FFEACC !important; */
@@ -125,22 +125,22 @@ a.grade.streak-grade.start-row {
     border-right-width: 0px;
     margin: 0;
 }
-/* a.grade:not(.streak-grade) + a.grade.streak-grade .grade-container, */
-a.grade.streak-grade.start-row .grade-container {
+/* span.grade:not(.streak-grade) + span.grade.streak-grade .grade-container, */
+span.grade.streak-grade.start-row .grade-container {
     border-top-left-radius: 50px;
     border-bottom-left-radius: 50px;
 }
 
 /* milieu de row */
-/* a.grade.streak-grade + a.grade.streak-grade:has(+ a.grade.streak-grade), */
-a.grade.streak-grade.mid-row {
+/* span.grade.streak-grade + span.grade.streak-grade:has(+ span.grade.streak-grade), */
+span.grade.streak-grade.mid-row {
     border-inline: none;
     margin: 0;
 }
 
 /* fin de row */
-/* a.grade.streak-grade:not(:has(+ a.grade.streak-grade)), */
-a.grade.streak-grade.end-row {
+/* span.grade.streak-grade:not(:has(+ span.grade.streak-grade)), */
+span.grade.streak-grade.end-row {
     border-top-right-radius: 50px;
     border-bottom-right-radius: 50px;
     /* border-right: 2px solid #FFEACC !important; */
@@ -150,34 +150,34 @@ a.grade.streak-grade.end-row {
     padding-right: 3px;
     margin-right: 10px;
 }
-/* a.grade.streak-grade:not(:has(+ a.grade.streak-grade)) .grade-container, */
-a.grade.streak-grade.end-row .grade-container {
+/* span.grade.streak-grade:not(:has(+ span.grade.streak-grade)) .grade-container, */
+span.grade.streak-grade.end-row .grade-container {
     border-top-right-radius: 50px;
     border-bottom-right-radius: 50px;
 }
 
-/* a.grade.streak-grade.mid-row.before-line-break {
+/* span.grade.streak-grade.mid-row.before-line-break {
     border-image-slice: 1;
     border-image-source: linear-gradient(to right, #FFEACC, transparent 90%);
 }
-a.grade.streak-grade.mid-row.after-line-break {
+span.grade.streak-grade.mid-row.after-line-break {
     border-image-slice: 1;
     border-image-source: linear-gradient(to left, #FFEACC, transparent 90%);
 } */
 
-a.grade.streak-grade.before-line-break .grade-container {
+span.grade.streak-grade.before-line-break .grade-container {
     background: linear-gradient(to right, #FF9600, transparent 90%);
 }
-a.grade.streak-grade.after-line-break .grade-container {
+span.grade.streak-grade.after-line-break .grade-container {
     background: linear-gradient(to left, #FF9600, transparent 90%);
 }
 
 /* note de streak qui n'up plus la streak car passée */
-a.grade.streak-grade.maybe-streak {
+span.grade.streak-grade.maybe-streak {
     border-color: #FFEACC3F;
     filter: grayscale(1);
 }
-a.grade.streak-grade.maybe-streak .grade-container {
+span.grade.streak-grade.maybe-streak .grade-container {
     background-color: #FF96003F;
 }
 

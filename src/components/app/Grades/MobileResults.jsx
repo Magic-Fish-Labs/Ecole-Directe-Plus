@@ -1,13 +1,12 @@
-import { useEffect, useRef, useContext } from "react";
+import { useEffect, useRef, useContext, useCallback } from "react";
 import ContentLoader from "react-content-loader";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { AppContext, SettingsContext, UserDataContext } from "../../../App";
 import {
     MoveableContainer,
     Window,
     WindowHeader,
-    WindowContent,
-    WindowsContainer
+    WindowContent
 } from "../../generic/Window";
 
 import InfoButton from "../../generic/Informative/InfoButton";
@@ -20,6 +19,7 @@ import { GradeSimulationTrigger } from "./GradeSimulation"
 
 import "./MobileResults.css";
 import { DisplayTypes } from "./Grades";
+import classBuilder from "../../../utils/classBuilder";
 
 export default function MobileResults({ selectedDisplayType, setSelectedDisplayType }) {
     const { isMobileLayout, isTabletLayout, usedDisplayTheme } = useContext(AppContext);
@@ -27,7 +27,8 @@ export default function MobileResults({ selectedDisplayType, setSelectedDisplayT
     const userData = useContext(UserDataContext);
     const {
         grades: { value: grades },
-        activePeriod: { value: activePeriod, set: setActivePeriod }
+        activePeriod: { value: activePeriod, set: setActivePeriod },
+        selectedGradeElement: { value: selectedGradeElement, set: setSelectedGradeElement }
     } = userData;
 
     const settings = useContext(SettingsContext);
@@ -126,7 +127,7 @@ export default function MobileResults({ selectedDisplayType, setSelectedDisplayT
                                             {grades && grades[activePeriod]
                                                 ? <Grade grade={{ value: grades[activePeriod].generalAverage ?? "N/A", scale: 20, coef: 1, isSignificant: true }} />
                                                 : <ContentLoader
-                                                    animate={settings.get("displayMode") === "quality"}
+                                                    animate={isDisplayModeQuality}
                                                     speed={1}
                                                     backgroundColor={'#4b48d9'}
                                                     foregroundColor={'#6354ff'}
@@ -155,7 +156,7 @@ export default function MobileResults({ selectedDisplayType, setSelectedDisplayT
                                 : grades && grades[activePeriod]
                                     ? <Grade grade={{ value: grades[activePeriod].generalAverage ?? "-", scale: 20, coef: 1, isSignificant: true }} />
                                     : <ContentLoader
-                                        animate={settings.get("displayMode") === "quality"}
+                                        animate={isDisplayModeQuality}
                                         speed={1}
                                         backgroundColor={'#4b48d9'}
                                         foregroundColor={'#6354ff'}
@@ -173,41 +174,37 @@ export default function MobileResults({ selectedDisplayType, setSelectedDisplayT
                                 ? Object.keys(grades[activePeriod].subjects).map((idx) => {
                                     const el = grades[activePeriod].subjects[idx]
                                     if (el.isCategory) {
-                                        return [
-                                            <div key={"category-" + (el.id || crypto.randomUUID())} className="mobile-category-row mobile-row">
-                                                <span className="mobile-head-name">{el.name}<span>Moyenne : <Grade grade={{ value: el.average }} /></span></span>
-                                                <span className="category-averages">
-                                                    <span>
-                                                        Classe : <Grade grade={{ value: el.classAverage }} />
-                                                    </span>
-                                                    <span>
-                                                        Min : <Grade grade={{ value: (el.minAverage < el.average ? el.minAverage : el.average) }} />
-                                                    </span>
-                                                    <span>
-                                                        Max : <Grade grade={{ value: (el.maxAverage > el.average ? el.maxAverage : el.average) }} />
-                                                    </span>
+                                        return <div key={"category-" + (el.id || crypto.randomUUID())} className="mobile-category-row mobile-row">
+                                            <span className="mobile-head-name">{el.name}<span>Moyenne : <Grade grade={{ value: el.average }} /></span></span>
+                                            <span className="category-averages">
+                                                <span>
+                                                    Classe : <Grade grade={{ value: el.classAverage }} />
                                                 </span>
-                                            </div>
-                                        ]
-                                    } else {
-                                        return (el && el.grades ? <><div key={"subject-" + el.id} className="mobile-subject-row mobile-row">
-                                            <Link to={"#" + (el.id ?? "")} id={(el.id ?? "")} className={`mobile-head-name${(el.id && location.hash === "#" + el.id) ? " selected" : ""}`} replace={true}> {el.name} </Link>
-                                            <div className="subject-average"><Grade grade={{ value: el.average, subject: el }} /></div>
+                                                <span>
+                                                    Min : <Grade grade={{ value: (el.minAverage < el.average ? el.minAverage : el.average) }} />
+                                                </span>
+                                                <span>
+                                                    Max : <Grade grade={{ value: (el.maxAverage > el.average ? el.maxAverage : el.average) }} />
+                                                </span>
+                                            </span>
                                         </div>
+                                    } else {
+                                        if (!el || !el.grades) return null;
+                                        return <>
+                                            <div key={"subject-" + el.id} className="mobile-subject-row mobile-row">
+                                                <span onClick={() => setSelectedGradeElement(el)} id={el.id ?? ""} className={classBuilder("mobile-head-name", { "selected": el.id && selectedGradeElement?.id === el.id })}> {el.name}</span>
+                                                <div className="subject-average"><Grade grade={{ value: el.average, subject: el }} /></div>
+                                            </div>
                                             <div key={"grade-" + el.id} className="mobile-grade-row mobile-row">
                                                 {el.grades.filter(el => !el.isSimulated).map((grade) => {
-                                                    return (
-                                                        <Grade grade={grade} key={grade.id} className={`${(grade.id && location.hash === "#" + grade.id) ? " selected" : ""}`} />
-                                                    )
+                                                    return <Grade selectable grade={grade} key={grade.id} className={classBuilder({ "selected": grade.id && selectedGradeElement?.id === grade.id })} />;
                                                 })}
                                                 <GradeSimulationTrigger subjectKey={idx} periodKey={activePeriod} />
                                                 {el.grades.filter(el => el.isSimulated).map((grade) => {
-                                                    return (
-                                                        <Grade grade={grade} key={grade.id} className={`${(grade.id && location.hash === "#" + grade.id) ? " selected" : ""}`} />
-                                                    )
+                                                    return <Grade selectable grade={grade} key={grade.id} className={classBuilder({ "selected": grade.id && selectedGradeElement?.id === grade.id })} />
                                                 })}
-                                            </div></> : null)
-
+                                            </div>
+                                        </>;
                                     }
                                 }).flat()
                                 : Array.from({ length: 13 }, (_, index) => {
@@ -215,7 +212,7 @@ export default function MobileResults({ selectedDisplayType, setSelectedDisplayT
                                     return (index % 7 < 1)
                                         ? <div key={crypto.randomUUID()} className="mobile-category-row mobile-row">
                                             <ContentLoader
-                                                animate={settings.get("displayMode") === "quality"}
+                                                animate={isDisplayModeQuality}
                                                 speed={1}
                                                 backgroundColor={usedDisplayTheme === "dark" ? "#7979aa" : "#9d9dbd"}
                                                 foregroundColor={usedDisplayTheme === "dark" ? "#9494d0" : "#bcbce3"}
@@ -225,7 +222,7 @@ export default function MobileResults({ selectedDisplayType, setSelectedDisplayT
                                             </ContentLoader>
                                             <div className="category-info">
                                                 <ContentLoader
-                                                    animate={settings.get("displayMode") === "quality"}
+                                                    animate={isDisplayModeQuality}
                                                     speed={1}
                                                     backgroundColor={usedDisplayTheme === "dark" ? "#7979aa" : "#9d9dbd"}
                                                     foregroundColor={usedDisplayTheme === "dark" ? "#9494d0" : "#bcbce3"}
@@ -234,7 +231,7 @@ export default function MobileResults({ selectedDisplayType, setSelectedDisplayT
                                                     <rect x="0" y="0" rx="10" ry="10" style={{ width: "100%", height: "100%" }} />
                                                 </ContentLoader>
                                                 <ContentLoader
-                                                    animate={settings.get("displayMode") === "quality"}
+                                                    animate={isDisplayModeQuality}
                                                     speed={1}
                                                     backgroundColor={usedDisplayTheme === "dark" ? "#7979aa" : "#9d9dbd"}
                                                     foregroundColor={usedDisplayTheme === "dark" ? "#9494d0" : "#bcbce3"}
@@ -243,7 +240,7 @@ export default function MobileResults({ selectedDisplayType, setSelectedDisplayT
                                                     <rect x="0" y="0" rx="10" ry="10" style={{ width: "100%", height: "100%" }} />
                                                 </ContentLoader>
                                                 <ContentLoader
-                                                    animate={settings.get("displayMode") === "quality"}
+                                                    animate={isDisplayModeQuality}
                                                     speed={1}
                                                     backgroundColor={usedDisplayTheme === "dark" ? "#7979aa" : "#9d9dbd"}
                                                     foregroundColor={usedDisplayTheme === "dark" ? "#9494d0" : "#bcbce3"}
@@ -257,7 +254,7 @@ export default function MobileResults({ selectedDisplayType, setSelectedDisplayT
                                         : <>
                                             <div key={crypto.randomUUID()} className="mobile-subject-row mobile-row content-loader">
                                                 <ContentLoader
-                                                    animate={settings.get("displayMode") === "quality"}
+                                                    animate={isDisplayModeQuality}
                                                     speed={1}
                                                     backgroundColor={usedDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
                                                     foregroundColor={usedDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
@@ -266,7 +263,7 @@ export default function MobileResults({ selectedDisplayType, setSelectedDisplayT
                                                     <rect x="0" y="0" rx="10" ry="10" width="100%" height="100%" />
                                                 </ContentLoader>
                                                 <ContentLoader
-                                                    animate={settings.get("displayMode") === "quality"}
+                                                    animate={isDisplayModeQuality}
                                                     speed={1}
                                                     backgroundColor={'#4b48d9'}
                                                     foregroundColor={'#6354ff'}
@@ -281,7 +278,7 @@ export default function MobileResults({ selectedDisplayType, setSelectedDisplayT
                                                 {Array.from({ length: contentLoadersRandomValues.current.gradeNumbers[index] }, (_) => {
                                                     return (
                                                         <ContentLoader
-                                                            animate={settings.get("displayMode") === "quality"}
+                                                            animate={isDisplayModeQuality}
                                                             speed={1}
                                                             backgroundColor={usedDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
                                                             foregroundColor={usedDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}
@@ -294,11 +291,8 @@ export default function MobileResults({ selectedDisplayType, setSelectedDisplayT
                                                     )
                                                 })}
                                             </div>
-
                                         </>
-
                                 })
-
                             : <div>
                                 <p id="WIP-disclaimer">Indisponible en format mobile</p>
                             </div>

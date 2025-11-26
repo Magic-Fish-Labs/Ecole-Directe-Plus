@@ -144,7 +144,6 @@
 }
 
 .head-name {
-    /* width: max-content; /* j'arrive je vois ça je suis intrigué ; wtf  jsp je voulais mettre un truc pour que ca puisse wrap jsp si max-content ca untrigger ca et je suis tombé sur fantasy*/
     display: inline-block;
     text-decoration: none;
     min-width: 0;
@@ -161,8 +160,13 @@
     -webkit-touch-callout: none;
     transition: 0.15s;
 }
+
 .category-row .head-name {
     margin-block: 0;
+}
+
+.subject-row .head-name {
+    cursor: pointer;
 }
 
 .subject-row .head-name:is(:hover, :focus-visible) {

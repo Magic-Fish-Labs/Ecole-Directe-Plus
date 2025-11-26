@@ -43,7 +43,7 @@ export default function LastGrades({ className = "", ...props }) {
                 {lastGrades !== undefined
                     ? lastGrades.length > 0
                         ? lastGrades.map((el) => <li key={el.id} className="last-grade-container">
-                            <Link to="../grades" onClick={() => setSelectedGradeElement(el.id)} className="last-grade-wrapper">
+                            <Link to="../grades" onClick={() => setSelectedGradeElement(el)} className="last-grade-wrapper">
                                 <span className="last-grade-value"><Grade grade={{ value: el.value ?? "N/A", scale: el.scale }} /></span>
                                 <span className="last-grade-name">{el.subjectName}</span>
                                 <span className="badges-container">
