@@ -83,6 +83,7 @@
     display: flex;
     align-items: center;
     justify-content: space-around;
+    gap: 5px;
 }
 
 .information .grade-zone > div {
