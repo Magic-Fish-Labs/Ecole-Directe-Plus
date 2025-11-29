@@ -73,12 +73,10 @@ export default function Lab({ fetchGrades }) {
     // console.log(JSON.stringify(subjectArray));
     const createNotification = useCreateNotification()
     // States
-    const [jsp, rerenderer] = useState(0);
     const [test, setTest] = useState(["Signaler un bug", "Suggestion", "Retour d'expérience", "Autre", "Celui qui ne se souvient pas du passé est condamné à le répéter.", "option1", "option2", "option3", "option4", "option5", "option6", "option7", "option8", "option10 OH non j'ai oublié option9"]);
     const [test2, setTest2] = useState("");
     const [isOpen, setIsOpen] = useState(false);
     const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
-    const [testState, setTestState] = useState(false);
 
     const [isInputPopUpOpen, setIsInputPopUpOpen] = useState(false);
     const [number1, setNumber1] = useState(0)
@@ -101,19 +99,10 @@ export default function Lab({ fetchGrades }) {
 
     const {
         createOverlay,
-        createBottomSheet,
-        createPopUp,
         createInfoPopUp,
         closeOverlay,
     } = useOverlay();
 
-    const initialTestState2 = {
-        a: {
-            b: "123"
-        },
-        b: 123
-    }
-    const [testState2, setTestState2] = useState(initialTestState2);
     const navigate = useNavigate();
 
     // Behavior
@@ -152,11 +141,11 @@ export default function Lab({ fetchGrades }) {
             <Button onClick={() => {
                 switch (Math.floor(Math.random() * 3)) {
                     case OverlayTypes.BOTTOM_SHEET:
-                        return createOverlay(OverlayTypes.BOTTOM_SHEET, { content: <div>JE DETESTE LES BOTTOMSHEETS 🤬</div>, onClose: () => console.log("au revoir bottomsheet"), props: {heading: "BOTTOM SHEET"} });
+                        return createOverlay(OverlayTypes.BOTTOM_SHEET, { content: <div>JE DETESTE LES BOTTOMSHEETS 🤬</div>, props: {heading: "BOTTOM SHEET"} });
                     case OverlayTypes.POP_UP:
-                        return createOverlay(OverlayTypes.POP_UP, { content: <div><h1>JE PREFERE LES POP-UPS ✨</h1></div>, onClose: () => console.log("au revoir pop-up") });
+                        return createOverlay(OverlayTypes.POP_UP, { content: <div><h1>JE PREFERE LES POP-UPS ✨</h1></div> });
                     case OverlayTypes.INFO_POP_UP:
-                        return createOverlay(OverlayTypes.INFO_POP_UP, { content: <div>ET ENCORE PLUS LES POP-UPS D'INFORMATION 😍</div>, onClose: () => console.log("au revoir pop-up d'info"), props: {header: "POP-UP D'INFORMATIONS"} });
+                        return createOverlay(OverlayTypes.INFO_POP_UP, { content: <div>ET ENCORE PLUS LES POP-UPS D'INFORMATION 😍</div>, props: {header: "POP-UP D'INFORMATIONS"} });
                 }
             }}>overlay aléatoire 🤡</Button>
 
@@ -396,27 +385,6 @@ export default function Lab({ fetchGrades }) {
                 ac ut consequat semper viverra nam libero justo laoreet sit amet cursus sit amet dictum sit amet justo donec enim diam vulputate ut pharetra sit amet aliquam id diam maecenas ultricies mi eget mauris pharetra et ultrices neque ornare aenean euismod elementum nisi quis eleifend quam adipiscing vitae proin sagittis nisl rhoncus mattis rhoncus urna neque viverra justo nec ultrices dui sapien eget mi proin sed libero enim sed
             </OutlineEffectDiv>
 
-            <h4>InitializerHook</h4>
-            <Button onClick={() => {
-                const newValue = ["test0", "test1", "test2", "defaultValue"][Math.floor(Math.random() * 4)];
-                setInitializer(() => newValue);
-                console.log(newValue);
-            }}>Change initializer value</Button>
-            {initializer}
-            <Button onClick={() => {
-                initialTestState2.b += 1;
-                setTestState2(testState2)
-            }}>change initial value</Button>
-            <Button onClick={() => {
-                setTestState2((old) => {
-                    const next = { ...old };
-                    next.a.b += "+";
-                    return next;
-                });
-            }}>set value</Button>
-            {JSON.stringify(initialTestState2)}
-            <br />
-            {JSON.stringify(testState2)}
             <h4>Linkable Button</h4>
             <p>
                 this component uses {"<a>"} tag to allow user to copy a link

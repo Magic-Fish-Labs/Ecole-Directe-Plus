@@ -56,9 +56,8 @@ export function OverlayProvider({ children }: { children: ReactNode }) {
 	const nextOverlayId = useRef(0);
 
 	function handleClosing() {
-		activeOverlays.current--;
-		if (activeOverlays.current === 0)
-			setShadow(false);
+		if (activeOverlays.current) activeOverlays.current--;
+		if (activeOverlays.current === 0) setShadow(false);
 	}
 
 	function removeOverlay(targetOverlayId: number) {
@@ -125,7 +124,6 @@ export function OverlayProvider({ children }: { children: ReactNode }) {
 		})}
 	</OverlayContext.Provider>
 }
-
 export function useOverlay() {
 	const ctx = useContext(OverlayContext);
 	if (!ctx)
