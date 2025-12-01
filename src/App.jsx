@@ -30,7 +30,7 @@ import useAccountSettings from "./utils/hooks/useAccountSettings";
 import { Browsers, LocalStorageKeys } from "./utils/constants/constants";
 import { useLocalStorageEffect, useDisplayModeEffect, useDisplayThemeEffect, useBrowserDisplayThemeChange } from "./utils/hooks/useCustomEffect";
 import NavigateSave from "./components/generic/router/NavigateSave";
-import { apiVersion } from "./EcoleDirecteHandlerCore/constants/config";
+import { apiVersion } from "./api/apiConfigs";
 
 // CODE-SPLITTING - DYNAMIC IMPORTS
 const Lab = lazy(() => import("./components/app/CoreApp").then((module) => { return { default: module.Lab } }));
@@ -151,57 +151,6 @@ export default function App() {
 
     // !:! IL faut gérer le changement de storage
 
-    // useEffect(() => {
-    //     const lsGlobalSettings = {};
-    //     for (const i in globalSettings) {
-    //         lsGlobalSettings[i] = globalSettings[i].value ?? defaultAccountSettings[i];
-    //     }
-    //     localStorage.setItem("globalSettings", JSON.stringify(lsGlobalSettings));
-
-    //     const handleStorageChange = () => {
-    //         const newLsGlobalSettings = JSON.parse(localStorage.getItem("globalSettings"))
-    //         if (!areOccurenciesEqual(newLsGlobalSettings, globalSettings)) {
-    //             for (const i in globalSettings) {
-    //                 globalSettings[i].set(newLsGlobalSettings[i])
-    //             }
-    //         }
-    //     }
-    //     window.addEventListener("storage", handleStorageChange)
-
-    //     return (() => {
-    //         window.removeEventListener("storage", handleStorageChange);
-    //     });
-    // }, [keepLoggedIn.value,
-    //     shareSettings,
-    //     isDevChannel])
-
-    // useEffect(() => {
-    //     const handleStorageChange = () => {
-    //         // logout if the user has logout in any tab
-    //         if (accountsListState?.length > 0 && localStorage.getItem("accountsList") === null) {
-    //             logout();
-    //             return 0;
-    //         }
-    //         // handle getting from localStorage if it changes
-    //         if (accountsListState?.length > 0) {
-    //             const newSettings = initSettings(accountsListState)
-    //             if (!areOccurenciesEqual(newSettings, userSettings)) {
-    //                 setUserSettings(newSettings);
-    //             }
-    //         }
-    //     }
-
-    //     const timeoutHandleStorageChange = () => {
-    //         setTimeout(() => handleStorageChange(), 0); // timeout to prevent issues due to react async behavior
-    //     }
-
-    //     window.addEventListener("storage", timeoutHandleStorageChange)
-
-    //     return (() => {
-    //         window.removeEventListener("storage", timeoutHandleStorageChange);
-    //     });
-    // }, [accountsListState, userSettings, tokenState]);
-
     useEffect(() => {
         const handleMessage = (event) => {
             if (event.data.type === "EDP_UNBLOCK") {
@@ -273,13 +222,6 @@ export default function App() {
     //                                                                                  Data Functions                                                                                  //
     //                                                                                                                                                                                  //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    function removeSimulatedGrade(UUID, subjectKey, periodKey) {
-        const newGrades = { ...userData.grades }
-        newGrades[periodKey].subjects[subjectKey].grades = newGrades[periodKey].subjects[subjectKey].grades.filter((el) => el.id !== UUID)
-        userData.set("grades", newGrades);
-        updatePeriodGrades(periodKey);
-    }
 
     function sortNextHomeworks(homeworks) { // This function will sort (I would rather call it translate) the EcoleDirecte response to a better js object
         const upcomingAssignments = []
@@ -1022,8 +964,6 @@ export default function App() {
 
     /* ################################################################################### */
 
-    const refreshApp = () => { setAppKey(crypto.randomUUID()) } // permet de refresh l'app sans F5
-
     // routing system
     const router = createBrowserRouter([
         {
@@ -1191,7 +1131,6 @@ export default function App() {
     ]);
 
     const appContextValue = useMemo(() => ({
-        refreshApp,
         promptInstallPWA,
         selectedUserIndex,
         accountsListState,
@@ -1203,7 +1142,6 @@ export default function App() {
         globalSettings,
         usedDisplayTheme,
     }), [
-        refreshApp,
         promptInstallPWA,
         selectedUserIndex,
         accountsListState,

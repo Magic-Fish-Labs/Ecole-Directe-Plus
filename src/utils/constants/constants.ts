@@ -7,16 +7,16 @@ export const LocalStorageKeys = {
     LAST_SELECTED_USER: "lastSelectedUser",
 }
 
-export const Browsers = {
-    CHROMIUM: 0,
-    FIREFOX: 1,
-    SAFARI: 2,
-    CHROME: 3,
-    OPERA: 4,
-    EDGE: 5,
+export enum Browsers {
+    CHROMIUM = 0,
+    FIREFOX,
+    SAFARI,
+    CHROME,
+    OPERA,
+    EDGE,
 }
 
-export const BrowserExtensionDownloadLink = {
+export const BrowserExtensionDownloadLink: Record<Browsers, string> = {
     [Browsers.CHROMIUM]: "https://chromewebstore.google.com/detail/ecole-directe-plus-unbloc/jglboadggdgnaicfaejjgmnfhfdnflkb?hl=fr",
     [Browsers.FIREFOX]: "https://unblock.ecole-directe.plus/edpu-0.1.4.xpi",
     [Browsers.CHROME]: "https://chromewebstore.google.com/detail/ecole-directe-plus-unbloc/jglboadggdgnaicfaejjgmnfhfdnflkb?hl=fr",
@@ -25,7 +25,7 @@ export const BrowserExtensionDownloadLink = {
     [Browsers.EDGE]: "https://microsoftedge.microsoft.com/addons/detail/ecole-directe-plus-unbloc/bghggiemmicjhglgnilchjfnlbcmehgg",
 }
 
-export const BrowserLabels = {
+export const BrowserLabels: Record<Browsers, string> = {
     [Browsers.CHROMIUM]: "Chromium",
     [Browsers.FIREFOX]: "Firefox",
     [Browsers.CHROME]: "Chrome",
@@ -34,15 +34,15 @@ export const BrowserLabels = {
     [Browsers.EDGE]: "Edge",
 }
 
-export const OperatingSystems = {
-    WINDOWS: 0,
-    ANDROID: 1,
-    LINUX: 2,
-    MACOS: 3,
-    IOS: 4,
+export enum OperatingSystems {
+    WINDOWS = 0,
+    ANDROID,
+    LINUX,
+    MACOS,
+    IOS,
 }
 
-export const OperatingSystemLabels = {
+export const OperatingSystemLabels: Record<OperatingSystems, string> = {
     [OperatingSystems.WINDOWS]: "Windows",
     [OperatingSystems.ANDROID]: "Android",
     [OperatingSystems.LINUX]: "Linux",

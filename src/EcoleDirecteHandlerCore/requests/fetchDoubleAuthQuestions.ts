@@ -1,4 +1,4 @@
-import { apiVersion } from "../constants/config";
+import { apiVersion } from "../../api/apiConfigs";
 import { FetchErrorBuilders } from "../constants/codes";
 import EdError from "../class/EdError";
 import FetchError from "../class/FetchError";

@@ -1,3 +1,5 @@
+import { apiVersion } from "../../api/apiConfigs";
+
 export default async function fetchFile(fileId, fileType, token, specialParams) {
 	const specialUrlParams = new URLSearchParams(specialParams);
 
