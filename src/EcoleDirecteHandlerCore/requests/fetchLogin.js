@@ -1,6 +1,6 @@
 import { apiVersion } from "../constants/config";
 import { FetchErrorBuilders } from "../constants/codes";
-import EdpError from "../class/EdpError";
+import EdError from "../class/EdError";
 
 async function setupGtkToken() {
     return new Promise((resolve, reject) => {
@@ -12,10 +12,10 @@ async function setupGtkToken() {
                     resolve();
                 } else if (message.action === "noGtkCookie") {
                     window.removeEventListener("message", handleMessage);
-                    reject(new EdpError(FetchErrorBuilders.login.EXT_NO_GTK_COOKIE));
+                    reject(new EdError(FetchErrorBuilders.login.EXT_NO_GTK_COOKIE));
                 } else if (message.action === "noCookie") {
                     window.removeEventListener("message", handleMessage);
-                    reject(new EdpError(FetchErrorBuilders.login.EXT_NO_COOKIE));
+                    reject(new EdError(FetchErrorBuilders.login.EXT_NO_COOKIE));
                 }
             }
         }
@@ -25,7 +25,7 @@ async function setupGtkToken() {
             .then(() => {
                 setTimeout(() => {
                     window.removeEventListener("message", handleMessage);
-                    reject(new EdpError(FetchErrorBuilders.login.NO_EXT_RESPONSE));
+                    reject(new EdError(FetchErrorBuilders.login.NO_EXT_RESPONSE));
                 }, 3000);
             })
             .catch((error) => {
@@ -72,7 +72,7 @@ export default async function fetchLogin(username, password, A2FKey, controller 
 		})
         .then(([headers, data]) => {
             if (!data) {
-                throw new EdpError(FetchErrorBuilders.EMPTY_RESPONSE);
+                throw new EdError(FetchErrorBuilders.EMPTY_RESPONSE);
             }
             if (data.code < 300) {
                 return {
@@ -84,12 +84,12 @@ export default async function fetchLogin(username, password, A2FKey, controller 
             }
             switch (data.code) {
                 case 505:
-                    throw new EdpError(FetchErrorBuilders.login.INVALID_CREDENTIALS);
+                    throw new EdError(FetchErrorBuilders.login.INVALID_CREDENTIALS);
                 case 74000:
-                    throw new EdpError(FetchErrorBuilders.login.SERVER_ERROR);
+                    throw new EdError(FetchErrorBuilders.login.SERVER_ERROR);
                 default: // UNHANDLED ERROR
                     // !:! report l'erreur
-                    throw new EdpError({
+                    throw new EdError({
                         name: "UnhandledError",
                         code: data.code,
                         message: data.message,

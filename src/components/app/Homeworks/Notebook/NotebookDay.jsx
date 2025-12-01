@@ -26,7 +26,7 @@ export default function NotebookDay({ day, isNotebookGrabed }) {
 	const selected = day.ISODate === activeHomeworkDate;
 
 	useEffect(() => {
-		
+
 	}, [activeHomeworkDate, activeHomeworkId]);
 
 	useEffect(() => {
@@ -35,7 +35,7 @@ export default function NotebookDay({ day, isNotebookGrabed }) {
 				.then(() => setHomeworks(homeworks))
 				.catch((err) => {
 					console.error(err);
-					createNotification("Une erreur inconnue s'est produite lors de la communication avec les serveurs de EcoleDirecte.", {className: "extension-warning"});
+					createNotification("Une erreur inconnue s'est produite lors de la communication avec les serveurs de EcoleDirecte.", { className: "extension-warning" });
 				});
 		}
 	}, [selected, day.detailed]);
@@ -82,6 +82,8 @@ export default function NotebookDay({ day, isNotebookGrabed }) {
 			}
 			{sessionContents.map((sessionContent, sessionContentIndex) => {
 				if (selected) {
+					console.log(day);
+					console.log(sessionContent);
 					result = [<DetailedSessionContent key={"detailed-" + sessionContent.id} day={day.date} sessionContent={sessionContent} sessionContentIndex={sessionContentIndex} />];
 					if (sessionContentIndex < sessionContents.length - 1) {
 						result.push(<hr key={`${sessionContent.id}-hr`} className="detailed-task-separator" />)

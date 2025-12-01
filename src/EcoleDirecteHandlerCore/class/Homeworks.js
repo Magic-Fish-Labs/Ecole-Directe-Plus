@@ -60,11 +60,11 @@ export default class Homeworks {
 		return !homeworkDayList.length || homeworkDayList.every((homeworkDay) => homeworkDay.empty)
 	}
 
-	static createFromRaw(account, homeworksData) {
+	static createFromUpcoming(account, homeworksData) {
 		const homeworkDays = [];
 
 		for (const ISODate in homeworksData) {
-			const homeworkDay = HomeworkDay.createFromRaw(account, homeworksData[ISODate], ISODate);
+			const homeworkDay = HomeworkDay.createFromUpcoming(account, homeworksData[ISODate], ISODate);
 
 			homeworkDays[ISODate] = homeworkDay;
 		}

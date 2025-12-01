@@ -323,57 +323,6 @@ export default function App() {
         return sortedHomeworks
     }
 
-    function sortDayHomeworks(homeworks) { // This function will sort (I would rather call it translate) the EcoleDirecte response to a better js object 
-        const sortedHomeworks = Object.fromEntries(Object.entries(homeworks).map((day) => {
-            return [day[0], day[1].map((homework) => {
-                const { aFaire, codeMatiere, id, interrogation, matiere, nomProf } = homework;
-                var contenuDeSeance = homework.contenuDeSeance;
-                if (!aFaire && !contenuDeSeance) {
-                    return null;
-                }
-
-                if (!contenuDeSeance) {
-                    contenuDeSeance = aFaire.contenuDeSeance;
-                }
-
-                if (aFaire) {
-
-                    const { donneLe, effectue, contenu, documents } = aFaire;
-
-                    return {
-                        id: id,
-                        type: "task",
-                        subjectCode: codeMatiere,
-                        subject: matiere,
-                        addDate: donneLe,
-                        isInterrogation: interrogation,
-                        isDone: effectue,
-                        teacher: nomProf,
-                        content: contenu,
-                        files: documents.map((e) => (new File(e.id, e.type, e.libelle))),
-                        sessionContent: contenuDeSeance.contenu,
-                        sessionContentFiles: contenuDeSeance.documents.map((e) => (new File(e.id, e.type, e.libelle)))
-                    }
-                }
-                else {
-                    // This handles the case where there is no homework but there is a session content. I think it can be improved but for now it's fine
-                    return {
-                        id: id,
-                        type: "sessionContent",
-                        subjectCode: codeMatiere,
-                        subject: matiere,
-                        addDate: day[0],
-                        teacher: nomProf,
-                        sessionContent: contenuDeSeance.contenu,
-                        sessionContentFiles: contenuDeSeance.documents.map((e) => (new File(e.id, e.type, e.libelle)))
-                    }
-                }
-            }).filter((item) => item)]
-        }))
-        return sortedHomeworks
-    }
-
-
     function sortMessageFolders(messages, origin = 0) {
         const oldMessageFolders = useUserData("messageFolders").get();
         let sortedMessageFolders = messages.classeurs.filter((folder) => (oldMessageFolders === undefined || !oldMessageFolders.some((oldFolder) => oldFolder.id === folder.id))).map((folder) => {
@@ -537,68 +486,6 @@ export default function App() {
                 <a href={browserExtensionDownloadLink[userBrowser]} target={(![Browsers.SAFARI, Browsers.FIREFOX].includes(userBrowser) ? "_blank" : "")}>Télécharger</a>
             </div>
         </>, { className: "extension-warning", timeToLive: "infinite" })
-    }
-
-    async function fetchHomeworksSequentially(controller = new AbortController(), date = "incoming") {
-        abortControllers.current.push(controller);
-        const userId = selectedUserIndex.value;
-
-        let endpoint;
-        if (date === "incoming") {
-            endpoint = "cahierdetexte";
-        } else {
-            endpoint = "cahierdetexte/" + getISODate(date);
-        }
-
-        if (selectedUser.id === -1) {
-            if (date === "incoming") {
-                const module = await import("./data/guest/homeworks.json");
-                userData.set("homeworks", sortNextHomeworks(module.data));
-            } else {
-                const module = await import("./data/guest/detailed_homeworks.json");
-                userData.set("homeworks", {
-                    ...userData.sortedHomeworks,
-                    ...sortDayHomeworks({ [module.data.date]: module.data.matieres })
-                });
-            }
-            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
-        } else {
-            try {
-                const response = await fetch(
-                    `https://api.ecoledirecte.com/v3/Eleves/${accountsListState[userId].id}/${endpoint}.awp?verbe=get&v=${apiVersion}`,
-                    {
-                        method: "POST",
-                        headers: {
-                            "x-token": tokenState
-                        },
-                        body: "data={}",
-                        signal: controller.signal
-                    },
-                    "json"
-                );
-                const responseData = await response;
-                const code = responseData.code;
-                if (code === 200) {
-                    if (date === "incoming") {
-                        userData.set("homeworks", {
-                            ...sortNextHomeworks(responseData.data),
-                            ...userData.sortedHomeworks
-                        });
-                    } else {
-                        userData.set("homeworks", {
-                            ...userData.sortedHomeworks,
-                            ...sortDayHomeworks({ [responseData.data.date]: responseData.data.matieres })
-                        });
-                    }
-                } else if (code === 520 || code === 525) {
-                    console.log("INVALID TOKEN: LOGIN REQUIRED");
-                    requireLogin();
-                }
-                setTokenState(old => responseData?.token || old);
-            } finally {
-                abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
-            }
-        }
     }
 
     async function fetchMessages(folderId = 0, controller = (new AbortController())) {
@@ -1305,7 +1192,6 @@ export default function App() {
 
     const appContextValue = useMemo(() => ({
         refreshApp,
-        fetchHomeworksSequentially,
         promptInstallPWA,
         selectedUserIndex,
         accountsListState,
@@ -1318,7 +1204,6 @@ export default function App() {
         usedDisplayTheme,
     }), [
         refreshApp,
-        fetchHomeworksSequentially,
         promptInstallPWA,
         selectedUserIndex,
         accountsListState,

@@ -58,18 +58,18 @@ export default async function fetchGrades(schoolYear, userId, token, controller 
 		})
 		.then((data) => {
 			if (!data) {
-				throw new EdpError(FetchErrorBuilders.EMPTY_RESPONSE);
+				throw new EdError(FetchErrorBuilders.EMPTY_RESPONSE);
 			}
 			if (data.code < 300) {
 				return data;
 			}
 			switch (data.code) {
 				case 520:
-					throw new EdpError(FetchErrorBuilders.INVALID_TOKEN);
+					throw new EdError(FetchErrorBuilders.INVALID_TOKEN);
 				case 525:
-					throw new EdpError(FetchErrorBuilders.EXPIRED_TOKEN);
+					throw new EdError(FetchErrorBuilders.EXPIRED_TOKEN);
 				default: // UNHANDLED ERROR
-					throw new EdpError({
+					throw new EdError({
 						name: "UnhandledError",
 						code: data.code,
 						message: data.message,

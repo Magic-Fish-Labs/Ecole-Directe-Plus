@@ -1,7 +1,9 @@
+import EdError from "../../class/EdError";
+import FetchError from "../../class/FetchError";
 import { CommonCodes, LoginStates } from "../../constants/codes";
 
-export function handleFetchError(error, setLoginState = null) {
-	if (error.type === "ED_ERROR") {
+export function handleFetchError(error: Error, setLoginState: ((state: LoginStates) => void) | null = null) {
+	if (error instanceof EdError) {
 		switch (error.code) {
 			case 520:
 				return CommonCodes.INVALID_TOKEN;

@@ -1,4 +1,4 @@
-export default class EdpError extends Error {
+export default class EdError extends Error {
 	constructor (errorBuilder) {
 		super(errorBuilder.message);
 		this.name = errorBuilder.name;

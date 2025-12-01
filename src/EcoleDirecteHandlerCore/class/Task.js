@@ -47,7 +47,7 @@ export default class Task {
 			});
 	}
 
-	static createFromRaw(account, homeworkDay, taskData) {
+	static createFromUpcoming(account, homeworkDay, taskData) {
 		const { idDevoir, codeMatiere, donneLe, effectue, interrogation, matiere /* rendreEnLigne, documentsAFaire // I don't know what to do with that for now */ } = taskData;
 
 		return new Task(account, homeworkDay, {

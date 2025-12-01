@@ -4,7 +4,7 @@ export const DefaultEcoleDirecteAccount = {
 	token: "",
 	selectedUserIndex: 0,
 	users: null,
-}
+} as const
 
 export const DefaultAccountdata = {
     grades: undefined,
@@ -26,4 +26,4 @@ export const DefaultAccountdata = {
     selectedGradeElement: undefined,
     activeHomeworkDate: undefined,
     activeHomeworkId: undefined,
-}
+} as const;

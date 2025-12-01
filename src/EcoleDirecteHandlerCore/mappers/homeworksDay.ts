@@ -1,18 +1,18 @@
 import { decodeBase64 } from "../utils/utils";
 import EcoleDirecteFile from "../class/EcoleDirecteFile";
 import { getToday } from "../utils/date";
-import Task from "../class/Task";
+import { DetailledHomeworkData, SessionContentData } from "../structures/DetailledHomeworkResponse";
 const tomorrow = getToday();
 tomorrow.setDate(tomorrow.getDate() + 1);
 
-export function mapHomeworksDay(detailedHomeworksDayData) {
+export function mapHomeworksDay(detailedHomeworksDayData: DetailledHomeworkData) {
     const mappedTaskList = [];
     const mappedSessionContentList = [];
 
     for (let { aFaire, id, codeMatiere, matiere, nomProf, contenuDeSeance, interrogation } of detailedHomeworksDayData.matieres) {
         if (!contenuDeSeance) {
             if (!aFaire) continue;
-            contenuDeSeance = aFaire.contenuDeSeance;
+            contenuDeSeance = aFaire.contenuDeSeance as SessionContentData;
         }
 
         if (aFaire) {
@@ -31,17 +31,18 @@ export function mapHomeworksDay(detailedHomeworksDayData) {
                 sessionContentFiles: contenuDeSeance.documents.map((e) => (new EcoleDirecteFile(e.id, e.type, e.libelle)))
             });
         } else {
-            mappedTaskList.push({
+            mappedSessionContentList.push({
                 id: id,
                 subjectCode: codeMatiere,
                 subject: matiere,
                 teacher: nomProf,
-                addDate: donneLe,
                 sessionContent: contenuDeSeance.contenu,
-                sessionContentFiles: contenuDeSeance.documents.map((e) => (new File(e.id, e.type, e.libelle)))
+                sessionContentFiles: contenuDeSeance.documents.map((e) => (new EcoleDirecteFile(e.id, e.type, e.libelle)))
             });
         }
     }
+
+    console.log(mappedSessionContentList);
 
     return { mappedTaskList, mappedSessionContentList };
 }

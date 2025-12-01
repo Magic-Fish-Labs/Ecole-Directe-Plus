@@ -5,14 +5,22 @@ import fetchHomeworksDay from "../requests/fetchHomeworksDay";
 import SessionContent from "./SessionContent";
 import Task from "./Task";
 import { handleFetchError } from "../utils/requests/handleFetchError";
+import { DetailledHomeworkData, DetailledHomeworkResponse } from "../structures/DetailledHomeworkResponse";
+import { guestDataPath } from "../constants/config";
+import { Account } from "../hooks/useEcoleDirecteAccount";
 
 export default class HomeworkDay {
+	date: Date;
+	account: Account;
+	detailed: boolean;
+	taskList: Task[];
+	sessionContentList: SessionContent[];
 	/**
 	 * 
-	 * @param {Date} date the date of the homeworkDay
-	 * @param {object} account the account object initialized in the useEcoleDirecteSession.js file
+	 * @param {Date} `date` the date of the homeworkDay
+	 * @param {any} `account` the account object initialized in the useEcoleDirecteSession.js file
 	 */
-	constructor(account, date) {
+	constructor(account: Account, date: Date) {
 		this.date = date;
 		this.account = account;
 		this.detailed = false;
@@ -21,9 +29,9 @@ export default class HomeworkDay {
 	}
 
 	/**
-	 * @param {Task|Task[]} tasks task(s) that will be added to this object's task list
+	 * @param {Task|Task[]} `tasks` task(s) that will be added to this object's task list
 	*/
-	addTasks(tasks) {
+	addTasks(tasks: Task | Task[]) {
 		if (tasks instanceof Task) {
 			this.taskList.push(tasks);
 		} else {
@@ -32,9 +40,9 @@ export default class HomeworkDay {
 	}
 
 	/**
-	 * @param {SessionContent|SessionContent[]} sessionContents  sessionContent(s) that will be added to this object's sessionContent list
+	 * @param {SessionContent|SessionContent[]} `sessionContents` sessionContent(s) that will be added to this object's sessionContent list
 	*/
-	addSessionContents(sessionContents) {
+	addSessionContents(sessionContents: SessionContent | SessionContent[]) {
 		if (sessionContents instanceof SessionContent) {
 			this.sessionContentList.push(sessionContents);
 		} else {
@@ -54,7 +62,7 @@ export default class HomeworkDay {
 		return format(this.date, "yyyy-MM-dd");
 	}
 
-	applyDetail(detailData) {
+	applyDetail(detailData: DetailledHomeworkData) {
 		const { mappedTaskList, mappedSessionContentList } = mapHomeworksDay(detailData);
 
 		for (const mappedTask of mappedTaskList) {
@@ -78,35 +86,37 @@ export default class HomeworkDay {
 		this.detailed = true;
 	}
 
-	async detail(controller) {
-		let response;
+	async detail(controller: AbortController) {
+		let response: DetailledHomeworkResponse;
 
 		try {
 			response = this.account.selectedUser.id < 0
-				? await import(/* @vite-ignore */ guestDataPath.detailed_homeworks)
+				? await import(/* @vite-ignore */ guestDataPath.detailed_homeworks) as DetailledHomeworkResponse
 				: await fetchHomeworksDay(this.ISODate, this.account.selectedUser.id, this.account.token.value, controller);
-		} catch (error) {
-			return handleFetchError(error, this.account.loginStates.set);
-		}
-		this.account.token.set((old) => (response?.token || old));
-		switch (response.code) {
-			case 200:
-				this.applyDetail(response.data);
-				return HomeworksCodes.SUCCESS;
-			default:
-				return { code: -1, message: response.message };
+			this.account.token.set((old: string) => (response?.token || old));
+			switch (response.code) {
+				case 200:
+					this.applyDetail(response.data);
+					return HomeworksCodes.SUCCESS;
+				default:
+					return { code: -1, message: response.message };
+			}
+		} catch (error: unknown) {
+			if (error instanceof Error) {
+				return handleFetchError(error, this.account.loginStates.set);
+			}
 		}
 	}
 
-	static createFromRaw(account, homeworkDayData, ISODate) {
+	static createFromUpcoming(account: Account, homeworkDayData: any, ISODate: string) {
 		const homeworkDay = new HomeworkDay(account, new Date(ISODate));
 
 		for (const homework of homeworkDayData) {
 			if (homework.aFaire) {
-				const task = Task.createFromRaw(account, homeworkDay, homework);
+				const task = Task.createFromUpcoming(account, homeworkDay, homework);
 				homeworkDay.addTasks(task);
 			} else {
-				const sessionContent = SessionContent.createFromRaw(homework);
+				const sessionContent = SessionContent.createFromUpcoming(account, homeworkDay, homework);
 				homeworkDay.addSessionContents(sessionContent);
 			}
 		}

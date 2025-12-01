@@ -2,6 +2,7 @@ export const apiVersion = "4.83.0";
 export const guestDataPath = {
     login: "/guestData/default/login.json",
     grades: "/guestData/default/grades.json",
+    timeline: "/guestData/default/timeline.json",
     incoming_homeworks: "/guestData/default/incoming_homeworks.json",
     detailed_homeworks: "/guestData/default/detailed_homeworks.json",
 }

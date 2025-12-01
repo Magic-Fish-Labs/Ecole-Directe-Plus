@@ -1,5 +1,5 @@
 // libs/utils
-import { useState, useRef } from "react";
+import { useState, useRef, Dispatch, SetStateAction } from "react";
 
 // constants
 import { LoginStates, CommonCodes } from "../constants/codes";
@@ -12,36 +12,62 @@ import fetchDoubleAuthQuestions from "../requests/fetchDoubleAuthQuestions";
 import { DefaultEcoleDirecteAccount } from "../constants/default";
 import { mapDoubleAuthQuestion } from "../mappers/doubleAuthQuestions";
 import { requestLogin } from "./requestHandler/requestLogin";
+import EdError from "../class/EdError";
 
-/**
- * Each get function (the ones that get parse and store data such as requestLogin of getGrades)
- * will return a code, and other data such as messages, display text, ...
- * The code rule is easy :
- *  - 0    : Everything OK
- *  - >= 1 : a known error
- *  - -1   : an unknown error
- *
- * With this system, every known errors will return a message hard coded and unknown erro will return the message of the response.
- * If you need to display a specific error message for unknown error, handle it after using the fetch function.
- * (basically :
- *  fetchFunction.then((response) => {
- *      if (response.code === -1) {
- *          // do something
- *      }
- *  })
- * )
- */
+type ObjectFromState<T> = {
+    value: T,
+    set: Dispatch<SetStateAction<T>>
+}
 
-export default function useEcoleDirecteAccount(initialAccount, callbacks) {
-    const [loginState, setLoginState] = useState(initialAccount.users ? (initialAccount.token ? LoginStates.LOGGED_IN : LoginStates.REQUIRE_NEW_TOKEN) : LoginStates.REQUIRE_LOGIN);
-    const [username, setUsername] = useState(initialAccount.username ?? DefaultEcoleDirecteAccount.username);
-    const [password, setPassword] = useState(initialAccount.password ?? DefaultEcoleDirecteAccount.password);
-    const [token, setToken] = useState(initialAccount.token ?? DefaultEcoleDirecteAccount.token);
-    const [doubleAuthToken, setDoubleAuthToken] = useState(initialAccount.token ?? DefaultEcoleDirecteAccount.token);
-    const [selectedUserIndex, setSelectedUserIndex] = useState(initialAccount.selectedUserIndex ?? DefaultEcoleDirecteAccount.selectedUserIndex);
-    const [users, setUsers] = useState(initialAccount.users ?? DefaultEcoleDirecteAccount.users);
+export type User = any;
 
-    const doubleAuthKey = useRef(null);
+export interface Account {
+    userCredentials: {
+        username: ObjectFromState<string>,
+        password: ObjectFromState<string>,
+    },
+    doubleAuthKey: any,
+    token: ObjectFromState<string>,
+    doubleAuthToken: ObjectFromState<string>,
+    selectedUserIndex: { value: number, set: (newValue: number) => void },
+    loginStates: ObjectFromState<LoginStates> & {
+        requireLogin: boolean,
+        isLoggedIn: boolean,
+        requireDoubleAuth: boolean,
+        requireNewToken: boolean,
+        doubleAuthAcquired: boolean,
+    },
+    selectedUser: User,
+    users: ObjectFromState<Array<User> | null>,
+};
+
+export type UseEcoleDirecteAccountCallbacks = {
+    onUserChange: (newSelectedUser: any, newSelectedUserIndex: number) => void,
+    onLogin: (users: Array<User>) => void,
+    onLogout: () => void,
+};
+
+
+function getInitialLoginState(initialAccount: any): LoginStates {
+    if (initialAccount.users) {
+        if (initialAccount.token) {
+            return LoginStates.LOGGED_IN;
+        }
+        return LoginStates.REQUIRE_NEW_TOKEN;
+    }
+    return LoginStates.REQUIRE_LOGIN;
+}
+
+export default function useEcoleDirecteAccount(initialAccount: any, callbacks: UseEcoleDirecteAccountCallbacks) {
+    const [loginState, setLoginState] = useState(getInitialLoginState(initialAccount));
+    const [username, setUsername] = useState(initialAccount.username as string ?? DefaultEcoleDirecteAccount.username);
+    const [password, setPassword] = useState(initialAccount.password as string ?? DefaultEcoleDirecteAccount.password);
+    const [token, setToken] = useState(initialAccount.token as string ?? DefaultEcoleDirecteAccount.token);
+    const [doubleAuthToken, setDoubleAuthToken] = useState(initialAccount.token as string ?? DefaultEcoleDirecteAccount.token);
+    const [selectedUserIndex, setSelectedUserIndex] = useState(initialAccount.selectedUserIndex as number ?? DefaultEcoleDirecteAccount.selectedUserIndex);
+    const [users, setUsers] = useState<Array<User> | null>(initialAccount.users as Array<User> ?? DefaultEcoleDirecteAccount.users);
+
+    const doubleAuthKey = useRef<any>(null);
     const selectedUser = users !== null && selectedUserIndex < users.length ? users[selectedUserIndex] : null;
 
     const isLoggedIn = loginState === LoginStates.LOGGED_IN;
@@ -50,7 +76,7 @@ export default function useEcoleDirecteAccount(initialAccount, callbacks) {
     const requireDoubleAuth = loginState === LoginStates.REQUIRE_DOUBLE_AUTH;
     const doubleAuthAcquired = loginState === LoginStates.DOUBLE_AUTH_ACQUIRED;
 
-    const account = {
+    const account: Account = {
         userCredentials: {
             username: { value: username, set: (value) => { if (requireLogin) setUsername(value) } },
             password: { value: password, set: (value) => { if (requireLogin) setPassword(value) } },
@@ -58,20 +84,26 @@ export default function useEcoleDirecteAccount(initialAccount, callbacks) {
         doubleAuthKey,
         token: { value: token, set: setToken },
         doubleAuthToken: { value: doubleAuthToken, set: setDoubleAuthToken },
-        selectedUserIndex: { value: selectedUserIndex, set: (newIndex) => { setSelectedUserIndex(newIndex); callbacks.onUserChange(users[newIndex], newIndex) } },
+        selectedUserIndex: {
+            value: selectedUserIndex, set: (newIndex) => {
+                setSelectedUserIndex(newIndex);
+                callbacks.onUserChange(users ? users[newIndex]: null, newIndex);
+            }
+        },
         loginStates: {
+            value: loginState,
+            set: setLoginState,
             requireLogin,
             isLoggedIn,
             requireDoubleAuth,
             requireNewToken,
             doubleAuthAcquired,
-            set: setLoginState,
         },
         selectedUser,
-        users: {value: users, set: setUsers},
+        users: { value: users, set: setUsers },
     };
 
-    async function getDoubleAuthQuestions(controller = new AbortController()) {
+    async function getDoubleAuthQuestions(controller: AbortController = new AbortController()) {
         // We don't handle guest because he doesn't need DoubleAuth obviously
         return fetchDoubleAuthQuestions(token, controller)
             .then((response) => {
@@ -109,7 +141,7 @@ export default function useEcoleDirecteAccount(initialAccount, callbacks) {
             })
     }
 
-    async function sendDoubleAuthAnswer(choice, controller = new AbortController()) {
+    async function sendDoubleAuthAnswer(choice: string, controller: AbortController = new AbortController()) {
         return fetchDoubleAuthAnswer(token, choice, controller)
             .then((response) => {
                 setToken((old) => response?.token || old);
@@ -128,7 +160,7 @@ export default function useEcoleDirecteAccount(initialAccount, callbacks) {
                 }
             })
             .catch((error) => {
-                if (error.type === "ED_ERROR") {
+                if (error instanceof EdError) {
                     setLoginState(LoginStates.REQUIRE_LOGIN);
                     switch (error.code) {
                         case 520:
@@ -165,7 +197,7 @@ export default function useEcoleDirecteAccount(initialAccount, callbacks) {
         ...account,
         exportInitAccounts,
         logout,
-        requestLogin: (...args) => requestLogin(account, callbacks.onLogin, ...args),
+        requestLogin: (...args: any[]) => requestLogin(account, callbacks.onLogin, ...args),
         getDoubleAuthQuestions,
         sendDoubleAuthAnswer,
     };

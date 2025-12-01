@@ -1,19 +1,21 @@
 // libs/utils
-import { useEffect } from "react";
-import useEcoleDirecteAccount from "./useEcoleDirecteAccount";
+import useEcoleDirecteAccount, { UseEcoleDirecteAccountCallbacks } from "./useEcoleDirecteAccount";
 // lonstants
 import { guestDataPath } from "../constants/config";
-import { LoginStates, GradesCodes, HomeworksCodes } from "../constants/codes";
+import { LoginStates, GradesCodes, HomeworksCodes, CommonCodes } from "../constants/codes";
 
 // split
 import useAccountData from "./utils/useAccountData";
-import fetchGrades from "../requests/fetchGrades";
+import fetchGrades from "../requests/fetchGrades.ts";
 import { mapGrades } from "../mappers/grades";
 import fetchTimeline from "../requests/fetchTimeline";
 import { mapTimeline } from "../mappers/timeline";
 import fetchHomeworks from "../requests/fetchHomeworks";
 import { DefaultAccountdata } from "../constants/default";
 import Homeworks from "../class/Homeworks";
+import EdError from "../class/EdError";
+
+import { UpcomingHomeworkResponse } from "../structures/UpcomingHomeworkResponse";
 
 /**
  * Each fetch function will return a code, and other data such as messages, display text, ...
@@ -33,7 +35,7 @@ import Homeworks from "../class/Homeworks";
  * )
  */
 
-export default function useEcoleDirecteSession(initEcoleDirecteSession, callbacks) {
+export default function useEcoleDirecteSession(initEcoleDirecteSession: any, callbacks: UseEcoleDirecteAccountCallbacks) {
     const usedAccountDataTemplate = { ...DefaultAccountdata, ...initEcoleDirecteSession.accountDataTemplate };
     const {
         userData,
@@ -59,7 +61,7 @@ export default function useEcoleDirecteSession(initEcoleDirecteSession, callback
     });
     const { token, selectedUser, selectedUserIndex, loginStates } = account;
 
-    async function getGrades(schoolYear, controller = (new AbortController())) {
+    async function getGrades(schoolYear: string, controller: AbortController = new AbortController()) {
         const requestUserIndex = selectedUserIndex.value;
         let response;
         if (selectedUser.id === -1) {
@@ -72,8 +74,8 @@ export default function useEcoleDirecteSession(initEcoleDirecteSession, callback
             token.set((old) => (response?.token || old));
             switch (response.code) {
                 case 200:
-                    const mappedResponse = mapGrades(response.data)
-                    Object.keys(mappedResponse).forEach((data) => {
+                    const mappedResponse = mapGrades(response.data);
+                    (Object.keys(mappedResponse) as Array<keyof typeof mappedResponse>).forEach((data) => {
                         userData[data].set(mappedResponse[data], requestUserIndex);
                     })
                     return GradesCodes.SUCCESS;
@@ -82,7 +84,7 @@ export default function useEcoleDirecteSession(initEcoleDirecteSession, callback
             }
         })
             .catch((error) => {
-                if (error.type === "ED_ERROR") {
+                if (error instanceof EdError) {
                     switch (error.code) {
                         case 520:
                             return CommonCodes.INVALID_TOKEN;
@@ -112,11 +114,11 @@ export default function useEcoleDirecteSession(initEcoleDirecteSession, callback
         } else {
             response = fetchHomeworks(selectedUser.id, token.value, controller);
         }
-        return response.then((response) => {
-            token.set((old) => (response?.token || old));
+        return response.then((response: UpcomingHomeworkResponse) => {
+            token.set((old: string) => (response?.token || old));
             switch (response.code) {
                 case 200:
-                    const mappedHomeworks = Homeworks.createFromRaw(account, response.data);
+                    const mappedHomeworks = Homeworks.createFromUpcoming(account, response.data);
                     userData.homeworks.set(mappedHomeworks, requestUserIndex);
                     userData.upcomingAssignments.set(mappedHomeworks.getUpcomingAssignements(), requestUserIndex);
                     userData.activeHomeworkDate.set(mappedHomeworks.getDefaultActiveHomeworkDate(), requestUserIndex);
@@ -127,7 +129,7 @@ export default function useEcoleDirecteSession(initEcoleDirecteSession, callback
             }
         })
             .catch((error) => {
-                if (error.type === "ED_ERROR") {
+                if (error instanceof EdError) {
                     switch (error.code) {
                         case 520:
                             return CommonCodes.INVALID_TOKEN;
@@ -145,13 +147,13 @@ export default function useEcoleDirecteSession(initEcoleDirecteSession, callback
             })
     }
 
-    async function getTimeline(schoolYear, controller = (new AbortController())) {
+    async function getTimeline(schoolYear: string, controller = (new AbortController())) {
         const requestUserIndex = selectedUserIndex.value;
         let response;
         if (selectedUser.id === -1) {
             response = import(/* @vite-ignore */ guestDataPath.timeline)
         } else {
-            response = fetchTimeline(schoolYear, token, selectedUser.id, controller)
+            response = fetchTimeline(schoolYear, token.value, selectedUser.id, controller)
         }
         return response.then((response) => {
             token.set((old) => (response?.token || old));
@@ -165,7 +167,7 @@ export default function useEcoleDirecteSession(initEcoleDirecteSession, callback
             }
         })
             .catch((error) => {
-                if (error.type === "ED_ERROR") {
+                if (error instanceof EdError) {
                     switch (error.code) {
                         case 520:
                             return CommonCodes.INVALID_TOKEN;

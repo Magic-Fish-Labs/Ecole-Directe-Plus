@@ -1,12 +1,12 @@
 
-export const LoginStates = {
-    LOGGED_IN: 0,
-    REQUIRE_LOGIN: 1,
-    REQUIRE_DOUBLE_AUTH: 2,
-    DOUBLE_AUTH_ACQUIRED: 3,
-    BANNED_USER: 4,
-    REQUIRE_NEW_TOKEN: 5,
-}
+export enum LoginStates {
+    LOGGED_IN = 0,
+    REQUIRE_LOGIN,
+    REQUIRE_DOUBLE_AUTH,
+    DOUBLE_AUTH_ACQUIRED,
+    BANNED_USER,
+    REQUIRE_NEW_TOKEN,
+};
 
 export const LoginCodes = {
     SUCCESS:                { code: 0, message: "Login achieved" },
