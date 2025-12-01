@@ -1,10 +1,10 @@
-import { apiVersion } from "../constants/config";
+import { apiVersion } from "../../api/apiConfigs";
 import { FetchErrorBuilders } from "../constants/codes";
 import EdError from "../class/EdError";
 
 async function setupGtkToken() {
-    return new Promise((resolve, reject) => {
-        const handleMessage = (event) => {
+    return new Promise<void>((resolve, reject) => {
+        function handleMessage(event: MessageEvent<any>) {
             if (event.data && event.data.type === "EDPU_MESSAGE") {
                 const message = event.data.payload;
                 if (message.action === "gtkRulesUpdated") {
@@ -35,7 +35,7 @@ async function setupGtkToken() {
     });
 }
 
-export default async function fetchLogin(username, password, A2FKey, controller = null) {
+export default async function fetchLogin(username: string, password: string, A2FKey: any, controller: AbortController | null = null) {
     await setupGtkToken();
 
     const headers = new Headers();
@@ -50,7 +50,7 @@ export default async function fetchLogin(username, password, A2FKey, controller 
         fa: A2FKey ? [A2FKey] : [],
     }));
 
-    const options = {
+    const options: RequestInit = {
         headers,
         body,
         method: "POST",
@@ -66,9 +66,7 @@ export default async function fetchLogin(username, password, A2FKey, controller 
         .then(async (response) => {
 			if (response.ok) return [response.headers, await response.json()];
 
-			const error = new Error();
-			error.type = "FETCH_ERROR"
-			throw error;
+			throw new TypeError();
 		})
         .then(([headers, data]) => {
             if (!data) {

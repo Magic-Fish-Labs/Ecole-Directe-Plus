@@ -21,6 +21,7 @@ export default async function fetchDoubleAuthAnswer(token: string, choice: strin
 
     return fetch(`https://api.ecoledirecte.com/v3/connexion/doubleauth.awp?verbe=post&v=${apiVersion}`, options)
         .catch((error) => {
+            if (error.name === "AbortError") throw error;
             throw new FetchError("Problem occured while fetching to Ed's API", { cause: error });
         })
         .then((response) => {

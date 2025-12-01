@@ -1,7 +1,9 @@
-import { apiVersion } from "../constants/config";
+import { apiVersion } from "../../api/apiConfigs";
 import EdError from "../class/EdError";
+import FetchError from "../class/FetchError";
+import { FetchErrorBuilders } from "../constants/codes";
 
-export default async function fetchHomeworksDone({ tasksDone = [], tasksNotDone = [] }, userId, token, controller) {
+export default async function fetchHomeworksDone({ tasksDone = [], tasksNotDone = [] }, userId: number, token: string, controller: AbortController | null = null) {
 	const headers = new Headers();
 	headers.append("x-token", token);
 	headers.append("content-type", "application/x-www-form-urlencoded");
@@ -24,9 +26,8 @@ export default async function fetchHomeworksDone({ tasksDone = [], tasksNotDone 
 		.then((response) => {
 			if (response.ok) return response.json();
 
-			const error = new Error();
-			error.type = "FETCH_ERROR"
-			throw error;
+			
+			throw FetchError;
 		})
 		.then((data) => {
 			if (!data) {

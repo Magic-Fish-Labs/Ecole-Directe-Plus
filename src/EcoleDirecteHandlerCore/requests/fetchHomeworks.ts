@@ -21,6 +21,7 @@ export default async function fetchHomeworks(userId: number, token: string, cont
 
     return fetch(`https://api.ecoledirecte.com/v3/Eleves/${userId}/cahierdetexte.awp?verbe=get&v=${apiVersion}`, options)
         .catch((error) => {
+            if (error.name === "AbortError") throw error;
             throw new FetchError("Problem occured while fetching to Ed's API", { cause: error });
         })
         .then((response) => {
