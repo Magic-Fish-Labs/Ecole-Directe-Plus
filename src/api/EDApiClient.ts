@@ -1,5 +1,6 @@
 import FetchError from "../EcoleDirecteHandlerCore/class/FetchError";
 import { apiBase, apiVersion } from "./apiConfigs";
+import { ApiMethod, Body, Data, Query, Routes } from "./contracts";
 
 export default class EDApiClient {
 	private static instance: EDApiClient;
@@ -28,46 +29,66 @@ export default class EDApiClient {
 		this.abortControllers.forEach((abortController) => abortController.abort(reason));
 	}
 
-	private buildUrl(path: string) {
-		const url = new URL(path, apiBase);
-		url.searchParams.append("v", apiVersion);
+	private buildUrl(method: ApiMethod, route: string, query: Record<string, any> = {}) {
+		const searchParams = new URLSearchParams();
+		for (const queryParam in query) {
+			searchParams.append(queryParam, query[queryParam]?.toString() ?? "");
+		}
+		searchParams.append("verbe", method.toLowerCase());
+		searchParams.append("v", apiVersion);
+		const url = new URL(route, apiBase);
+		url.search = searchParams.toString();
 		return url;
 	}
 
-	private buildRequestInit(method: "GET" | "HEAD"): RequestInit
-	private buildRequestInit(method: "POST" | "PUT" | "PATCH" | "DELETE", body: any): RequestInit
-	private buildRequestInit(method: string, body?: any): RequestInit {
+	private buildRequestInit(body: any = {}): RequestInit {
 		const init: RequestInit = {
-			method,
+			method: "POST",
 		};
 
 		init.headers = new Headers();
 		init.headers.append("x-token", this.token);
 		init.headers.append("2fa-token", this.doubleAuthToken);
+		init.headers.append("content-type", "application/x-www-form-urlencoded");
 
 		const abortController = new AbortController();
 		this.abortControllers.push(abortController);
 		init.signal = abortController.signal;
 
-		if (body === undefined) {
-			init.headers.append("content-type", "application/x-www-form-urlencoded");
-			init.body = new URLSearchParams();
-			init.body.append("data", JSON.stringify(body));
-		}
+		init.body = new URLSearchParams();
+		init.body.append("data", JSON.stringify(body));
+
 		return init;
 	}
 
-	async post(path: string, body: any): Promise<any> {
-		const url = this.buildUrl(path);
-		const init = this.buildRequestInit("POST", body);
-
+	private async handleRequest<M extends ApiMethod, R extends Routes>(url: URL, init: RequestInit): Promise<Data<M, R>> {
 		try {
 			const res = await fetch(url, init);
-			return res.json();
+			// !:! handle invalide code
+			const content = await res.json() as { code: number, token: string, host: string, data: Data<M, R> }
+			return content.data;
 		} catch (error) {
 			if (!(error instanceof Error)) throw error;
 			if (error.name === "AbortError") throw error;
 			throw new FetchError("Problem occured while fetching to Ed's API", { cause: error });
 		}
+	}
+
+	async get<R extends Routes<"GET">>(route: R, body: Body<"GET", R>): Promise<Data<"GET", R>>;
+	async get<R extends Routes<"GET">>(route: R, body: Body<"GET", R>, query: Query<"GET", R>): Promise<Data<"GET", R>>;
+	async get<R extends Routes<"GET">>(route: R, body: Body<"GET", R>, query?: Query<"GET", R>): Promise<Data<"GET", R>> {
+		const url = this.buildUrl("GET", route, query);
+		const init = this.buildRequestInit(body);
+
+		return this.handleRequest(url, init);
+	}
+
+	async post<R extends Routes<"POST">>(route: R, body: Body<"POST", R>): Promise<Data<"POST", R>>;
+	async post<R extends Routes<"POST">>(route: R, body: Body<"POST", R>, query: Query<"POST", R>): Promise<Data<"POST", R>>;
+	async post<R extends Routes<"POST">>(route: R, body: Body<"POST", R>, query?: Query<"POST", R>): Promise<Data<"POST", R>> {
+		const url = this.buildUrl("POST", route, query);
+		const init = this.buildRequestInit(body);
+
+		return this.handleRequest(url, init);
 	}
 }
