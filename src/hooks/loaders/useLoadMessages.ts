@@ -8,10 +8,8 @@ import * as FamilyMessagesGet from "../../api/contracts/v3/familles/messages/Get
 import mapStudentMessages from "../../mappers/v3/eleves/messages/mapper";
 import mapFamilyMessages from "../../mappers/v3/familles/messages/mapper";
 
-type Messages = ReturnType<typeof mapStudentMessages>;
-type MessageFolders = ReturnType<typeof mapMessageFolders>;
-type RawMessages = StudentMessagesGet.Data["messages"];
-type RawMessageFolders = StudentMessagesGet.Data["classeurs"];
+type Messages = ReturnType<typeof mapStudentMessages>["messages"];
+type MessageFolders = ReturnType<typeof mapStudentMessages>["messageFolders"];
 
 interface ThisUserData {
 	messages: {
@@ -36,19 +34,7 @@ function idToFolderInfo(id: number) {
 	}
 }
 
-function mapMessageFolders(folders: RawMessageFolders) {
-	let sortedMessageFolders = folders;
-	return sortedMessageFolders.map((folder) => {
-		return {
-			id: folder.id,
-			name: folder.libelle,
-			fetchInitiated: false,
-			fetched: false,
-		}
-	});
-}
-
-async function handleStudentRequest(selectedFolderId: number, userId: number): Promise<{ messages: Messages, folders: MessageFolders }> {
+async function handleStudentRequest(selectedFolderId: number, userId: number) {
 	const folderInfo = idToFolderInfo(selectedFolderId);
 	const query: StudentMessagesGet.Query = {
 		typeRecuperation: folderInfo.type,
@@ -58,15 +44,12 @@ async function handleStudentRequest(selectedFolderId: number, userId: number): P
 
 	const data = await api.get(`/v3/eleves/${userId}/messages`, { anneeMessages: "2025-2026" }, query);
 
-	const responseMessages = mapStudentMessages(data);
-	const responseFolders = mapMessageFolders(data.classeurs);
-
-	return { messages: responseMessages, folders: responseFolders };
+	return mapStudentMessages(data);
 }
 
 // These functions are 
 
-async function handleFamilyRequest(selectedFolderId: number, userId: number): Promise<{ messages: Messages, folders: MessageFolders }> {
+async function handleFamilyRequest(selectedFolderId: number, userId: number) {
 	const folderInfo = idToFolderInfo(selectedFolderId);
 	const query: FamilyMessagesGet.Query = {
 		typeRecuperation: folderInfo.type,
@@ -76,10 +59,7 @@ async function handleFamilyRequest(selectedFolderId: number, userId: number): Pr
 
 	const data = await api.get(`/v3/familles/${userId}/messages`, { anneeMessages: "2025-2026" }, query);
 
-	const responseMessages = mapFamilyMessages(data);
-	const responseFolders = mapMessageFolders(data.classeurs);
-
-	return { messages: responseMessages, folders: responseFolders };
+	return mapFamilyMessages(data);
 }
 
 export default function useLoadMessages(selectedFolderId: number) {
@@ -107,7 +87,7 @@ export default function useLoadMessages(selectedFolderId: number) {
 				: folder
 		));
 
-		let response: Promise<{ messages: Messages, folders: MessageFolders }>;
+		let response: Promise<{ messages: Messages, messageFolders: MessageFolders }>;
 		if (account.selectedUser.accountType === "E") {
 			response = handleStudentRequest(selectedFolderId, account.selectedUser.id);
 		} else {
@@ -127,7 +107,7 @@ export default function useLoadMessages(selectedFolderId: number) {
 			});
 			setMessageFolders((prev) => {
 				const next = [...prev];
-				for (const folder of data.folders) {
+				for (const folder of data.messageFolders) {
 					if (!next.some((newMessageFolder) => newMessageFolder.id === selectedFolderId)) {
 						next.push(folder);
 					}
