@@ -21,7 +21,7 @@
     "dev": "vite",
     "domain": "vite --config vite.domain.config.js",
     "host": "vite --host",
-    "build": "vite build",
+    "build": "tsc && vite build",
     "preview": "vite preview"
   },
   "eslintConfig": {
