@@ -1,0 +1,1 @@
+export type AccountDataDispatch<T> = (value: T | ((prevState: T) => T)) => void

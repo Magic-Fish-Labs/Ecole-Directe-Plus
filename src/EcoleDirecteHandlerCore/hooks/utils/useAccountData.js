@@ -44,9 +44,14 @@ export default function useAccountData(initAccountData, accountDataTemplate) {
             case "SET":
                 {
                     const next = [...current];
-                    const { data, value, userIndex } = params;
+                    const { data, setter, userIndex } = params;
 
-                    next[userIndex][data] = value;
+                    if (typeof setter === "function") {
+                        console.log("function used");
+                        next[userIndex][data] = setter(next[userIndex][data]);
+                    } else {
+                        next[userIndex][data] = setter;
+                    }
                     return next;
                 }
         }
@@ -73,14 +78,14 @@ export default function useAccountData(initAccountData, accountDataTemplate) {
      *  @param userIndex is the index of a specific user, this may be important in cases where you work with
      *                   async threads and you get data for a user after that the sekected user changed.
      */
-    function set(data, value, userIndex) {
+    function set(data, setter, userIndex) {
         if (userIndex >= accountData.length) {
             throw new Error("Cannot set data to unexistent user. Invalid userIndex")
         }
 
         dispatch({
             action: "SET",
-            params: { data, value, userIndex }
+            params: { data, setter, userIndex }
         });
     }
 
