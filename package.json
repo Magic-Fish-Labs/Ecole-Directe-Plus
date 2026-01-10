@@ -15,7 +15,8 @@
     "react-content-loader": "^6.2.1",
     "react-router-dom": "^6.16.0",
     "uuid": "^9.0.1",
-    "vite": "^6.2.5"
+    "vite": "^6.2.5",
+    "zod": "^4.3.5"
   },
   "scripts": {
     "dev": "vite",
