@@ -129,7 +129,7 @@ export default function useLoadMessages(selectedFolderId: number) {
 		return () => {
 			cancelled = true;
 		}
-	}, [selectedFolderId]);
+	}, [selectedFolderId, account.selectedUser.id]);
 
 	return loading;
 }

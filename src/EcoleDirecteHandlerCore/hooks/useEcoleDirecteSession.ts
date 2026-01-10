@@ -6,7 +6,7 @@ import { LoginStates, GradesCodes, HomeworksCodes, CommonCodes } from "../consta
 
 // split
 import useAccountData from "./utils/useAccountData";
-import fetchGrades from "../requests/fetchGrades.ts";
+import fetchGrades from "../requests/fetchGrades";
 import { mapGrades } from "../mappers/grades";
 import fetchTimeline from "../requests/fetchTimeline";
 import { mapTimeline } from "../mappers/timeline";

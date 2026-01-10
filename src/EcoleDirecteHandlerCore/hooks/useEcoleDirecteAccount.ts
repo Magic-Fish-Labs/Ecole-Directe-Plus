@@ -1,25 +1,23 @@
 // libs/utils
-import { useState, useRef, Dispatch, SetStateAction } from "react";
+import { useState, useRef, Dispatch, SetStateAction, useEffect } from "react";
 
 // constants
 import { LoginStates, CommonCodes } from "../constants/codes";
-import { guestDataPath, guestCredentials } from "../constants/config";
 
 // split
-import mapLogin from "../mappers/login";
+import { User } from "../mappers/login";
 import fetchDoubleAuthAnswer from "../requests/fetchDoubleAuthAnswer";
 import fetchDoubleAuthQuestions from "../requests/fetchDoubleAuthQuestions";
 import { DefaultEcoleDirecteAccount } from "../constants/default";
 import { mapDoubleAuthQuestion } from "../mappers/doubleAuthQuestions";
 import { requestLogin } from "./requestHandler/requestLogin";
 import EdError from "../class/EdError";
+import EDApiClient from "../../api/EDApiClient";
 
 type ObjectFromState<T> = {
     value: T,
     set: Dispatch<SetStateAction<T>>
 }
-
-export type User = any;
 
 export interface Account {
     userCredentials: {
@@ -37,7 +35,7 @@ export interface Account {
         requireNewToken: boolean,
         doubleAuthAcquired: boolean,
     },
-    selectedUser: User,
+    selectedUser: User | null,
     users: ObjectFromState<Array<User> | null>,
 };
 
@@ -57,6 +55,8 @@ function getInitialLoginState(initialAccount: any): LoginStates {
     }
     return LoginStates.REQUIRE_LOGIN;
 }
+
+const apiClient = EDApiClient.getInstance();
 
 export default function useEcoleDirecteAccount(initialAccount: any, callbacks: UseEcoleDirecteAccountCallbacks) {
     const [loginState, setLoginState] = useState(getInitialLoginState(initialAccount));
@@ -102,6 +102,14 @@ export default function useEcoleDirecteAccount(initialAccount: any, callbacks: U
         selectedUser,
         users: { value: users, set: setUsers },
     };
+
+    useEffect(() => {
+        apiClient.setToken(token);
+    }, [token]);
+
+    useEffect(() => {
+        apiClient.setDoubleAuthToken(doubleAuthToken);
+    }, [doubleAuthToken]);
 
     async function getDoubleAuthQuestions(controller: AbortController = new AbortController()) {
         // We don't handle guest because he doesn't need DoubleAuth obviously

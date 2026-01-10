@@ -9,7 +9,7 @@ export type Route = ParamToNumber<typeof routeById>
 
 // Query params
 
-export interface Query { mode: "destinataire" };
+export interface Query { mode: "destinataire" | "expediteur" };
 
 // Body
 
