@@ -71,7 +71,6 @@ export default class EDApiClient {
 			return content.data;
 		} catch (error) {
 			if (!(error instanceof Error)) throw error;
-			if (error.name === "AbortError") throw error;
 			throw new FetchError("Problem occured while fetching to Ed's API", { cause: error });
 		}
 	}
