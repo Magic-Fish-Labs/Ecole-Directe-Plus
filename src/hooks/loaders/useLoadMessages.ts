@@ -47,7 +47,7 @@ async function handleStudentRequest(selectedFolderId: number, userId: number) {
 	return mapStudentMessages(data);
 }
 
-// These functions are 
+// These functions are the same but for typing convenience it is splitted
 
 async function handleFamilyRequest(selectedFolderId: number, userId: number) {
 	const folderInfo = idToFolderInfo(selectedFolderId);
