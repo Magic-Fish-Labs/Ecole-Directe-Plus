@@ -1,1 +1,1 @@
-export type Route = "/v3/messagerie/classeurs.awp";
+export const route = "/v3/messagerie/classeurs" as const;

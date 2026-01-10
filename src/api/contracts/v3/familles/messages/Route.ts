@@ -1,2 +1,2 @@
-export type Route = `/v3/familles/${number}/messages.awp`;
-export type RouteById = `/v3/familles/${number}/messages/${number}.awp`;
+export const route = "/v3/familles/:id/messages" as const;
+export const routeById = "/v3/familles/:id/messages/:messageId" as const;

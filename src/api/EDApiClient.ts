@@ -1,6 +1,8 @@
+import CopyIcon from "../components/graphics/CopyIcon";
 import FetchError from "../EcoleDirecteHandlerCore/class/FetchError";
-import { apiBase, apiVersion } from "./apiConfigs";
-import { ApiMethod, Body, Data, Query, Routes } from "./contracts";
+import { apiBase, apiEnd, apiVersion } from "./apiConfigs";
+import { ApiMethod, Body, Data, Query, Routes, schemaMap } from "./contracts";
+import { matchRoute } from "./routeParamsUtils";
 
 export default class EDApiClient {
 	private static instance: EDApiClient;
@@ -32,11 +34,11 @@ export default class EDApiClient {
 	private buildUrl(method: ApiMethod, route: string, query: Record<string, any> = {}) {
 		const searchParams = new URLSearchParams();
 		for (const queryParam in query) {
-			searchParams.append(queryParam, query[queryParam]?.toString() ?? "");
+			searchParams.append(queryParam, query[queryParam].toString() ?? "");
 		}
 		searchParams.append("verbe", method.toLowerCase());
 		searchParams.append("v", apiVersion);
-		const url = new URL(route, apiBase);
+		const url = new URL(route + apiEnd, apiBase);
 		url.search = searchParams.toString();
 		return url;
 	}
@@ -61,11 +63,11 @@ export default class EDApiClient {
 		return init;
 	}
 
-	private async handleRequest<M extends ApiMethod, R extends Routes>(url: URL, init: RequestInit): Promise<Data<M, R>> {
+	private async handleRequest(url: URL, init: RequestInit): Promise<unknown> {
 		try {
 			const res = await fetch(url, init);
+			const content = await res.json() as { code: number, token: string, host: string, data: unknown }
 			// !:! handle invalide code
-			const content = await res.json() as { code: number, token: string, host: string, data: Data<M, R> }
 			return content.data;
 		} catch (error) {
 			if (!(error instanceof Error)) throw error;
@@ -77,18 +79,22 @@ export default class EDApiClient {
 	async get<R extends Routes<"GET">>(route: R, body: Body<"GET", R>): Promise<Data<"GET", R>>;
 	async get<R extends Routes<"GET">>(route: R, body: Body<"GET", R>, query: Query<"GET", R>): Promise<Data<"GET", R>>;
 	async get<R extends Routes<"GET">>(route: R, body: Body<"GET", R>, query?: Query<"GET", R>): Promise<Data<"GET", R>> {
+		const schemaRoute = matchRoute(route, schemaMap.GET);
+		if (!schemaRoute) throw new Error("Invalid Route");
 		const url = this.buildUrl("GET", route, query);
 		const init = this.buildRequestInit(body);
-
-		return this.handleRequest(url, init);
+		const data = await this.handleRequest(url, init);
+		return schemaMap.GET[schemaRoute].parse(data) as Data<"GET", R>;
 	}
 
 	async post<R extends Routes<"POST">>(route: R, body: Body<"POST", R>): Promise<Data<"POST", R>>;
 	async post<R extends Routes<"POST">>(route: R, body: Body<"POST", R>, query: Query<"POST", R>): Promise<Data<"POST", R>>;
 	async post<R extends Routes<"POST">>(route: R, body: Body<"POST", R>, query?: Query<"POST", R>): Promise<Data<"POST", R>> {
+		const schemaRoute = matchRoute(route, schemaMap.POST);
+		if (!schemaRoute) throw new Error("Invalid Route");
 		const url = this.buildUrl("POST", route, query);
 		const init = this.buildRequestInit(body);
-
-		return this.handleRequest(url, init);
+		const data = this.handleRequest(url, init);
+		return schemaMap.POST[schemaRoute].parse(data) as Data<"POST", R>;
 	}
 }

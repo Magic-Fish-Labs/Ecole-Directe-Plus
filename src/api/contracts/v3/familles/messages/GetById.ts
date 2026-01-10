@@ -1,4 +1,11 @@
-export type { RouteById as Route } from "./Route";
+import { z } from "zod";
+import { ParamToNumber } from "../../../../routeParamsUtils";
+import { routeById as route } from "./Route";
+
+// Route
+
+export { route };
+export type Route = ParamToNumber<typeof route>;
 
 // Query params
 
@@ -10,47 +17,49 @@ export interface Body { anneeMessages: string };
 
 // Response data
 
-export interface Data {
-	id: number
-	responseId: number
-	forwardId: number
-	mtype: string
-	read: boolean
-	idDossier: number
-	idClasseur: number
-	transferred: boolean
-	answered: boolean
-	to_cc_cci: string
-	brouillon: boolean
-	canAnswer: boolean
-	subject: string
-	content: string
-	date: string
-	to: Array<To>
-	files: any[]
-	from: From
-};
+export const toSchema = z.object({
+	nom: z.string(),
+	prenom: z.string(),
+	particule: z.string(),
+	civilite: z.string(),
+	role: z.string(),
+	id: z.number(),
+	read: z.boolean(),
+	to_cc_cci: z.string(),
+	fonctionPersonnel: z.string()
+});
 
-export interface To {
-	nom: string
-	prenom: string
-	particule: string
-	civilite: string
-	role: string
-	id: number
-	read: boolean
-	to_cc_cci: string
-	fonctionPersonnel: string
-}
+export const fromSchema = z.object({
+	nom: z.string(),
+	prenom: z.string(),
+	particule: z.string(),
+	civilite: z.string(),
+	role: z.string(),
+	listeRouge: z.boolean(),
+	id: z.number(),
+	read: z.boolean(),
+	fonctionPersonnel: z.string()
+});
 
-export interface From {
-	nom: string
-	prenom: string
-	particule: string
-	civilite: string
-	role: string
-	listeRouge: boolean
-	id: number
-	read: boolean
-	fonctionPersonnel: string
-};
+export const dataSchema = z.object({
+	id: z.number(),
+	responseId: z.number(),
+	forwardId: z.number(),
+	mtype: z.string(),
+	read: z.boolean(),
+	idDossier: z.number(),
+	idClasseur: z.number(),
+	transferred: z.boolean(),
+	answered: z.boolean(),
+	to_cc_cci: z.string(),
+	brouillon: z.boolean(),
+	canAnswer: z.boolean(),
+	subject: z.string(),
+	content: z.string(),
+	date: z.string(),
+	to: z.array(toSchema),
+	files: z.array(z.any()),
+	from: fromSchema
+});
+
+export type Data = z.infer<typeof dataSchema>;
