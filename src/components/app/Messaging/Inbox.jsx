@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useContext } from "react";
+import { useState, useRef, useContext } from "react";
 import ContentLoader from "react-content-loader";
 import { AppContext, SettingsContext, UserDataContext } from "../../../App";
 

@@ -18,9 +18,9 @@ import SendIcon from "../../graphics/SendIcon";
 import DraftIcon from "../../graphics/DraftIcon";
 import DeleteIcon from "../../graphics/DeleteIcon";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../generic/PopUps/Tooltip";
+import useLoadMessageContent from "../../../hooks/loaders/useLoadMessageContent";
 
-
-export default function MessageReader({ selectedMessage, fetchMessageMarkAsUnread, setSelectedMessage, archiveMessage, unarchiveMessage, moveMessage, deleteMessage }) {
+export default function MessageReader({ selectedMessageId, setSelectedMessage }) {
 
     // States
     const location = useLocation();
@@ -28,7 +28,8 @@ export default function MessageReader({ selectedMessage, fetchMessageMarkAsUnrea
 
     const settings = useContext(SettingsContext)
     const {
-        isStreamerModeEnabled: { value: isStreamerModeEnabled }
+        isStreamerModeEnabled: { value: isStreamerModeEnabled },
+        displayMode: { value: displayMode }
     } = settings.user;
 
     const [spoiler, setSpoiler] = useState(isStreamerModeEnabled);
@@ -38,12 +39,15 @@ export default function MessageReader({ selectedMessage, fetchMessageMarkAsUnrea
         messages: { value: messages, set: setMessages }
     } = userData;
 
-    const message = messages ? messages.find((item) => item.id === selectedMessage) : null;
+    useLoadMessageContent(selectedMessageId);
+    const message = messages ? messages.find((item) => item.id === selectedMessageId) : null;
+
+    const isDisplayModeQuality = displayMode === "quality";
 
     // behavior
     useEffect(() => {
         setSpoiler(isStreamerModeEnabled);
-    }, [selectedMessage])
+    }, [selectedMessageId])
 
     const handleMarkAsUnread = (event, msg) => {
         event.preventDefault();
@@ -51,7 +55,7 @@ export default function MessageReader({ selectedMessage, fetchMessageMarkAsUnrea
         const controller = new AbortController();
         fetchMessageMarkAsUnread([msg.id], controller);
 
-        if (msg.id === selectedMessage) {
+        if (msg.id === selectedMessageId) {
             setSelectedMessage(null);
         }
 
@@ -68,10 +72,11 @@ export default function MessageReader({ selectedMessage, fetchMessageMarkAsUnrea
 
     return (
         <div id="message-reader">
-            {selectedMessage !== null && messages && messages.length > 0
+            {console.log(message)}
+            {selectedMessageId !== null && messages && messages?.length > 0
                 ? <div className="message-container">
                     <div className="email-header">
-                        <p className="author">{message && (message?.from?.civilite + " " + (settings.get("isStreamerModeEnabled") ? "-".repeat(message?.from?.nom?.length) : message?.from?.nom))}</p>
+                        <p className="author">{message && (message?.from?.civilite + " " + (isStreamerModeEnabled ? "-".repeat(message?.from?.nom?.length) : message?.from?.nom))}</p>
                         <h3>{message && capitalizeFirstLetter(message?.subject)}</h3>
                         <p className="send-date">{message && message?.date && (new Date(message.date).toLocaleDateString("fr-FR", {
                             month: "long",
@@ -81,7 +86,7 @@ export default function MessageReader({ selectedMessage, fetchMessageMarkAsUnrea
                         }))}</p>
                     </div>
                     <hr />
-                    <ScrollShadedDiv className="message-content-container" key={message?.content ? selectedMessage + "-content" /* trigger a rerender so that the ScrollShadedDiv detect overflow and display shadows */ : selectedMessage}>
+                    <ScrollShadedDiv className="message-content-container" key={message?.content ? selectedMessageId + "-content" /* trigger a rerender so that the ScrollShadedDiv detect overflow and display shadows */ : selectedMessageId}>
                         {message?.content
                             ? <>
                                 {spoiler ? <div className="reveal-spoiler-container"><h3>Streamer Mode activé</h3><span><p>Le contenu de ce message pourrait contenir des informations personnelles sensibles.</p><p>Cliquez sur Continuer pour afficher le message.</p></span><button className="reveal-spoiler" onClick={() => setSpoiler(false)}>Continuer</button></div> : null}
@@ -89,7 +94,7 @@ export default function MessageReader({ selectedMessage, fetchMessageMarkAsUnrea
                             </>
                             : <ContentLoader
                                 className="message-content"
-                                animate={settings.get("displayMode") === "quality"}
+                                animate={isDisplayModeQuality}
                                 speed={1}
                                 backgroundColor={usedDisplayTheme === "dark" ? "#63638c" : "#9d9dbd"}
                                 foregroundColor={usedDisplayTheme === "dark" ? "#7e7eb2" : "#bcbce3"}

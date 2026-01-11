@@ -8,11 +8,19 @@ export default function useAccountSettings(init, template) {
         switch (action) {
             case "SET":
                 {
-                    const { setting, value } = params;
+                    const { setting, value: setter } = params;
                     if (next[selectedUserSettingIndex].hasOwnProperty(setting)) {
-                        next[selectedUserSettingIndex][setting].value = value;
+                        if (typeof setter === "function") {
+                            next[selectedUserSettingIndex][setting].value = setter(next[selectedUserSettingIndex][setting]);
+                        } else {
+                            next[selectedUserSettingIndex][setting].value = setter;
+                        }
                     } else {
-                        next[selectedUserSettingIndex][setting] = { value, properties: {} };
+                        if (typeof setter === "function") {
+                            next[selectedUserSettingIndex][setting] = { value: setter(undefined), properties: {} };
+                        } else {
+                            next[selectedUserSettingIndex][setting] = { value: setter, properties: {} };
+                        }
                     }
                     return next;
                 }

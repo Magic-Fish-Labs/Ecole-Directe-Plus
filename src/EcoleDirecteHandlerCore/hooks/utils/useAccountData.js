@@ -47,7 +47,6 @@ export default function useAccountData(initAccountData, accountDataTemplate) {
                     const { data, setter, userIndex } = params;
 
                     if (typeof setter === "function") {
-                        console.log("function used");
                         next[userIndex][data] = setter(next[userIndex][data]);
                     } else {
                         next[userIndex][data] = setter;

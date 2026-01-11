@@ -223,108 +223,6 @@ export default function App() {
     //                                                                                                                                                                                  //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    function sortNextHomeworks(homeworks) { // This function will sort (I would rather call it translate) the EcoleDirecte response to a better js object
-        const upcomingAssignments = []
-        const sortedHomeworks = Object.fromEntries(Object.entries(homeworks).map((day) => {
-            return [day[0], day[1].map((homework, i) => {
-                const { codeMatiere, aFaire, donneLe, effectue, idDevoir, interrogation, matiere, /* rendreEnLigne, documentsAFaire // I don't know what to do with that for now */ } = homework;
-                const task = {
-                    id: idDevoir,
-                    type: aFaire ? "task" : "sessionContent",
-                    subjectCode: codeMatiere,
-                    subject: matiere,
-                    addDate: donneLe,
-                    isInterrogation: interrogation,
-                    isDone: effectue,
-                }
-
-                if (interrogation && upcomingAssignments.length < 3) {
-                    upcomingAssignments.push({
-                        date: day[0],
-                        id: idDevoir,
-                        index: i,
-                        subject: matiere,
-                        subjectCode: codeMatiere,
-                    });
-                }
-
-                return task;
-            })]
-        }))
-
-        if (upcomingAssignments.length > 0) {
-            let i = 0;
-            while (upcomingAssignments.length < 3) {
-                upcomingAssignments.push({
-                    id: "dummy" + i,
-                });
-                i++;
-            }
-        }
-        userData.set("upcomingAssignments", upcomingAssignments)
-        return sortedHomeworks
-    }
-
-    function sortMessageFolders(messages, origin = 0) {
-        const oldMessageFolders = useUserData("messageFolders").get();
-        let sortedMessageFolders = messages.classeurs.filter((folder) => (oldMessageFolders === undefined || !oldMessageFolders.some((oldFolder) => oldFolder.id === folder.id))).map((folder) => {
-            return {
-                id: folder.id,
-                name: folder.libelle,
-                fetchInitiated: false,
-                fetched: origin === folder.id
-            }
-        });
-        if (oldMessageFolders === undefined) {
-            sortedMessageFolders.unshift({
-                id: 0,
-                name: "Boîte de réception",
-                fetchInitiated: true,
-                fetched: origin === 0
-            })
-        } else {
-            sortedMessageFolders.unshift(oldMessageFolders.map((folder) => { folder.id === origin && (folder.fetched = true); return folder }));
-            sortedMessageFolders = sortedMessageFolders.flat();
-        }
-        // Add hardcoded folders
-        if (!sortedMessageFolders.some((folder) => folder.id === -1)) {
-            sortedMessageFolders.push({
-                id: -1,
-                name: "Envoyés",
-                fetchInitiated: false,
-                fetched: origin === -1
-            })
-        }
-        if (!sortedMessageFolders.some((folder) => folder.id === -2)) {
-            sortedMessageFolders.push({
-                id: -2,
-                name: "Archivés",
-                fetchInitiated: false,
-                fetched: origin === -2
-            })
-        }
-        if (!sortedMessageFolders.some((folder) => folder.id === -3)) {
-            sortedMessageFolders.push({
-                id: -3,
-                name: "Nouveau dossier",
-                // This is a virtual folder (it doesn't exist at all, it's just a button to create a new folder so it doesn't need to be fetched)
-                fetchInitiated: true,
-                fetched: true
-            })
-        }
-        if (!sortedMessageFolders.some((folder) => folder.id === -4)) {
-            sortedMessageFolders.push({
-                id: -4,
-                name: "Brouillons",
-                fetchInitiated: false,
-                fetched: origin === -4
-            })
-        }
-
-        return sortedMessageFolders;
-    }
-
-
     function sortMessages(messages) {
         const sortedMessages = messages.messages.received.map((message) => {
             return {
@@ -335,30 +233,11 @@ export default function App() {
                 folderId: message.idClasseur,
                 read: message.read,
                 subject: message.subject,
-                content: null,
-                // ...
+                content: null
             }
         });
 
         return sortedMessages;
-    }
-
-    function sortMessageContent(messageContent) {
-        if (!messageContent) {
-            return;
-        }
-        const oldSortedMessages = useUserData("sortedMessages").get();
-        const targetMessageIdx = oldSortedMessages.findIndex((item) => item.id === messageContent.id);
-        oldSortedMessages[targetMessageIdx].read = true;
-        oldSortedMessages[targetMessageIdx].files = messageContent.files.map((file) => new File(file.id, file.type, file.libelle));
-        oldSortedMessages[targetMessageIdx].content = {
-            id: messageContent.id,
-            subject: messageContent.subject,
-            date: messageContent.subject,
-            content: messageContent.content
-            // ...
-        };
-        useUserData("sortedMessages").set(oldSortedMessages);
     }
 
     function sortSchoolLife(schoolLife, activeAccount) {
@@ -500,7 +379,6 @@ export default function App() {
                         folderId = -4;
                     }
                     userData.set("sortedMessages", oldSortedMessages.flat());
-                    userData.set("messageFolders", sortMessageFolders(response.data, folderId));
                 } else if (code === 520 || code === 525) {
                     // token invalide
                     requireLogin();
@@ -515,60 +393,7 @@ export default function App() {
             .finally(() => {
                 abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
             })
-    }
-
-    async function fetchMessageContent(id, controller) {
-        const oldSortedMessages = userData.sortedMessages;
-        if (oldSortedMessages && oldSortedMessages?.length > 0) {
-            const targetMessageIdx = oldSortedMessages.findIndex((item) => item.id === id);
-            if (oldSortedMessages[targetMessageIdx].content !== null) {
-                return;
-            }
-        }
-        abortControllers.current.push(controller);
-        const userId = selectedUserIndex.value;
-        const data = {
-            anneeMessages: userSettings.isSchoolYearEnabled.value ? userSettings.schoolYear.value.join("-") : getCurrentSchoolYear().join("-"),
-        }
-
-        const mode = (oldSortedMessages.find((item) => item.id === id).folderId === -1 || oldSortedMessages.find((item) => item.id === id).folderId === -4) ? "expediteur" : "destinataire";
-
-        fetch(
-            `https://api.ecoledirecte.com/v3/${accountsListState[userId].accountType === "E" ? "eleves/" + accountsListState[userId].id : "familles/" + accountsListState[userId].familyId}/messages/${id}.awp?verbe=get&mode=${mode}&v=${apiVersion}`,
-            {
-                method: "POST",
-                headers: {
-                    "x-token": tokenState
-                },
-                body: `data=${JSON.stringify(data)}`,
-                signal: controller.signal,
-                referrerPolicy: "no-referrer",
-            },
-            "json"
-        )
-            .then((response) => {
-                let code;
-                if (selectedUser.id === -1) {
-                    code = 49969;
-                } else {
-                    code = response.code;
-                }
-                if (code === 200) {
-                    sortMessageContent(response.data)
-                } else if (code === 520 || code === 525) {
-                    // token invalide
-                    requireLogin();
-                } else if (code === 49969) {
-                    // TODO: add data/messages.json for guest user
-                    // import("./data/guest/messages.json").then((module) => {
-                    //      sortMessageContent(module.data)
-                    // })
-                }
-                setTokenState((old) => (response?.token || old));
-            })
-            .finally(() => {
-                abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
-            })
+        controller.abort();
     }
 
     async function fetchMessageMarkAsUnread(ids = [], controller) {
@@ -1121,7 +946,7 @@ export default function App() {
                             path: "messaging"
                         },
                         {
-                            element: <Messaging isLoggedIn={isLoggedIn} activeAccount={selectedUserIndex.value} fetchMessages={fetchMessages} fetchMessageContent={fetchMessageContent} fetchMessageMarkAsUnread={fetchMessageMarkAsUnread} renameFolder={renameFolder} deleteFolder={deleteFolder} createFolder={createFolder} archiveMessage={archiveMessage} unarchiveMessage={unarchiveMessage} moveMessage={moveMessage} deleteMessage={deleteMessage} />,
+                            element: <Messaging isLoggedIn={isLoggedIn} activeAccount={selectedUserIndex.value} fetchMessages={fetchMessages} fetchMessageMarkAsUnread={fetchMessageMarkAsUnread} renameFolder={renameFolder} deleteFolder={deleteFolder} createFolder={createFolder} archiveMessage={archiveMessage} unarchiveMessage={unarchiveMessage} moveMessage={moveMessage} deleteMessage={deleteMessage} />,
                             path: ":userId/messaging"
                         },
                     ],

@@ -99,8 +99,8 @@ export function clearHTML(html, backgroundColor, asString=true) {
      * @param backgroundColor The color of the background on which the text will be displayed. Allow the function to improve constrasts. (RGB format: list)
     */
 
-    // let decodedHTML = decodeBase64(html);
-    let readableOutput = decodeHtmlEscaped(html);
+    let decodedHTML = decodeBase64(html);
+    let readableOutput = decodeHtmlEscaped(decodedHTML);
     let safeHTML = sanitizeHTML(readableOutput);
     const parser = new DOMParser();
     let parsedHTML = parser.parseFromString(safeHTML, "text/html").body;
