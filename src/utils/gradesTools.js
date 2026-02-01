@@ -128,12 +128,13 @@ export function calcGeneralAverage(period) {
             let coefMultiplicator = 1;
             if (currentSubject.isSubSubject) {
                 const subjectCode = currentSubject.name.split(" - ")[0];
+                const subSubjectCode = currentSubject.name.split(" - ").join("");
                 const validKeys = Object.keys(period.subjects).filter((key) => (key !== subjectCode && key.includes(subjectCode))); // selects other subsubjects (and exclude the parent subject)
                 let sum = 0;
                 for (let validKey of validKeys) {
                     sum += period.subjects[validKey].coef;
                 }
-                coefMultiplicator = sum ? (period.subjects[subjectCode].coef / sum) : 0; // Handle the case where the sum of subSubject coef is 0 
+                coefMultiplicator = sum ? (period.subjects[subSubjectCode].coef / sum) : 0; // Handle the case where the sum of subSubject coef is 0 
             }
             list.push({
                 value: currentSubject.average ?? 0,
@@ -154,12 +155,13 @@ export function calcClassGeneralAverage(period) {
             let coefMultiplicator = 1;
             if (currentSubject.isSubSubject) {
                 const subjectCode = currentSubject.name.split(" - ")[0];
+                const subSubjectCode = currentSubject.name.split(" - ").join("");
                 const validKeys = Object.keys(period.subjects).filter((key) => (key !== subjectCode && key.includes(subjectCode))); // selects other subsubjects (and exclude the parent subject)
                 let sum = 0;
                 for (let validKey of validKeys) {
                     sum += period.subjects[validKey].coef;
                 }
-                coefMultiplicator = period.subjects[subjectCode].coef / sum;
+                coefMultiplicator = period.subjects[subSubjectCode].coef / sum;
             }
             list.push({
                 value: currentSubject.classAverage ?? 0,
