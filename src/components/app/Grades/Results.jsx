@@ -119,7 +119,7 @@ export default function Results({ selectedDisplayType, setSelectedDisplayType, .
                         </div>
                         <div className="general-average">
                             <span>Moyenne Générale</span>
-                            <Tooltip enableHover={grades?.[activePeriod]?.classGeneralAverage || grades?.[activePeriod]?.classGeneralAverage === 0} >
+                            <Tooltip options={{ enableHover: grades?.[activePeriod]?.classGeneralAverage || grades?.[activePeriod]?.classGeneralAverage === 0 }} >
                                 <TooltipTrigger>
                                     <span>
                                         {grades && grades[activePeriod]
@@ -189,7 +189,7 @@ export default function Results({ selectedDisplayType, setSelectedDisplayType, .
                                                     <th className="head-cell">
                                                         {el.isCategory
                                                             ? <div className="head-name">{el.name}</div>
-                                                            : <span onClick={() => setSelectedGradeElement(el)} id={(el.id ?? "")} className={classBuilder("head-name", {"selected": el.id && selectedGradeElement?.id === el.id})} >{el.name}</span>
+                                                            : <span onClick={() => setSelectedGradeElement(el)} id={(el.id ?? "")} className={classBuilder("head-name", { "selected": el.id && selectedGradeElement?.id === el.id })} >{el.name}</span>
                                                         }
                                                     </th>
                                                     <td className="moyenne-cell">
@@ -205,11 +205,11 @@ export default function Results({ selectedDisplayType, setSelectedDisplayType, .
                                                             </div>
                                                             : <div className="grades-values">
                                                                 {el.grades.filter(el => !el.isSimulated).map((grade) => {
-                                                                    return <Grade selectable grade={grade} key={grade.id} className={classBuilder({"selected": grade.id && selectedGradeElement?.id === grade.id})} />
+                                                                    return <Grade selectable grade={grade} key={grade.id} className={classBuilder({ "selected": grade.id && selectedGradeElement?.id === grade.id })} />
                                                                 })}
                                                                 <GradeSimulationTrigger subjectKey={idx} periodKey={activePeriod} />
                                                                 {el.grades.filter(el => el.isSimulated).map((grade) => {
-                                                                    return <Grade selectable grade={grade} key={grade.id} className={classBuilder({"selected": grade.id && selectedGradeElement?.id === grade.id})} />
+                                                                    return <Grade selectable grade={grade} key={grade.id} className={classBuilder({ "selected": grade.id && selectedGradeElement?.id === grade.id })} />
                                                                 })}
                                                             </div>}
                                                     </td>

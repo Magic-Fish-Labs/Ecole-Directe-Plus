@@ -140,7 +140,7 @@ export default function Grade({ grade, subject, selectable = false, className = 
                 ? grade.value
                 : grade.subject && !isNaN(grade.value)
                     // Only render Tooltip when the grade has a subject and a numeric value
-                    ? <Tooltip placement="left">
+                    ? <Tooltip options={{placement: "left"}} >
                         <TooltipTrigger>
                             <span
                                 className={

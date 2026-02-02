@@ -1,5 +1,5 @@
 
-import { useState, useRef, createContext, useContext, forwardRef, isValidElement, cloneElement } from "react";
+import { useState, useRef, createContext, useContext, forwardRef, cloneElement, type HTMLProps, ReactElement, ReactNode, Ref, isValidElement, Component, PureComponent, PropsWithChildren, HTMLAttributes, RefAttributes } from "react";
 import {
     useFloating,
     useHover,
@@ -19,27 +19,50 @@ import {
     useMergeRefs,
     FloatingPortal
 } from "@floating-ui/react";
-import { AppContext } from "../../../App";
+import type { Placement } from "@floating-ui/react";
 // Check out the FloatingUI docs for more information : https://floating-ui.com/docs/react
 
 import './Tooltip.css'
+import { isFileServingAllowed } from "vite";
 
 const ARROW_WIDTH = 16;
 const ARROW_HEIGHT = 8;
 
-function useTooltip(options) {
-    // available options:
-    // isOpen (bool) ; placement (str: "top" ; "right" ; ...) ; animationDuration (int: ms) ; delay (int: ms) ;
-    // restDuration (int: ms) ; restFallbackDuration (int: ms) ; disableSafePolygon (bool)
-    // enableHover (bool) ; enableFocus (bool) ; enableClick (bool) ; enableDismiss (bool)
+export interface TooltipOptions {
+    isOpen?: boolean,
+    placement?: Placement,
+    enableHover?: boolean,
+    enableFocus?: boolean,
+    enableClick?: boolean,
+    enableDismiss?: boolean,
+    animationDuraction?: number,
+    delay?: number,
+    restDuration?: number,
+    restFallbackDuration?: number,
+    disableSafePolygon?: boolean,
+    closeOnClickInside?: boolean,
+}
 
-    const [isOpen, setIsOpen] = useState(options.isOpen ?? false);
+function useTooltip({
+    isOpen = false,
+    placement = "top",
+    enableHover = true,
+    enableFocus = true,
+    enableClick = false,
+    enableDismiss = true,
+    animationDuraction = 250,
+    delay = 0,
+    restDuration = 0,
+    restFallbackDuration = 0,
+    disableSafePolygon = true,
+}: TooltipOptions) {
+    const [isOpenState, setIsOpen] = useState(isOpen);
 
-    const arrowRef = useRef(null);
+    const arrowRef = useRef<SVGSVGElement>(null);
 
     // - - Floating properties - -
     const data = useFloating({
-        open: isOpen,
+        open: isOpenState,
         onOpenChange: setIsOpen,
         // AutoUpdate position :
         // whileElementsMounted(...args) {
@@ -48,7 +71,7 @@ function useTooltip(options) {
         //     return cleanup;
         // },
         whileElementsMounted: autoUpdate,
-        placement: (options.placement ?? "top"),
+        placement: placement,
         middleware: [offset(ARROW_HEIGHT + 2), flip(), shift({ padding: 10 }), arrow({ element: arrowRef })],
     });
 
@@ -62,22 +85,22 @@ function useTooltip(options) {
 
     // - - Interactions - -
     const hover = useHover(context, {
-        enabled: (options.enableHover ?? true),
-        restMs: (options.restDuration ?? 0),
-        delay: (options.restDuration ? { open: options.restFallbackDuration } : { open: (options.delay ?? 0) }),
-        handleClose: ((options.disableSafePolygon === undefined || options.disableSafePolygon) ? safePolygon() : null)
+        enabled: enableHover,
+        restMs: restDuration,
+        delay: { open: restDuration ? restFallbackDuration : delay },
+        handleClose: disableSafePolygon ? safePolygon() : null
     });
 
     const focus = useFocus(context, {
-        enabled: (options.enableFocus ?? true)
+        enabled: enableFocus
     });
 
     const click = useClick(context, {
-        enabled: (options.enableClick ?? false)
+        enabled: enableClick
     });
 
     const dismiss = useDismiss(context, {
-        enabled: (options.enableDismiss ?? true),
+        enabled: enableDismiss,
         outsidePressEvent: 'click'
     });
 
@@ -95,7 +118,7 @@ function useTooltip(options) {
 
     // - - Transitions - -
     const transition = useTransitionStyles(context, {
-        duration: (options.animationDuraction ?? 250),
+        duration: animationDuraction,
 
         initial: ({ side }) => ({
             opacity: 0,
@@ -124,17 +147,16 @@ function useTooltip(options) {
     });
 
     return ({
-        isOpen,
+        isOpen: isOpenState,
         setIsOpen,
         arrowRef,
-        options,
         ...interactions,
         ...transition,
         ...data
     })
 }
 
-const TooltipContext = createContext(null);
+const TooltipContext = createContext<{ tooltip: ReturnType<typeof useTooltip>, options: TooltipOptions }>(null);
 
 function useTooltipContext() {
     // Fonction pour sécuriser la récupération du context
@@ -147,35 +169,33 @@ function useTooltipContext() {
     return context;
 };
 
-export function Tooltip({ children, className = "", id = "", ...options }) {
+export function Tooltip({ children, className = "", id = "", options = {} }: { children: ReactNode, className?: string, id?: string, options?: TooltipOptions }) {
     const tooltip = useTooltip(options);
 
     return (
         <div className={`tooltip ${className}`} id={id}>
-            <TooltipContext.Provider value={tooltip}>
+            <TooltipContext.Provider value={{ tooltip, options }}>
                 {children}
             </TooltipContext.Provider>
         </div>
     );
 }
 
-export const TooltipTrigger = forwardRef(function TooltipTrigger({ children, ...props }, propRef) {
-    const context = useTooltipContext();
+export function TooltipTrigger({ children, ...props }: PropsWithChildren<Record<string, any>>) {
+    const { tooltip } = useTooltipContext();
 
-    const ref = useMergeRefs([context.refs.setReference, children.ref, propRef]);
+    const ref = useMergeRefs([tooltip.refs.setReference, isValidElement<Record<string, any>>(children) ? (children.props as { ref?: Ref<any> }).ref : undefined]);
 
     // Si children est un composant, on lui rajoute les props 
-    if (isValidElement(children)) {
+    if (isValidElement<Record<string, any>>(children)) {
         return cloneElement(
             children,
-            context.getReferenceProps({
-                ref,
+            tooltip.getReferenceProps({
                 ...props,
-                ...children.props,
+                ...(typeof children.props === "object" ? children.props : undefined),
                 tabIndex: 0,
-                // on peut styliser le composant en fonction de l'état
-                "data-state": context.isOpen ? "open" : "closed"
-            })
+                "data-state": tooltip.isOpen ? "open" : "closed"
+            } as any)
         );
     }
 
@@ -184,26 +204,26 @@ export const TooltipTrigger = forwardRef(function TooltipTrigger({ children, ...
         <div
             ref={ref}
             // on peut styliser le composant en fonction de l'état
-            data-state={context.isOpen ? "open" : "closed"}
-            {...context.getReferenceProps(props)}
-            tabIndex="0"
+            data-state={tooltip.isOpen ? "open" : "closed"}
+            {...tooltip.getReferenceProps(props)}
+            tabIndex={0}
         >
             {children}
         </div>
     );
-});
+}
 
-export const TooltipContent = forwardRef(function TooltipContent({ children, style, className = "", ...props }, propRef) {
-    const context = useTooltipContext();
-    const ref = useMergeRefs([context.refs.setFloating, children.ref, propRef]);
+export function TooltipContent({ children, style, className = "", ...props }: PropsWithChildren<Record<string, any>>) {
+    const { tooltip, options } = useTooltipContext();
+    const ref = useMergeRefs([tooltip.refs.setFloating, isValidElement<Record<string, any>>(children) ? (children.props as { ref?: Ref<any> }).ref : undefined]);
 
     // Affiche / N'affiche pas la tooltip
-    if (!context.isMounted) return null;
+    if (!tooltip.isMounted) return null;
 
     // Gestion du clic à l'intérieur pour fermer la tooltip
     const handleClickInside = () => {
-        if (context.options.closeOnClickInside) {
-            context.setIsOpen(false);
+        if (options.closeOnClickInside) {
+            tooltip.setIsOpen(false);
         }
     };
 
@@ -213,17 +233,16 @@ export const TooltipContent = forwardRef(function TooltipContent({ children, sty
                 ref={ref}
                 className={`tooltip-content ${className}`}
                 style={{
-                    ...context.floatingStyles,
-                    ...context.styles,
+                    ...tooltip.floatingStyles,
+                    ...tooltip.styles,
                     ...style
                 }}
-                {...context.getFloatingProps(props)}
+                {...tooltip.getFloatingProps(props)}
                 onClick={handleClickInside}
             >
-                <FloatingArrow className={`floating-arrow ${className}`} ref={context.arrowRef} context={context} tipRadius={2} width={ARROW_WIDTH} height={ARROW_HEIGHT} />
+                <FloatingArrow className={`floating-arrow ${className}`} ref={tooltip.arrowRef} context={tooltip.context} tipRadius={2} width={ARROW_WIDTH} height={ARROW_HEIGHT} />
                 {children}
             </div>
         </FloatingPortal>
     );
-});
-
+}

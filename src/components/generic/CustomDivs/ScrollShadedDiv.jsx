@@ -2,11 +2,11 @@ import { useRef, useEffect } from "react";
 import "./ScrollShadedDiv.css";
 
 export default function ScrollShadedDiv({
-    id,
+    id = null,
     className = "",
     children,
-    onScroll,
-    setRef,
+    onScroll = null,
+    setRef = null,
     enableSideShadows = false,
     ...props
 }) {

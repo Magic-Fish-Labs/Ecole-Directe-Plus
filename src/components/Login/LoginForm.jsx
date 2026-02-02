@@ -204,7 +204,7 @@ export default function LoginForm({ logout, disabledKeepLoggedInCheckBox = false
             />
             <p className="error-message">{displayState.errorMessage}</p>
             <div className="login-option">
-                <Tooltip delay={400}>
+                <Tooltip options={{ delay: 400 }}>
                     <TooltipTrigger>
                         <CheckBox disabled={disabledKeepLoggedInCheckBox || displayState.submitState === ButtonStates.SUBMITTING} id="keep-logged-in" label="Rester connecté" checked={localKeepLoggedIn} onChange={updateKeepLoggedIn} />
                     </TooltipTrigger>

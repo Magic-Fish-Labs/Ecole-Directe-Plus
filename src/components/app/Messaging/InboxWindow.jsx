@@ -138,7 +138,7 @@ export default function InboxWindow({ selectedMessage, setSelectedMessage }) {
 	return <Window allowFullscreen={true} className="inbox-window">
 		<WindowHeader className="inbox-window-header">
 			{loading && folders.length > 1
-				? <Tooltip className="folder-tooltip" placement="bottom" closeOnClickInside={isTabletLayout} onClick={(event) => event.stopPropagation()}>
+				? <Tooltip className="folder-tooltip" options={{ placement: "bottom", closeOnClickInside: isTabletLayout }} onClick={(event) => event.stopPropagation()}>
 					<TooltipTrigger > <FolderIcon alt="folder icon" className="folder-icon" /> </TooltipTrigger>
 					<TooltipContent className="no-questionmark">
 						<h3>Dossiers</h3>
@@ -189,7 +189,7 @@ export default function InboxWindow({ selectedMessage, setSelectedMessage }) {
 			}
 
 			{selectedFolder !== 0 && selectedFolder !== -1 && selectedFolder !== -2 && selectedFolder !== -4 && selectedFolder !== -3
-				? <Tooltip className="edit-folder-tooltip" placement="bottom" onClick={(event) => event.stopPropagation()}>
+				? <Tooltip className="edit-folder-tooltip" options={{ placement: "bottom" }} onClick={(event) => event.stopPropagation()}>
 					<TooltipTrigger> <EditIcon className="edit-folder-icon" /> </TooltipTrigger>
 					<TooltipContent>
 						<h3>Modifier le dossier</h3>
