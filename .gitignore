@@ -25,3 +25,4 @@ replit.nix
 build_history
 local/
 data/test/*
+.env
