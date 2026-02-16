@@ -1,8 +1,8 @@
 import { useContext, useEffect, useState } from "react";
 import { AccountContext, UserDataContext } from "../../App";
-import EDApiClient from "../../api/EDApiClient";
+import edApi from "../../api/EDApiClient";
 import { Account } from "../../EcoleDirecteHandlerCore/hooks/useEcoleDirecteAccount";
-import { AccountDataDispatch } from "../../EcoleDirecteHandlerCore/hooks/utils/useAccountDataType";
+import { AccountDataDispatch, AccountDataEntry } from "../../EcoleDirecteHandlerCore/hooks/utils/useAccountDataType";
 import mapStudentMessageContent from "../../mappers/v3/eleves/messages/mapperById";
 import mapFamilyMessageContent from "../../mappers/v3/familles/messages/mapperById";
 import * as StudentMessageContentGet from "../../api/contracts/v3/eleves/messages/GetById";
@@ -12,13 +12,12 @@ import mapStudentMessages from "../../mappers/v3/eleves/messages/mapper";
 type Messages = ReturnType<typeof mapStudentMessages>["messages"];
 
 interface ThisUserData {
+	selectedMessageId: AccountDataEntry<number | null>,
 	messages: {
 		value: Messages,
 		set: AccountDataDispatch<Messages>
 	},
 }
-
-const api = EDApiClient.getInstance();
 
 function getMode(messageFoderId) {
 	if (messageFoderId === -1 || messageFoderId == -4) {
@@ -33,7 +32,7 @@ async function handleStudentRequest(messageFolderId: number, userId: number, sel
 		mode: getMode(messageFolderId)
 	}
 
-	const data = await api.get(`/v3/eleves/${userId}/messages/${selectedMessageId}`, { anneeMessages: "2025-2026" }, query);
+	const data = await edApi.get(`/v3/eleves/${userId}/messages/${selectedMessageId}`, { anneeMessages: "2025-2026" }, query);
 
 	return mapStudentMessageContent(data);
 }
@@ -45,16 +44,17 @@ async function handleFamilyRequest(messageFolderId: number, userId: number, sele
 		mode: getMode(messageFolderId),
 	}
 
-	const data = await api.get(`/v3/familles/${userId}/messages/${selectedMessageId}`, { anneeMessages: "2025-2026" }, query);
+	const data = await edApi.get(`/v3/familles/${userId}/messages/${selectedMessageId}`, { anneeMessages: "2025-2026" }, query);
 
 	return mapFamilyMessageContent(data);
 }
 
-export default function useLoadMessageContent(selectedMessageId: number | null) {
+export default function useLoadMessageContent() {
 	const account = useContext(AccountContext) as unknown as Account;
 
 	const userData = useContext(UserDataContext) as unknown as ThisUserData;
 	const {
+		selectedMessageId: {value: selectedMessageId, set: setSelectedMessageId},
 		messages: { value: messages, set: setMessages },
 	} = userData;
 
@@ -65,9 +65,13 @@ export default function useLoadMessageContent(selectedMessageId: number | null) 
 		const targetMessage = messages?.find((message) => message.id === selectedMessageId);
 		if (!targetMessage) {
 			console.warn(`Targetted message of id '${targetMessage}' not found.`);
+			setSelectedMessageId(null);
 			return setLoading(false);
 		}
-		if (targetMessage.content) return setLoading(false);
+		if (targetMessage.content) {
+			if (!targetMessage.read) targetMessage.read = true;
+			return setLoading(false);
+		}
 		if (!account.selectedUser) return setLoading(false);
 
 		setLoading(true);

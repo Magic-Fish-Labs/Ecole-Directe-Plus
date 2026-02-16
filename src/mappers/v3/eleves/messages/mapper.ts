@@ -25,3 +25,6 @@ export default function mapper(data: StudentMessagesGet.Data) {
 		})
 	};
 }
+
+export type MessageFolders = ReturnType<typeof mapper>["messageFolders"];
+export type Message = ReturnType<typeof mapper>["messages"][number];

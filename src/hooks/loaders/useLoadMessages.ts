@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { AccountContext, UserDataContext } from "../../App";
-import EDApiClient from "../../api/EDApiClient";
+import edApi from "../../api/EDApiClient";
 import { Account } from "../../EcoleDirecteHandlerCore/hooks/useEcoleDirecteAccount";
 import { AccountDataDispatch } from "../../EcoleDirecteHandlerCore/hooks/utils/useAccountDataType";
 import * as StudentMessagesGet from "../../api/contracts/v3/eleves/messages/Get";
@@ -22,8 +22,6 @@ interface ThisUserData {
 	}
 }
 
-const api = EDApiClient.getInstance();
-
 function idToFolderInfo(id: number) {
 	switch (id) {
 		case 0: return { type: "received", id: 0 } as const;
@@ -42,7 +40,7 @@ async function handleStudentRequest(selectedFolderId: number, userId: number) {
 		force: false, getAll: 1, onlyRead: "", order: "desc", orderBy: "date"
 	}
 
-	const data = await api.get(`/v3/eleves/${userId}/messages`, { anneeMessages: "2025-2026" }, query);
+	const data = await edApi.get(`/v3/eleves/${userId}/messages`, { anneeMessages: "2025-2026" }, query);
 
 	return mapStudentMessages(data);
 }
@@ -57,7 +55,7 @@ async function handleFamilyRequest(selectedFolderId: number, userId: number) {
 		force: false, getAll: 1, onlyRead: "", order: "desc", orderBy: "date"
 	}
 
-	const data = await api.get(`/v3/familles/${userId}/messages`, { anneeMessages: "2025-2026" }, query);
+	const data = await edApi.get(`/v3/familles/${userId}/messages`, { anneeMessages: "2025-2026" }, query);
 
 	return mapFamilyMessages(data);
 }
