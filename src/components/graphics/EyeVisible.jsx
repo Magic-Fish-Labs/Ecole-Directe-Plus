@@ -1,6 +1,6 @@
 import "./graphics.css"
 
-export default function EyeVisible ({ className = "", id = "", alt, ...props }) {
+export default function EyeVisible({ className = "", id = "", alt = "Œuil ouvert", ...props }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

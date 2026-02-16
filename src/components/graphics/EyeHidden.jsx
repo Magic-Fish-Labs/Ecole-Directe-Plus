@@ -1,6 +1,6 @@
 import "./graphics.css"
 
-export default function EyeHidden ({ className = "", id = "", alt, ...props }) {
+export default function EyeHidden ({ className = "", id = "", alt = "Œuil fermé", ...props }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

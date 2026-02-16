@@ -1,6 +1,6 @@
 
 import "./graphics.css"
-export default function DownloadIcon({ className = "", id = "", alt, ...props }) {
+export default function DownloadIcon({ className = "", id = "", alt = "Icône de téléchargement", ...props }) {
     return (
         <svg aria-label={alt} className={className} id={id} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 105" fill="none" {...props}>
             <path d="M55 5V71.6616M55 71.6616L76.0526 49.2105M55 71.6616L33.9474 49.2105" className="stroke-text-main" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round" />
