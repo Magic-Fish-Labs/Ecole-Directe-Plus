@@ -4,7 +4,7 @@ import { apiBase, apiEnd, apiVersion } from "./apiConfigs";
 import { ApiMethod, Body, Data, Query, Routes, schemaMap } from "./contracts";
 import { matchRoute } from "./routeParamsUtils";
 
-export default class EDApiClient {
+export class EDApiClient {
 	private static instance: EDApiClient;
 	private token: string = "";
 	private doubleAuthToken: string = "";
@@ -96,4 +96,28 @@ export default class EDApiClient {
 		const data = this.handleRequest(url, init);
 		return schemaMap.POST[schemaRoute].parse(data) as Data<"POST", R>;
 	}
+
+	async put<R extends Routes<"PUT">>(route: R, body: Body<"PUT", R>): Promise<Data<"PUT", R>>;
+	async put<R extends Routes<"PUT">>(route: R, body: Body<"PUT", R>, query: Query<"PUT", R>): Promise<Data<"PUT", R>>;
+	async put<R extends Routes<"PUT">>(route: R, body: Body<"PUT", R>, query?: Query<"PUT", R>): Promise<Data<"PUT", R>> {
+		const schemaRoute = matchRoute(route, schemaMap.PUT);
+		if (!schemaRoute) throw new Error("Invalid Route");
+		const url = this.buildUrl("PUT", route, query);
+		const init = this.buildRequestInit(body);
+		const data = this.handleRequest(url, init);
+		return schemaMap.PUT[schemaRoute].parse(data) as Data<"PUT", R>;
+	}
+
+	async delete<R extends Routes<"DELETE">>(route: R, body: Body<"DELETE", R>): Promise<Data<"DELETE", R>>;
+	async delete<R extends Routes<"DELETE">>(route: R, body: Body<"DELETE", R>, query: Query<"DELETE", R>): Promise<Data<"DELETE", R>>;
+	async delete<R extends Routes<"DELETE">>(route: R, body: Body<"DELETE", R>, query?: Query<"DELETE", R>): Promise<Data<"DELETE", R>> {
+		const schemaRoute = matchRoute(route, schemaMap.PUT);
+		if (!schemaRoute) throw new Error("Invalid Route");
+		const url = this.buildUrl("DELETE", route, query);
+		const init = this.buildRequestInit(body);
+		const data = this.handleRequest(url, init);
+		return schemaMap.DELETE[schemaRoute].parse(data) as Data<"DELETE", R>;
+	}
 }
+
+export default EDApiClient.getInstance();

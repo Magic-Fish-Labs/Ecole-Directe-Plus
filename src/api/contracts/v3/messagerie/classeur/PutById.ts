@@ -1,6 +1,6 @@
-import z from "zod";
+import { z } from "zod";
 import { ParamToNumber } from "../../../../routeParamsUtils";
-import { route } from "./Route";
+import { routeById as route } from "./Route";
 
 // Route
 
