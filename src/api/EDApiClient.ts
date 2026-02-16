@@ -93,7 +93,7 @@ export class EDApiClient {
 		if (!schemaRoute) throw new Error("Invalid Route");
 		const url = this.buildUrl("POST", route, query);
 		const init = this.buildRequestInit(body);
-		const data = this.handleRequest(url, init);
+		const data = await this.handleRequest(url, init);
 		return schemaMap.POST[schemaRoute].parse(data) as Data<"POST", R>;
 	}
 
@@ -104,7 +104,7 @@ export class EDApiClient {
 		if (!schemaRoute) throw new Error("Invalid Route");
 		const url = this.buildUrl("PUT", route, query);
 		const init = this.buildRequestInit(body);
-		const data = this.handleRequest(url, init);
+		const data = await this.handleRequest(url, init);
 		return schemaMap.PUT[schemaRoute].parse(data) as Data<"PUT", R>;
 	}
 
@@ -115,7 +115,7 @@ export class EDApiClient {
 		if (!schemaRoute) throw new Error("Invalid Route");
 		const url = this.buildUrl("DELETE", route, query);
 		const init = this.buildRequestInit(body);
-		const data = this.handleRequest(url, init);
+		const data = await this.handleRequest(url, init);
 		return schemaMap.DELETE[schemaRoute].parse(data) as Data<"DELETE", R>;
 	}
 }
