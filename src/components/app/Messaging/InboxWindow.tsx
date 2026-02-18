@@ -133,7 +133,6 @@ export default function InboxWindow() {
 
 	return <Window allowFullscreen={true} className="inbox-window">
 		<WindowHeader className="inbox-window-header">
-			{console.log(loading, messageFolders)}
 			{!loading && messageFolders.length > 1
 				? <FolderTooltip messageFolders={messageFolders} isEditingFolderState={stateObject(isEditingFolder, setIsEditingFolder)} selectedFolderIdState={stateObject(selectedFolderId, setSelectedFolderId)} setNewFolderName={setNewFolderName} />
 				: null
