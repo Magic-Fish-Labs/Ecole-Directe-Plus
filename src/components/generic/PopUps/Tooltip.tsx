@@ -35,7 +35,7 @@ export interface TooltipOptions {
     enableFocus?: boolean,
     enableClick?: boolean,
     enableDismiss?: boolean,
-    animationDuraction?: number,
+    animationDuration?: number,
     delay?: number,
     restDuration?: number,
     restFallbackDuration?: number,
@@ -50,7 +50,7 @@ function useTooltip({
     enableFocus = true,
     enableClick = false,
     enableDismiss = true,
-    animationDuraction = 250,
+    animationDuration = 250,
     delay = 0,
     restDuration = 0,
     restFallbackDuration = 0,
@@ -118,7 +118,7 @@ function useTooltip({
 
     // - - Transitions - -
     const transition = useTransitionStyles(context, {
-        duration: animationDuraction,
+        duration: animationDuration,
 
         initial: ({ side }) => ({
             opacity: 0,
@@ -172,50 +172,33 @@ function useTooltipContext() {
 export function Tooltip({ children, className = "", id = "", options = {} }: { children: ReactNode, className?: string, id?: string, options?: TooltipOptions }) {
     const tooltip = useTooltip(options);
 
-    return (
-        <div className={`tooltip ${className}`} id={id}>
-            <TooltipContext.Provider value={{ tooltip, options }}>
-                {children}
-            </TooltipContext.Provider>
-        </div>
-    );
+    return <div className={`tooltip ${className}`} id={id}>
+        <TooltipContext.Provider value={{ tooltip, options }}>
+            {children}
+        </TooltipContext.Provider>
+    </div>;
 }
 
-export function TooltipTrigger({ children, ...props }: PropsWithChildren<Record<string, any>>) {
+export function TooltipTrigger({ children, ...props }: Record<string, any> & { children: ReactElement }) {
     const { tooltip } = useTooltipContext();
 
-    const ref = useMergeRefs([tooltip.refs.setReference, isValidElement<Record<string, any>>(children) ? (children.props as { ref?: Ref<any> }).ref : undefined]);
+    const referenceProps = tooltip.getReferenceProps({
+        ...props,
+        ...(typeof children.props === "object" ? children.props : undefined),
+        ...{ "data-state": tooltip.isOpen ? "open" : "closed" }, // typescript trix to allow data-* props
+        ref: tooltip.refs.setReference,
+        tabIndex: 0,
+    })
 
-    // Si children est un composant, on lui rajoute les props 
-    if (isValidElement<Record<string, any>>(children)) {
-        return cloneElement(
-            children,
-            tooltip.getReferenceProps({
-                ...props,
-                ...(typeof children.props === "object" ? children.props : undefined),
-                tabIndex: 0,
-                "data-state": tooltip.isOpen ? "open" : "closed"
-            } as any)
-        );
+    if (isValidElement(children)) {
+        return cloneElement(children, referenceProps);
+    } else {
+        return <div {...referenceProps}>{children}</div>
     }
-
-    // Si children n'est pas un composant (ex : texte), on le met dans une div et applique les props
-    return (
-        <div
-            ref={ref}
-            // on peut styliser le composant en fonction de l'état
-            data-state={tooltip.isOpen ? "open" : "closed"}
-            {...tooltip.getReferenceProps(props)}
-            tabIndex={0}
-        >
-            {children}
-        </div>
-    );
 }
 
 export function TooltipContent({ children, style, className = "", ...props }: PropsWithChildren<Record<string, any>>) {
     const { tooltip, options } = useTooltipContext();
-    const ref = useMergeRefs([tooltip.refs.setFloating, isValidElement<Record<string, any>>(children) ? (children.props as { ref?: Ref<any> }).ref : undefined]);
 
     // Affiche / N'affiche pas la tooltip
     if (!tooltip.isMounted) return null;
@@ -230,7 +213,7 @@ export function TooltipContent({ children, style, className = "", ...props }: Pr
     return (
         <FloatingPortal>
             <div
-                ref={ref}
+                ref={tooltip.refs.setFloating}
                 className={`tooltip-content ${className}`}
                 style={{
                     ...tooltip.floatingStyles,

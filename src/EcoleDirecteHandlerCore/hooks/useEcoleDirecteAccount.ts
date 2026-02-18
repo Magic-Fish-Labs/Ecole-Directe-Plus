@@ -12,7 +12,7 @@ import { DefaultEcoleDirecteAccount } from "../constants/default";
 import { mapDoubleAuthQuestion } from "../mappers/doubleAuthQuestions";
 import { requestLogin } from "./requestHandler/requestLogin";
 import EdError from "../class/EdError";
-import EDApiClient from "../../api/EDApiClient";
+import edApi from "../../api/EDApiClient";
 
 type ObjectFromState<T> = {
     value: T,
@@ -55,8 +55,6 @@ function getInitialLoginState(initialAccount: any): LoginStates {
     }
     return LoginStates.REQUIRE_LOGIN;
 }
-
-const apiClient = EDApiClient.getInstance();
 
 export default function useEcoleDirecteAccount(initialAccount: any, callbacks: UseEcoleDirecteAccountCallbacks) {
     const [loginState, setLoginState] = useState(getInitialLoginState(initialAccount));
@@ -104,11 +102,11 @@ export default function useEcoleDirecteAccount(initialAccount: any, callbacks: U
     };
 
     useEffect(() => {
-        apiClient.setToken(token);
+        edApi.setToken(token);
     }, [token]);
 
     useEffect(() => {
-        apiClient.setDoubleAuthToken(doubleAuthToken);
+        edApi.setDoubleAuthToken(doubleAuthToken);
     }, [doubleAuthToken]);
 
     async function getDoubleAuthQuestions(controller: AbortController = new AbortController()) {

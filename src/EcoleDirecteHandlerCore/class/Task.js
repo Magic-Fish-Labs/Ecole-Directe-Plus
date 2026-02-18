@@ -3,14 +3,17 @@ import fetchHomeworksDay from "../requests/fetchHomeworksDay";
 import HomeworkDay from "./HomeworkDay";
 
 export default class Task {
-
 	/**
-	 * 
-	 * @param {object} account 
-	 * @param {HomeworkDay} day 
-	 * @param {object} params 
+	 *
+	 * @param {object} account
+	 * @param {HomeworkDay} day
+	 * @param {object} params
 	 */
-	constructor(account, day, { id, subjectCode, isDone, subject, addDate, isInterrogation }) {
+	constructor(
+		account,
+		day,
+		{ id, subjectCode, isDone, subject, addDate, isInterrogation },
+	) {
 		this.account = account;
 		this.day = day;
 
@@ -22,7 +25,13 @@ export default class Task {
 		this.addDate = addDate;
 	}
 
-	applyDetail({ teacher, content, files, sessionContent, sessionContentFiles }) {
+	applyDetail({
+		teacher,
+		content,
+		files,
+		sessionContent,
+		sessionContentFiles,
+	}) {
 		this.teacher = teacher;
 		this.content = content;
 		this.files = files;
@@ -39,16 +48,27 @@ export default class Task {
 		const param = this.isDone
 			? { tasksNotDone: [this.id] }
 			: { tasksDone: [this.id] };
-		fetchHomeworksDone(param, this.account.selectedUser.id, this.account.token.value, controller)
-			.then((result) => {
-				if (result.token) {
-					this.account.token.set(result.token);
-				}
-			});
+		fetchHomeworksDone(
+			param,
+			this.account.selectedUser.id,
+			this.account.token.value,
+			controller,
+		).then((result) => {
+			if (result.token) {
+				this.account.token.set(result.token);
+			}
+		});
 	}
 
 	static createFromUpcoming(account, homeworkDay, taskData) {
-		const { idDevoir, codeMatiere, donneLe, effectue, interrogation, matiere /* rendreEnLigne, documentsAFaire // I don't know what to do with that for now */ } = taskData;
+		const {
+			idDevoir,
+			codeMatiere,
+			donneLe,
+			effectue,
+			interrogation,
+			matiere /* rendreEnLigne, documentsAFaire // I don't know what to do with that for now */,
+		} = taskData;
 
 		return new Task(account, homeworkDay, {
 			id: idDevoir,

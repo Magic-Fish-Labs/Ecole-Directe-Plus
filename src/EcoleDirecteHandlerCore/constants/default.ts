@@ -59,5 +59,6 @@ export const DefaultAccountdata = {
     selectedGradeElement: undefined,             // OK
     activeHomeworkDate: undefined,               // OK
     activeHomeworkId: undefined,                 // OK
+    selectedMessageId: null,                     // OK
 } as const;
 

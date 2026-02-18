@@ -21,7 +21,7 @@ export default function ScrollShadedDiv({
     useEffect(() => {
         // Merge refs if multiple
         contentDivRef.current = bufferRef.current;
-        if (setRef !== undefined) {
+        if (setRef) {
             setRef(bufferRef);
         }
     }, [bufferRef.current]);

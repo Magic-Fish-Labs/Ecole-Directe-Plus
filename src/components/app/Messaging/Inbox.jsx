@@ -10,7 +10,7 @@ import AttachmentIcon from "../../graphics/AttachmentIcon";
 import MarkAsUnread from "../../graphics/MarkAsUnread";
 
 
-export default function Inbox({ selectedMessage, setSelectedMessage, selectedFolder, fetchMessageMarkAsUnread }) {
+export default function Inbox({ selectedFolder }) {
     // States
     const { usedDisplayTheme } = useContext(AppContext);
     const settings = useContext(SettingsContext);
@@ -23,7 +23,8 @@ export default function Inbox({ selectedMessage, setSelectedMessage, selectedFol
     const userData = useContext(UserDataContext);
     const {
         messages: { value: messages },
-        messageFolders: { value: messageFolders }
+        messageFolders: { value: messageFolders },
+        selectedMessageId: { value: selectedMessageId, set: setSelectedMessageId }
     } = userData;
 
     const isDisplayModeQuality = displayMode === "quality";
@@ -32,7 +33,7 @@ export default function Inbox({ selectedMessage, setSelectedMessage, selectedFol
 
     // behavior
     const handleClick = (message) => {
-        setSelectedMessage(message.id);
+        setSelectedMessageId(message.id);
     }
 
     const handleKeyDown = (event, msg) => {
@@ -47,8 +48,8 @@ export default function Inbox({ selectedMessage, setSelectedMessage, selectedFol
         const controller = new AbortController();
         fetchMessageMarkAsUnread([msg.id], controller);
 
-        if (msg.id === selectedMessage) {
-            setSelectedMessage(null);
+        if (msg.id === selectedMessageId) {
+            setSelectedMessageId(null);
         }
 
         // mark as unread locally and kick the content so as to trigger a refetch the next reading (as the "mark as read" feature is trigger when fetching the message)
@@ -89,12 +90,12 @@ export default function Inbox({ selectedMessage, setSelectedMessage, selectedFol
     // JSX
     return (
         <div id="inbox">
-            <TextInput onChange={handleChange} value={search} textType={"text"} placeholder={"Rechercher"} className="inbox-search-input" />
+            <TextInput onChange={handleChange} value={search} type={"text"} placeholder={"Rechercher"} className="inbox-search-input" />
             {messages !== undefined && (messageFolders !== undefined && messageFolders?.find((folder) => folder.id === selectedFolder)?.fetched)
                 ? (messages.filter((message) => message.folderId === selectedFolder).length > 0
                     ? <ScrollShadedDiv className="messages-container">
                         <ul>
-                            {messages.filter((message) => message.folderId === selectedFolder).filter(filterResearch).map((message, index) => <li style={{ "--order": index }} className={"message-container" + (selectedMessage === message.id ? " selected" : "")} data-read={message.read} onClick={() => handleClick(message)} onKeyDown={(event) => handleKeyDown(event, message)} key={message.id} role="button" tabIndex={0}>
+                            {messages.filter((message) => message.folderId === selectedFolder).filter(filterResearch).map((message, index) => <li style={{ "--order": index }} className={"message-container" + (selectedMessageId === message.id ? " selected" : "")} data-read={message.read} onClick={() => handleClick(message)} onKeyDown={(event) => handleKeyDown(event, message)} key={message.id} role="button" tabIndex={0}>
                                 <h4 className="message-subject"><span className="author-name">{message.from.civilite + " " + (isStreamerModeEnabled ? "-".repeat((message.from.nom).length) : message.from.nom)}</span> <span className="actions"><button disabled={!message.read} onClick={(event) => handleMarkAsUnread(event, message)} className="mark-as-unread" title="Marquer comme non lu"><MarkAsUnread className="mark-as-unread-icon" /></button> {message.files?.length > 0 && <AttachmentIcon className="attachment-icon" />}</span></h4>
                                 <p className="message-author">{message.subject}</p>
                                 <p className="message-date">{(new Date(message.date)).toLocaleDateString("fr-FR", {

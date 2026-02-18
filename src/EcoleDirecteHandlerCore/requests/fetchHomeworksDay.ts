@@ -40,7 +40,7 @@ export default async function fetchHomeworksDay(date: string, userId: number, to
             }
             switch (data.code) {
                 case 520:
-                    throw new EdError(FetchErrorBuilders.INVALID_TOKEN);
+	                    throw new EdError(FetchErrorBuilders.INVALID_TOKEN);
                 case 525:
                     throw new EdError(FetchErrorBuilders.EXPIRED_TOKEN);
                 default: // UNHANDLED ERROR

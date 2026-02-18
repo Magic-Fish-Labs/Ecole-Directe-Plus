@@ -1,5 +1,8 @@
 import { Account } from "../hooks/useEcoleDirecteAccount";
-import { DetailledHomeworkData, DetailledHomeworkDayData } from "../structures/DetailledHomeworkResponse";
+import {
+	DetailledHomeworkData,
+	DetailledHomeworkDayData,
+} from "../structures/DetailledHomeworkResponse";
 import { UpcomingHomeworkDayData } from "../structures/UpcomingHomeworkResponse";
 import EcoleDirecteFile from "./EcoleDirecteFile";
 import HomeworkDay from "./HomeworkDay";
@@ -15,7 +18,15 @@ export default class SessionContent {
 	sessionContent: any | null;
 	sessionContentFiles: Array<EcoleDirecteFile> | null;
 
-	constructor(account: Account, day: HomeworkDay, { id, subjectCode, subject }: { id: number, subjectCode: string, subject: string }) {
+	constructor(
+		account: Account,
+		day: HomeworkDay,
+		{
+			id,
+			subjectCode,
+			subject,
+		}: { id: number; subjectCode: string; subject: string },
+	) {
 		this.account = account;
 		this.day = day;
 
@@ -28,7 +39,15 @@ export default class SessionContent {
 		this.sessionContentFiles = null;
 	}
 
-	applyDetail({ teacher, sessionContent, sessionContentFiles }: { teacher: string, sessionContent: any, sessionContentFiles: Array<EcoleDirecteFile> }) {
+	applyDetail({
+		teacher,
+		sessionContent,
+		sessionContentFiles,
+	}: {
+		teacher: string;
+		sessionContent: any;
+		sessionContentFiles: Array<EcoleDirecteFile>;
+	}) {
 		this.teacher = teacher;
 		this.sessionContent = sessionContent;
 		this.sessionContentFiles = sessionContentFiles;
@@ -39,7 +58,11 @@ export default class SessionContent {
 		return this.day.detailed;
 	}
 
-	static createFromUpcoming(account: Account, homeworkDay: HomeworkDay, sessionContentData: UpcomingHomeworkDayData) {
+	static createFromUpcoming(
+		account: Account,
+		homeworkDay: HomeworkDay,
+		sessionContentData: UpcomingHomeworkDayData,
+	) {
 		const { idDevoir, codeMatiere, matiere } = sessionContentData;
 
 		return new SessionContent(account, homeworkDay, {
@@ -49,7 +72,11 @@ export default class SessionContent {
 		});
 	}
 
-	static createFromDetail(account: Account, homeworkDay: HomeworkDay, sessionContentData: DetailledHomeworkDayData) {
+	static createFromDetail(
+		account: Account,
+		homeworkDay: HomeworkDay,
+		sessionContentData: DetailledHomeworkDayData,
+	) {
 		const { id, codeMatiere, matiere } = sessionContentData;
 
 		return new SessionContent(account, homeworkDay, {

@@ -1,17 +1,25 @@
-import { useState } from "react";
-import "./TextInput.css";
+import { ChangeEvent, FormEvent, forwardRef, InputHTMLAttributes, InvalidEvent, ReactNode, useState } from "react";
 import WarningMessage from "../Informative/WarningMessage";
 import EyeVisible from "../../graphics/EyeVisible";
 import EyeHidden from "../../graphics/EyeHidden";
 
-export default function TextInput({ textType, placeholder, value, onChange, disabled, isRequired, warningMessage, icon = "", onWarning, className = "", id = "", keyHint, name, ...props }) {
+import "./TextInput.css";
+
+type TextInputType = "text" | "password" | "email" | "search" | "url";
+
+type InlineTextInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "type"> & {
+    icon?: ReactNode | null,
+    warningMessage?: string,
+    type?: TextInputType,
+};
+
+export default forwardRef<HTMLInputElement, InlineTextInputProps>(({ value, onChange, type = "text", warningMessage = "", icon = null, className = "", id = "", ...props }, ref) => {
     const [warningMessageState, setWarningMessageState] = useState("");
     const [showPassword, setShowPassword] = useState(false);
-    const allowedTextTypes = ["text", "password", "email", "search", "url"];
-    const showPasswordIcon = textType === allowedTextTypes[1];
+    const showPasswordIcon = type === "password";
 
-    if (!allowedTextTypes.includes(textType) || showPassword) {
-        textType = "text";
+    if (showPassword) {
+        type = "text";
     }
 
     const passwordClickHandler = () => setShowPassword((prev) => !prev);
@@ -23,13 +31,7 @@ export default function TextInput({ textType, placeholder, value, onChange, disa
         {icon}
     </>;
 
-    function handleInvalid(event) {
-        event.preventDefault();
-        setWarningMessageState(warningMessage);
-        onWarning();
-    }
-
-    function handleChange(event) {
+    function handleChange(event: ChangeEvent<HTMLInputElement>) {
         onChange(event);
         setWarningMessageState("");
         if (event.target?.value === "") {
@@ -37,27 +39,29 @@ export default function TextInput({ textType, placeholder, value, onChange, disa
         }
     }
 
+    function handleInvalid(event: FormEvent<HTMLInputElement>) {
+        event.preventDefault();
+        setWarningMessageState(warningMessage);
+        props.onInvalid(event);
+    }
+
     return (
         <div className={className} id={id}>
             <div className={`text-input-container ${warningMessageState && "invalid"}`} >
                 <input
-                    className={placeholder === "Nom d'Utilisateur" || placeholder === "•••••••••••" ? "prank-text-input" : "text-input"}
-                    type={textType}
-                    placeholder={placeholder}
+                    className="text-input"
                     value={value}
+                    type={type}
                     onChange={handleChange}
-                    disabled={disabled}
-                    required={isRequired}
                     onInvalid={handleInvalid}
-                    enterKeyHint={keyHint}
-                    name={name}
+                    ref={ref}
                     {...props}
                 />
                 {showPasswordIcon && value !== "" ? PasswordIcon : icon}
             </div>
-            {!disabled && <WarningMessage condition={warningMessageState}>
+            {!props.disabled && <WarningMessage condition={warningMessageState}>
                 {warningMessageState}
             </WarningMessage>}
         </div>
     )
-}
+});
