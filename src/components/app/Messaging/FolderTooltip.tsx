@@ -6,10 +6,8 @@ import FolderIcon from "../../graphics/FolderIcon";
 import "./FolderTooltip.css"
 import { MessageFolders } from "../../../mappers/v3/eleves/messages/mapper";
 import { User } from "../../../EcoleDirecteHandlerCore/mappers/login";
-import InboxIcon from "../../graphics/InboxIcon";
 import { StateObject } from "../../../utils/hooks/stateObject";
 import NewFolderIcon from "../../graphics/NewFolderIcon";
-import SendIcon from "../../graphics/SendIcon";
 import { getMarkedFolderIcon } from "./MessageReader/MarkedFolderIcons";
 
 function getSendMessageAbility(selectedUser: User) {

@@ -1,5 +1,5 @@
 
-import { useState, useRef, createContext, useContext, forwardRef, cloneElement, type HTMLProps, ReactElement, ReactNode, Ref, isValidElement, Component, PureComponent, PropsWithChildren, HTMLAttributes, RefAttributes } from "react";
+import { useState, useRef, createContext, useContext, cloneElement, ReactElement, ReactNode, isValidElement, PropsWithChildren } from "react";
 import {
     useFloating,
     useHover,
@@ -16,14 +16,12 @@ import {
     flip,
     shift,
     safePolygon,
-    useMergeRefs,
     FloatingPortal
 } from "@floating-ui/react";
 import type { Placement } from "@floating-ui/react";
 // Check out the FloatingUI docs for more information : https://floating-ui.com/docs/react
 
 import './Tooltip.css'
-import { isFileServingAllowed } from "vite";
 
 const ARROW_WIDTH = 16;
 const ARROW_HEIGHT = 8;

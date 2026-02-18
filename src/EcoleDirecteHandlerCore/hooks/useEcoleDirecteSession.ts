@@ -8,8 +8,8 @@ import { LoginStates, GradesCodes, HomeworksCodes, CommonCodes } from "../consta
 import useAccountData from "./utils/useAccountData";
 import fetchGrades from "../requests/fetchGrades";
 import { mapGrades } from "../mappers/grades";
-import fetchTimeline from "../requests/fetchTimeline";
-import { mapTimeline } from "../mappers/timeline";
+// import fetchTimeline from "../requests/fetchTimeline";
+// import { mapTimeline } from "../mappers/timeline";
 import fetchHomeworks from "../requests/fetchHomeworks";
 import { DefaultAccountdata } from "../constants/default";
 import Homeworks from "../class/Homeworks";
@@ -19,11 +19,11 @@ import { UpcomingHomeworkResponse } from "../structures/UpcomingHomeworkResponse
 
 /**
  * Each fetch function will return a code, and other data such as messages, display text, ...
- * The code rule is easy : 
+ * The code rule is easy :
  *  - 0    : Everything OK
  *  - >= 1 : a known error
  *  - -1   : an unknown error
- * 
+ *
  * With this system, every known errors will return a message hard coded and unknown erro will return the message of the response.
  * If you need to display a specific error message for unknown error, handle it after using the fetch function.
  * (basically :
@@ -147,43 +147,43 @@ export default function useEcoleDirecteSession(initEcoleDirecteSession: any, cal
             })
     }
 
-    async function getTimeline(schoolYear: string, controller = (new AbortController())) {
-        const requestUserIndex = selectedUserIndex.value;
-        let response;
-        if (selectedUser.id === -1) {
-            response = import(/* @vite-ignore */ guestDataPath.timeline)
-        } else {
-            response = fetchTimeline(schoolYear, token.value, selectedUser.id, controller)
-        }
-        return response.then((response) => {
-            token.set((old) => (response?.token || old));
-            switch (response.code) {
-                case 200:
-                    const { notifications } = mapTimeline(response.data)
-                    userData.notifications.set(notifications, requestUserIndex);
-                    return GradesCodes.SUCCESS;
-                default:
-                    return { code: -1, message: response.message };
-            }
-        })
-            .catch((error) => {
-                if (error instanceof EdError) {
-                    switch (error.code) {
-                        case 520:
-                            return CommonCodes.INVALID_TOKEN;
-                        case 525:
-                            return CommonCodes.EXPIRED_TOKEN;
-                        default:
-                            return { code: -1, message: error.message };
-                    }
-                }
-                if (error.name !== "AbortError") {
-                    loginStates.set(LoginStates.REQUIRE_LOGIN);
-                    console.error(error);
-                    return { code: -1, message: error.message };
-                }
-            })
-    }
+    // async function getTimeline(schoolYear: string, controller = (new AbortController())) {
+    //     const requestUserIndex = selectedUserIndex.value;
+    //     let response;
+    //     if (selectedUser.id === -1) {
+    //         response = import(/* @vite-ignore */ guestDataPath.timeline)
+    //     } else {
+    //         response = fetchTimeline(schoolYear, token.value, selectedUser.id, controller)
+    //     }
+    //     return response.then((response) => {
+    //         token.set((old) => (response?.token || old));
+    //         switch (response.code) {
+    //             case 200:
+    //                 const { notifications } = mapTimeline(response.data)
+    //                 userData.notifications.set(notifications, requestUserIndex);
+    //                 return GradesCodes.SUCCESS;
+    //             default:
+    //                 return { code: -1, message: response.message };
+    //         }
+    //     })
+    //         .catch((error) => {
+    //             if (error instanceof EdError) {
+    //                 switch (error.code) {
+    //                     case 520:
+    //                         return CommonCodes.INVALID_TOKEN;
+    //                     case 525:
+    //                         return CommonCodes.EXPIRED_TOKEN;
+    //                     default:
+    //                         return { code: -1, message: error.message };
+    //                 }
+    //             }
+    //             if (error.name !== "AbortError") {
+    //                 loginStates.set(LoginStates.REQUIRE_LOGIN);
+    //                 console.error(error);
+    //                 return { code: -1, message: error.message };
+    //             }
+    //         })
+    // }
 
     function logout() {
         resetUserData();

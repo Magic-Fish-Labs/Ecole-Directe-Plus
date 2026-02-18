@@ -1,4 +1,4 @@
-import React, { forwardRef, ComponentProps } from 'react';
+import { forwardRef, ComponentProps } from 'react';
 import TextInput from './TextInput';
 
 type InlineTextInputProps = Omit<ComponentProps<typeof TextInput>, "type">;

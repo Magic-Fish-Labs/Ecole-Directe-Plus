@@ -1,5 +1,5 @@
 
-import { PropsWithChildren, ReactNode, useState } from "react";
+import { PropsWithChildren, ReactNode } from "react";
 
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipOptions } from "../PopUps/Tooltip";
 import "./InfoButton.css";

@@ -1,4 +1,3 @@
-import CopyIcon from "../components/graphics/CopyIcon";
 import FetchError from "../EcoleDirecteHandlerCore/class/FetchError";
 import { apiBase, apiEnd, apiVersion } from "./apiConfigs";
 import { ApiMethod, Body, Data, Query, Routes, schemaMap } from "./contracts";

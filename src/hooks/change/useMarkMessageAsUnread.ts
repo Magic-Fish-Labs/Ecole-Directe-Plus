@@ -1,7 +1,6 @@
 import { useContext } from "react";
 import { AccountContext, SettingsContext } from "../../App";
 import { Account } from "../../EcoleDirecteHandlerCore/hooks/useEcoleDirecteAccount";
-import { Message } from "../../mappers/v3/eleves/messages/mapper";
 import edApi from "../../api/EDApiClient";
 import { AccountSettingsSimpleEntry } from "../../utils/hooks/useAccountSettingsType";
 import { getCurrentSchoolYear } from "../../utils/date";

@@ -1,5 +1,4 @@
 import EdError from "../../class/EdError";
-import FetchError from "../../class/FetchError";
 import { CommonCodes, LoginStates } from "../../constants/codes";
 
 export function handleFetchError(error: Error, setLoginState: ((state: LoginStates) => void) | null = null) {

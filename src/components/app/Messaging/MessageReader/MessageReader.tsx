@@ -1,27 +1,14 @@
 import { useState, useEffect, useContext } from "react";
-import { useNavigate, useLocation, Navigate, Link } from "react-router-dom";
-import ContentLoader from "react-content-loader";
 import { AppContext, SettingsContext, UserDataContext } from "../../../../App";
 
 import "./MessageReader.css";
 import EncodedHTMLDiv from "../../../generic/CustomDivs/EncodedHTMLDiv";
-import FileComponent from "../../../generic/FileComponent";
 import { capitalizeFirstLetter } from "../../../../utils/utils";
 import ScrollShadedDiv from "../../../generic/CustomDivs/ScrollShadedDiv";
-import DownloadIcon from "../../../graphics/DownloadIcon";
-import PrintIcon from "../../../graphics/PrintIcon";
-import FolderIcon from "../../../graphics/FolderIcon";
-import ArchiveIcon from "../../../graphics/ArchiveIcon";
-import InboxIcon from "../../../graphics/InboxIcon";
-import MarkAsUnread from "../../../graphics/MarkAsUnread";
-import SendIcon from "../../../graphics/SendIcon";
-import DraftIcon from "../../../graphics/DraftIcon";
-import DeleteIcon from "../../../graphics/DeleteIcon";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../../../generic/PopUps/Tooltip";
 import useLoadMessageContent from "../../../../hooks/loaders/useLoadMessageContent";
 import MessageReaderLoader from "./MessageReaderLoader";
 import MessageReaderFooter from "./MessageReaderFooter";
-import mapStudentMessages, { Message, MessageFolders } from "../../../../mappers/v3/eleves/messages/mapper";
+import { Message, MessageFolders } from "../../../../mappers/v3/eleves/messages/mapper";
 import { AccountDataEntry } from "../../../../EcoleDirecteHandlerCore/hooks/utils/useAccountDataType";
 
 interface ThisUserData {
@@ -33,15 +20,13 @@ interface ThisUserData {
 export default function MessageReader() {
 
     // States
-    const location = useLocation();
     const { usedDisplayTheme } = useContext(AppContext);
 
     const settings = useContext(SettingsContext)
     const {
-        isStreamerModeEnabled: { value: isStreamerModeEnabled },
-        displayMode: { value: displayMode }
+        isStreamerModeEnabled: { value: isStreamerModeEnabled }
     } = settings.user;
-    
+
     const [spoiler, setSpoiler] = useState(isStreamerModeEnabled);
     const userData = useContext(UserDataContext) as unknown as ThisUserData;
     const {
@@ -57,8 +42,6 @@ export default function MessageReader() {
         setSpoiler(isStreamerModeEnabled);
     }, [selectedMessageId])
 
-    // JSX
-    const parsedHashFolder = parseInt(location.hash.slice(1, location.hash.lastIndexOf('-')));
 
     if (selectedMessageId === null || !messages || !messages?.length) {
         return <div id="message-reader"><p className="no-selected-message-placeholder">Sélectionnez un message dans votre boîte de réception pour le visualiser ici</p></div>;

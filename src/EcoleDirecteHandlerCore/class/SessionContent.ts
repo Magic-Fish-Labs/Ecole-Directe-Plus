@@ -1,8 +1,5 @@
 import { Account } from "../hooks/useEcoleDirecteAccount";
-import {
-	DetailledHomeworkData,
-	DetailledHomeworkDayData,
-} from "../structures/DetailledHomeworkResponse";
+import { DetailledHomeworkDayData } from "../structures/DetailledHomeworkResponse";
 import { UpcomingHomeworkDayData } from "../structures/UpcomingHomeworkResponse";
 import EcoleDirecteFile from "./EcoleDirecteFile";
 import HomeworkDay from "./HomeworkDay";
