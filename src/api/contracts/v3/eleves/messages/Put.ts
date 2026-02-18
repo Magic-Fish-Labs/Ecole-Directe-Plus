@@ -29,6 +29,6 @@ export type Body =
 
 // Response data
 
-export const dataSchema = z.object();
+export const dataSchema = z.void();
 
 export type Data = z.infer<typeof dataSchema>;
