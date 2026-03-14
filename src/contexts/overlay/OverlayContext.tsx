@@ -1,8 +1,8 @@
-import React, { useContext, createContext, useState, useRef, ReactNode } from "react";
-import PopUp from "../components/generic/PopUps/PopUp";
-import InfoPopUp from "../components/generic/PopUps/InfoPopUp";
-import BottomSheet from "../components/generic/PopUps/BottomSheet";
-import classBuilder from "../utils/classBuilder";
+import { useContext, createContext, useState, useRef, ReactNode, ComponentProps } from "react";
+import PopUp from "../../components/generic/PopUps/PopUp";
+import InfoPopUp from "../../components/generic/PopUps/InfoPopUp";
+import BottomSheet from "../../components/generic/PopUps/BottomSheet";
+import classBuilder from "../../utils/classBuilder";
 
 import "./Overlay.css"
 
@@ -15,21 +15,21 @@ export enum OverlayTypes {
 type OverlayCommonParams = {
 	onClose?: () => void
 	onClosing?: (timer: number) => void
-	content: React.ReactNode
+	content: ReactNode
 }
 
 type OverlayParams =
 	| OverlayCommonParams & {
 		overlayType: OverlayTypes.BOTTOM_SHEET,
-		props: Omit<React.ComponentProps<typeof BottomSheet>, "onClose" | "onClosing" | "children" | "forceClose">
+		props: Omit<ComponentProps<typeof BottomSheet>, "onClose" | "onClosing" | "children" | "forceClose">
 	}
 	| OverlayCommonParams & {
 		overlayType: OverlayTypes.POP_UP,
-		props: Omit<React.ComponentProps<typeof PopUp>, "onClose" | "onClosing" | "children" | "forceClose">
+		props: Omit<ComponentProps<typeof PopUp>, "onClose" | "onClosing" | "children" | "forceClose">
 	}
 	| OverlayCommonParams & {
 		overlayType: OverlayTypes.INFO_POP_UP,
-		props: Omit<React.ComponentProps<typeof InfoPopUp>, "onClose" | "onClosing" | "children" | "forceClose">
+		props: Omit<ComponentProps<typeof InfoPopUp>, "onClose" | "onClosing" | "children" | "forceClose">
 	};
 
 type BottomSheetParams = Omit<Extract<OverlayParams, { overlayType: OverlayTypes.BOTTOM_SHEET }>, 'overlayType'>;

@@ -44,7 +44,7 @@ import OutlineEffectDiv from "../generic/CustomDivs/OutlineEffectDiv";
 import { BrowserLabels, OperatingSystemLabels } from "../../utils/constants/constants";
 import LinkableButton from "../generic/buttons/LinkableButton";
 import { AppContext, UserDataContext } from "../../App";
-import { OverlayTypes, useOverlay } from "../../contexts/OverlayContext";
+import { OverlayTypes, useOverlay } from "../../contexts/Overlay/OverlayContext";
 
 const subjectArray = [
     "FRANC",

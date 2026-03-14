@@ -63,7 +63,7 @@ const userBrowser = getBrowser();
 // !:! bouger les contexte en dehors de l'App
 export const AppContext = createContext(null);
 export const AccountContext = createContext(null);
-export const SettingsContext = createContext(null);
+
 export const UserDataContext = createContext(null);
 
 // !:! Bouger ca :

@@ -1,6 +1,6 @@
 import { useState, useReducer } from "react";
 
-export default function useAccountSettings(init, template) {
+export default function useAccountSettings<T extends object>(init: Array<T>, template: T) {
     const [selectedUserSettingIndex, setSelectedUserSettingIndex] = useState(0);
     const [accountSettings, dispatch] = useReducer((current, { action, params }) => {
         const next = [...current];
@@ -30,7 +30,7 @@ export default function useAccountSettings(init, template) {
                      * Brackets are mandatory here, because without it,
                      * the previous case is considered as the same scope
                      * so we can't create the same variables on the line
-                     * below (setting and value)  
+                     * below (setting and value)
                      */
                     const { setting, property, value } = params;
                     if (!next[selectedUserSettingIndex].hasOwnProperty(setting)) {
