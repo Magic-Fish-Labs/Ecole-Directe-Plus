@@ -5,9 +5,11 @@ import { AppContext } from "../../App";
 import { applyZoom, getZoomedBoudingClientRect } from "../../utils/zoom";
 import { currentPeriodEvent } from "./events/setPeriodEvent";
 import SnowCap from "../graphics/snowCap";
+import SpringCap from "../graphics/SpringCap";
 
 import "./Window.css";
 import "./events/christmas/snow.css";
+import "./events/easter/SpringBorder.css";
 
 
 function useWindowsContainer(options) {
@@ -1036,7 +1038,7 @@ export function Window({ children, growthFactor = 1, allowFullscreen = false, fu
 
 
     return (
-        <section className={`window ${className} ${WIP ? "work-in-progress" : ""} ${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "christmas" ? "allow-overflow-event" : ""}`}
+        <section className={`window ${className} ${WIP ? "work-in-progress" : ""} ${isPartyModeEnabled && isPeriodEventEnabled && (currentPeriodEvent === "christmas" || currentPeriodEvent === "easter") ? "allow-overflow-event" : ""}`}
             style={{ flexGrow: growthFactor }} ref={windowRef} {...props}>
             {WIP ? <p className="wip-info">Fonctionnalité en cours de développement...<br/>Rejoignez le <a href="https://discord.gg/AKAqXfTgvE" target="_blank">serveur Discord d'EDP</a> pour en suivre l'avancée !</p> : children}
             {/* <span style={{ color: "lime", fontWeight: "600", position: "relative", zIndex: "999" }}>{windowRef?.current?.name}</span> */}
@@ -1054,9 +1056,15 @@ export function WindowHeader({ children, className = "", ...props }) {
 
 
     return (
-        <div className={`window-header ${className} ${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "christmas" ? "snowy-element-window" : ""}`} {...props}>
-            {isPeriodEventEnabled !== false && currentPeriodEvent === "christmas" && (
-                <SnowCap className="snow-cap"/>
+        <div className={`window-header ${className} ${isPartyModeEnabled && isPeriodEventEnabled ? (currentPeriodEvent === "christmas" ? "snowy-element-window" : (currentPeriodEvent === "easter" ? "spring-element-window" : "")) : ""}`} {...props}>
+            {isPeriodEventEnabled !== false && (
+                currentPeriodEvent === "christmas" ? (
+                    <SnowCap className="snow-cap"/>
+                ) : (
+                    currentPeriodEvent === "easter" && (
+                        <SpringCap className="spring-cap" style={{ position: "absolute", bottom: "-5px", width: "101%", pointerEvents: "none" }}/>
+                    )
+                )
             )}
             {children}
         </div>

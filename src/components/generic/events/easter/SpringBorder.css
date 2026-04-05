@@ -1,0 +1,63 @@
+.spring-element {
+  position: relative;
+  padding: 20px;
+  border-radius: 20px;
+  background-color: #fff;
+}
+
+.spring-element::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: linear-gradient(to bottom, #77dd77 0%, transparent 100%);
+  border-radius: 10px 10px 0 0;
+  pointer-events: none;
+}
+
+.spring-element::after {
+  content: "🌷 🌼 🌿 🌸";
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 14px;
+  letter-spacing: 5px;
+  pointer-events: none;
+}
+
+.spring-element-window {
+  position: relative;
+  padding: 20px;
+  border-radius: 20px;
+}
+
+.spring-element-window::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: #77dd77;
+  border-radius: 10px 10px 0 0;
+  box-shadow: 0 0 10px rgba(119, 221, 119, 0.5);
+  z-index: 10;
+}
+
+.window-header.spring-element-window {
+  height: 34px;
+  padding-bottom: 10px; /* Plus d'espace en bas */
+}
+
+/* On s'assure que le contenu du header est au-dessus */
+.window-header.spring-element-window > * {
+  z-index: 5;
+}
+
+.spring-cap {
+  z-index: 2; /* Derrière le texte si possible, mais devant le fond */
+  opacity: 0.9;
+}

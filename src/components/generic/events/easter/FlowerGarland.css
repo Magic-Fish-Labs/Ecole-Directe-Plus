@@ -1,0 +1,78 @@
+.flower-rope {
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    position: absolute;
+    z-index: 1000;
+    margin: -10px 0 0 0;
+    padding: 0;
+    pointer-events: none;
+    width: 100%;
+    height: 60px;
+    border-top: 3px solid rgba(34, 197, 94, 0.4); /* Liane verte */
+}
+
+.flower-rope li {
+    position: relative;
+    list-style: none;
+    margin: 15px;
+    display: inline-block;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #ffb7b2;
+    box-shadow: 0px 4px 20px rgba(255, 183, 178, 0.8);
+    animation: flower-sway 3s ease-in-out infinite alternate;
+}
+
+.flower-rope li:nth-child(2n+1) {
+    background: #b2e2f2;
+    box-shadow: 0px 4px 20px rgba(178, 226, 242, 0.8);
+    animation-duration: 2.5s;
+}
+
+.flower-rope li:nth-child(3n+1) {
+    background: #fef08a;
+    box-shadow: 0px 4px 20px rgba(254, 240, 138, 0.8);
+    animation-duration: 3.5s;
+}
+
+.flower-rope li:nth-child(4n+1) {
+    background: #c084fc;
+    box-shadow: 0px 4px 20px rgba(192, 132, 252, 0.8);
+    animation-duration: 2.8s;
+}
+
+.flower-rope li:before {
+    content: "✿";
+    position: absolute;
+    top: -8px;
+    left: -5px;
+    font-size: 32px;
+    color: white;
+    text-shadow: 0 0 5px rgba(0,0,0,0.1);
+}
+
+.flower-rope li:after {
+    content: "";
+    top: -10px;
+    left: 18px;
+    position: absolute;
+    width: 60px;
+    height: 25px;
+    border-bottom: solid rgba(34, 197, 94, 0.5) 3px;
+    border-radius: 50%;
+}
+
+.flower-rope li:last-child:after {
+    content: none;
+}
+
+@keyframes flower-sway {
+    from {
+        transform: rotate(-10deg) translateY(0);
+    }
+    to {
+        transform: rotate(10deg) translateY(10px);
+    }
+}

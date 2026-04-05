@@ -4,6 +4,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AppContext } from "../../App";
 import { currentPeriodEvent } from "../generic/events/setPeriodEvent";
 import Snowfall from "../generic/events/christmas/Snowfall";
+import EasterFall from "../generic/events/easter/EasterFall";
+import FlowerGarland from "../generic/events/easter/FlowerGarland";
 import OutlineEffectDiv from "../generic/CustomDivs/OutlineEffectDiv";
 
 // graphics
@@ -18,6 +20,7 @@ import UpArrow from "../graphics/UpArrow";
 
 import "./LandingPage.css";
 import "../generic/events/christmas/snow.css";
+import "../generic/events/easter/SpringBorder.css";
 
 export default function LandingPage({ token, accountsList }) {
     const { isMobileLayout, isTabletLayout, actualDisplayTheme, useUserSettings } = useContext(AppContext);
@@ -127,7 +130,7 @@ export default function LandingPage({ token, accountsList }) {
 
     return (<div className="landing-page">
         {<header id="nav-bar" className="top-section">
-            <span className={`nav-logo ${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "christmas" ? "snowy-element" : ""}`}>
+            <span className={`nav-logo ${isPartyModeEnabled && isPeriodEventEnabled ? (currentPeriodEvent === "christmas" ? "snowy-element" : (currentPeriodEvent === "easter" ? "spring-element" : "")) : ""}`}>
                 <EDPLogo className="landing-logo" id="outside-container" alt="Logo Ecole Directe Plus" />Ecole Directe Plus
             </span>
             {!isTabletLayout && !isMobileLayout && <nav className="nav-links">
@@ -137,15 +140,25 @@ export default function LandingPage({ token, accountsList }) {
                 <Link to="/edp-unblock" className={location.hash === "#edp-unblock" ? "selected" : ""} >EDP Unblock <EdpuLogo className="edpu-logo" /> </Link>
             </nav>}
             <div className="nav-buttons">
-                <Link className={`nav-login ${isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "christmas" ? "snowy-element" : ""}`} to={isLoggedIn ? "/app" : "/login"}>{isLoggedIn ? "Ouvrir l'app" : "Se connecter"}</Link>
+                <Link className={`nav-login ${isPartyModeEnabled && isPeriodEventEnabled ? (currentPeriodEvent === "christmas" ? "snowy-element" : (currentPeriodEvent === "easter" ? "spring-element" : "")) : ""}`} to={isLoggedIn ? "/app" : "/login"}>{isLoggedIn ? "Ouvrir l'app" : "Se connecter"}</Link>
                 <button className="change-theme" onClick={changeTheme} />
             </div>
         </header>}
         {
             isPartyModeEnabled
             && isPeriodEventEnabled
-            && currentPeriodEvent === "christmas"
-            && <Snowfall />
+            && (
+                currentPeriodEvent === "christmas" ? (
+                    <Snowfall />
+                ) : (
+                    currentPeriodEvent === "easter" && (
+                        <>
+                            <EasterFall />
+                            <FlowerGarland />
+                        </>
+                    )
+                )
+            )
         }
         <section id="home" ref={homeSectionRef}>
             <Link to="" className={`go-to-top ${isTop ? "unactive" : "active"}`}><UpArrow className="up-arrow" /></Link>
