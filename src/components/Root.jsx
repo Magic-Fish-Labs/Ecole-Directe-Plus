@@ -127,6 +127,19 @@ export default function Root({ currentEDPVersion, token, accountsList, fakeLogin
     }, [isNewUser, isNewEDPVersion]);
 
 
+    // reset easter data when event is over
+    useEffect(() => {
+        if (currentPeriodEvent !== "easter") {
+            if (localStorage.getItem("easter_eggs_count")) {
+                localStorage.removeItem("easter_eggs_count");
+            }
+            if (localStorage.getItem("easter_popup_seen")) {
+                localStorage.removeItem("easter_popup_seen");
+            }
+        }
+    }, [currentPeriodEvent]);
+
+
     // re-login
 
     useEffect(() => {
