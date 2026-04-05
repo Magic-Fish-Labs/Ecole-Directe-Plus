@@ -56,13 +56,6 @@ export default function Header({ currentEDPVersion, accountsList, setActiveAccou
         handleClick();
         if (isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "easter") {
             setIsGoldenEggActive(true);
-            
-            // Gain d'œufs dorés (+5)
-            const currentScore = parseInt(localStorage.getItem("easter_eggs_count") || "0");
-            const newScore = currentScore + 5;
-            localStorage.setItem("easter_eggs_count", newScore.toString());
-            window.dispatchEvent(new CustomEvent("easterScoreUpdated", { detail: { score: newScore, type: "golden" } }));
-
             setTimeout(() => setIsGoldenEggActive(false), 5000);
         }
     }

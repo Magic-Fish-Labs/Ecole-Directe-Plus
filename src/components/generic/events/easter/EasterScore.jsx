@@ -26,7 +26,11 @@ export default function EasterScore() {
         return () => window.removeEventListener("easterScoreUpdated", handleScoreUpdate);
     }, []);
 
-    const nextMilestone = MILESTONES.find(m => m > score) || MILESTONES[MILESTONES.length - 1];
+    let nextMilestone = MILESTONES.find(m => m > score);
+    if (!nextMilestone) {
+        // Si on dépasse le dernier palier (200), on crée des paliers tous les 100 œufs
+        nextMilestone = Math.ceil((score + 1) / 100) * 100;
+    }
 
     return (
         <div className={`easter-score-container ${bump ? "bump" : ""}`}>
