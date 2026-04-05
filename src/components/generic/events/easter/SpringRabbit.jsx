@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import "./SpringRabbit.css";
+import { getSecureScore, saveSecureScore } from "./easterUtils";
 
 export default function SpringRabbit() {
     const [isVisible, setIsVisible] = useState(false);
@@ -24,10 +25,10 @@ export default function SpringRabbit() {
     const handleCatch = () => {
         if (!isVisible || showEggGain) return;
         
-        // Mise à jour du score
-        const currentScore = parseInt(localStorage.getItem("easter_eggs_count") || "0");
+        // Mise à jour du score sécurisé
+        const currentScore = getSecureScore();
         const newScore = currentScore + 1;
-        localStorage.setItem("easter_eggs_count", newScore.toString());
+        saveSecureScore(newScore);
         
         // Notification pour les autres composants
         window.dispatchEvent(new CustomEvent("easterScoreUpdated", { detail: { score: newScore } }));

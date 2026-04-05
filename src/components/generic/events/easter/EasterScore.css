@@ -1,65 +1,99 @@
 .easter-score-container {
-    position: fixed;
-    bottom: 20px;
-    left: 20px;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 10px 15px;
-    border-radius: 50px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    z-index: 1002;
-    border: 2px solid #fef08a;
-    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    pointer-events: none;
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 10px 15px;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  z-index: 1002;
+  border: 2px solid #fef08a;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  pointer-events: none;
 }
 
 .easter-score-container.bump {
-    transform: scale(1.2);
+  transform: scale(1.2);
 }
 
 .egg-icon {
-    font-size: 24px;
-    animation: egg-wiggle 2s infinite;
+  font-size: 24px;
+  animation: egg-wiggle 2s infinite;
 }
 
 .score-text {
-    font-family: var(--font-family);
-    font-weight: bold;
-    color: #4b5563;
-    font-size: 18px;
+  font-family: var(--font-family);
+  font-weight: bold;
+  color: #4b5563;
+  font-size: 18px;
 }
 
 .score-goal {
-    font-size: 12px;
-    color: #9ca3af;
-    margin-left: 5px;
+  font-size: 12px;
+  color: #9ca3af;
+  margin-left: 5px;
 }
 
 .milestone-notif {
-    position: absolute;
-    top: -50px;
-    left: 0;
-    width: 100%;
-    text-align: center;
-    background: #4ade80;
-    color: white;
-    padding: 5px;
-    border-radius: 10px;
-    font-size: 14px;
-    animation: fade-up-out 3s forwards;
+  position: absolute;
+  top: -50px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  background: #4ade80;
+  color: white;
+  padding: 5px;
+  border-radius: 10px;
+  font-size: 14px;
+  animation: fade-up-out 3s forwards;
+}
+
+.tamper-warning {
+  position: absolute;
+  top: -80px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  background: #f87171;
+  color: white;
+  padding: 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  animation: fade-up-out 5s forwards;
+  z-index: 1003;
 }
 
 @keyframes egg-wiggle {
-    0%, 100% { transform: rotate(0); }
-    25% { transform: rotate(-10deg); }
-    75% { transform: rotate(10deg); }
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  25% {
+    transform: rotate(-10deg);
+  }
+  75% {
+    transform: rotate(10deg);
+  }
 }
 
 @keyframes fade-up-out {
-    0% { transform: translateY(0); opacity: 0; }
-    10% { transform: translateY(-10px); opacity: 1; }
-    90% { transform: translateY(-20px); opacity: 1; }
-    100% { transform: translateY(-30px); opacity: 0; }
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  10% {
+    transform: translateY(-10px);
+    opacity: 1;
+  }
+  90% {
+    transform: translateY(-20px);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-30px);
+    opacity: 0;
+  }
 }

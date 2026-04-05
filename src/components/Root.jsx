@@ -132,6 +132,7 @@ export default function Root({ currentEDPVersion, token, accountsList, fakeLogin
         if (currentPeriodEvent !== "easter") {
             if (localStorage.getItem("easter_eggs_count")) {
                 localStorage.removeItem("easter_eggs_count");
+                localStorage.removeItem("easter_eggs_hash");
             }
             if (localStorage.getItem("easter_popup_seen")) {
                 localStorage.removeItem("easter_popup_seen");
