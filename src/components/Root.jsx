@@ -448,6 +448,7 @@ export default function Root({ currentEDPVersion, token, accountsList, fakeLogin
                 {isAdmin && <input type="button" onClick={() => { document.documentElement.classList.remove("dark"); document.documentElement.classList.remove("light"); document.documentElement.classList.add("tritanopia") }} value="TRITANOPIA" />}
                 {isAdmin && <input type="button" onClick={syncSettings} value="SYNC SETTINGS" />}
                 {isAdmin && <input type="button" onClick={() => { createFolderStorage("123test123") }} value="FOLDER" />}
+                {isAdmin && <input type="button" onClick={() => { localStorage.removeItem("easter_popup_seen"); window.location.reload(); }} value="RESET EASTER POPUP" />}
                 {isAdmin && <form action="https://docs.google.com/document/d/1eiE_DTuimyt7r9pIe9ST3ppqU9cLYashXm9inhBIC4A/edit" method="get" target="_blank" style={{ display: "inline" }}>
                     <button type="submit" style={{ display: "inline" }}>G DOCS</button>
                 </form>}
