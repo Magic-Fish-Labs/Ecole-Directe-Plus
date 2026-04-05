@@ -84,6 +84,43 @@
     filter: drop-shadow(0 0 20px rgba(var(--text-color-main), 0.4));
 }
 
+/* - - - Easter Clickable Hint - - - */
+
+.header-logo-container a.easter-clickable::after {
+    content: "!";
+    position: absolute;
+    top: -5px;
+    right: -10px;
+    background: #ff4757;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    animation: attention-bounce 0.4s infinite alternate;
+}
+
+.header-logo-container a.easter-clickable #header-logo {
+    animation: easter-glow 2s infinite;
+}
+
+@keyframes easter-glow {
+    0% { filter: drop-shadow(0 0 5px rgba(254, 240, 138, 0.4)); }
+    50% { filter: drop-shadow(0 0 15px rgba(254, 240, 138, 0.8)); }
+    100% { filter: drop-shadow(0 0 5px rgba(254, 240, 138, 0.4)); }
+}
+
+@keyframes attention-bounce {
+    from { transform: scale(1) rotate(-10deg); }
+    to { transform: scale(1.3) rotate(10deg); }
+}
+
 /* - - - navbar - - - */
 
 .navbar {

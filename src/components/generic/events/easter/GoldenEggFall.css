@@ -1,0 +1,23 @@
+.golden-egg-fall {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 2000;
+}
+
+.golden-egg {
+    position: absolute;
+    top: -50px;
+    font-size: 40px;
+    animation: golden-fall var(--duration) linear forwards;
+    filter: drop-shadow(0 0 10px gold);
+}
+
+@keyframes golden-fall {
+    to {
+        transform: translateY(110vh) rotate(360deg);
+    }
+}

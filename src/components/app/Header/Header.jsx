@@ -21,6 +21,11 @@ import { AppContext } from "../../../App";
 
 import { currentPeriodEvent } from "../../generic/events/setPeriodEvent";
 import Snowfall from "../../generic/events/christmas/Snowfall";
+import EasterFall from "../../generic/events/easter/EasterFall";
+import FlowerGarland from "../../generic/events/easter/FlowerGarland";
+import SpringRabbit from "../../generic/events/easter/SpringRabbit";
+import GoldenEggFall from "../../generic/events/easter/GoldenEggFall";
+import EasterScore from "../../generic/events/easter/EasterScore";
 import "../../generic/events/christmas/garland.css";
 
 import "./Header.css";
@@ -42,10 +47,25 @@ export default function Header({ currentEDPVersion, accountsList, setActiveAccou
 
     const [easterEggCounter, setEasterEggCounter] = useState(0);
     const [easterEggTimeoutId, setEasterEggTimeoutId] = useState(null);
+    const [isGoldenEggActive, setIsGoldenEggActive] = useState(false);
     const [closeFeedbackBottomSheet, setCloseFeedbackBottomSheet] = useState(false);
 
     const headerLogoRef = useRef(null);
-    // const isFirstFrame = useRef(true);
+
+    const handleLogoClick = () => {
+        handleClick();
+        if (isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "easter") {
+            setIsGoldenEggActive(true);
+            
+            // Gain d'œufs dorés (+5)
+            const currentScore = parseInt(localStorage.getItem("easter_eggs_count") || "0");
+            const newScore = currentScore + 5;
+            localStorage.setItem("easter_eggs_count", newScore.toString());
+            window.dispatchEvent(new CustomEvent("easterScoreUpdated", { detail: { score: newScore, type: "golden" } }));
+
+            setTimeout(() => setIsGoldenEggActive(false), 5000);
+        }
+    }
 
 
     const handleUserId = (userId) => {
@@ -209,15 +229,21 @@ export default function Header({ currentEDPVersion, accountsList, setActiveAccou
     // JSX
     return (
         <div id="app">
-            {isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "christmas" && (
-                <ul className="lightrope">
-                    {Array(150).fill(0).map((_, index) => <li key={index} />)}
-                </ul>
+            {isPartyModeEnabled && isPeriodEventEnabled && (
+                currentPeriodEvent === "christmas" ? (
+                    <ul className="lightrope">
+                        {Array(150).fill(0).map((_, index) => <li key={index} />)}
+                    </ul>
+                ) : (
+                    currentPeriodEvent === "easter" && (
+                        <FlowerGarland />
+                    )
+                )
             )}
             {!isFullScreen && <div className={`header-container${isStandaloneApp ? " standalone" : ""}`}>
                 <header className="header-menu">
                     <div className="header-logo-container">
-                        <Link to="dashboard" tabIndex="-1" ref={headerLogoRef} onClick={handleClick}>
+                        <Link to="dashboard" tabIndex="-1" ref={headerLogoRef} onClick={handleLogoClick} className={isPartyModeEnabled && isPeriodEventEnabled && currentPeriodEvent === "easter" ? "easter-clickable" : ""}>
                             <EDPLogo id="header-logo" />
                             <div id="version-tag">{globalSettings.isDevChannel.value ? "DEV" : currentEDPVersion}</div>
                         </Link>
@@ -257,8 +283,20 @@ export default function Header({ currentEDPVersion, accountsList, setActiveAccou
             {
                 isPartyModeEnabled
                 && isPeriodEventEnabled
-                && currentPeriodEvent === "christmas"
-                && <Snowfall />
+                && (
+                    currentPeriodEvent === "christmas" ? (
+                        <Snowfall />
+                    ) : (
+                        currentPeriodEvent === "easter" && (
+                            <>
+                                <EasterFall />
+                                <SpringRabbit />
+                                <GoldenEggFall active={isGoldenEggActive} />
+                                <EasterScore />
+                            </>
+                        )
+                    )
+                )
             }
         </div>
     )
