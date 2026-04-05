@@ -1,12 +1,16 @@
 import { useState, useEffect } from "react";
 import "./EasterScore.css";
+import { getSecureScore } from "./easterUtils";
+import { useCreateNotification } from "../../PopUps/Notification";
 
 const MILESTONES = [10, 25, 50, 75, 100, 150, 200];
 
 export default function EasterScore() {
-    const [score, setScore] = useState(parseInt(localStorage.getItem("easter_eggs_count") || "0"));
+    const [score, setScore] = useState(getSecureScore());
     const [bump, setBump] = useState(false);
     const [milestoneMsg, setMilestoneMsg] = useState("");
+
+    const createNotification = useCreateNotification();
 
     useEffect(() => {
         const handleScoreUpdate = (e) => {
@@ -22,8 +26,17 @@ export default function EasterScore() {
             }
         };
 
+        const handleScoreTampered = () => {
+            setScore(0);
+            createNotification(<span>⚠️ <span className="emphasis">Triche détectée !</span> Votre score a été réinitialisé. Pas de raccourcis pour la chasse aux œufs ! 🧺</span>);
+        };
+
         window.addEventListener("easterScoreUpdated", handleScoreUpdate);
-        return () => window.removeEventListener("easterScoreUpdated", handleScoreUpdate);
+        window.addEventListener("easterScoreTampered", handleScoreTampered);
+        return () => {
+            window.removeEventListener("easterScoreUpdated", handleScoreUpdate);
+            window.removeEventListener("easterScoreTampered", handleScoreTampered);
+        };
     }, []);
 
     let nextMilestone = MILESTONES.find(m => m > score);
