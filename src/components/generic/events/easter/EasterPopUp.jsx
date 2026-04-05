@@ -24,12 +24,16 @@ export default function EasterPopUp() {
                 <div className="easter-popup-eggs">🥚 🐣 🌸</div>
                 <h1>Joyeuses Pâques !</h1>
                 <p>
-                    Bienvenue sur Ecole-Directe-Plus ! Profitez de notre thème spécial printanier. 
-                    Une petite chasse aux œufs a commencé... Saurez-vous tous les trouver ? 🧺
+                    Chers élèves, l'équipe MagicFishes et ses contributeurs vous souhaitent de Joyeuses Pâques et une bonne chasse aux œufs.
+                    <br /><br />
+                    PS : un lapin aux œufs apparaît parfois sur la page, cliquez dessus pour obtenir un Œuf. Celui qui récolte le plus d'œufs d'ici la fin du mois aura une récompense unique !
                 </p>
                 <button className="easter-popup-close" onClick={handleClose}>
                     C'est parti !
                 </button>
+                <div className="easter-popup-signature">
+                    Theme designed by <span>Ewalwi</span>
+                </div>
             </div>
         </div>
     );

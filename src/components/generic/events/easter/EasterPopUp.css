@@ -59,6 +59,20 @@
     transform: scale(1.05);
 }
 
+.easter-popup-signature {
+    margin-top: 25px;
+    font-size: 11px;
+    color: #9ca3af;
+    font-style: italic;
+    font-family: var(--font-family);
+    letter-spacing: 0.5px;
+}
+
+.easter-popup-signature span {
+    font-weight: bold;
+    color: #4b5563;
+}
+
 @keyframes popup-bounce {
     0% { transform: scale(0.5); opacity: 0; }
     100% { transform: scale(1); opacity: 1; }
