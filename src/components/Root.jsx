@@ -9,6 +9,9 @@ import ProxyErrorNotification from "./Errors/ProxyErrorNotification";
 import { useCreateNotification } from "./generic/PopUps/Notification";
 import A2FLogin from "./Login/A2FLogin";
 
+import { currentPeriodEvent } from "./generic/events/setPeriodEvent";
+import EasterPopUp from "./generic/events/easter/EasterPopUp";
+
 export default function Root({ currentEDPVersion, token, accountsList, fakeLogin, resetUserData, syncSettings, createFolderStorage, setDisplayTheme, displayTheme, displayMode, setDisplayModeState, activeAccount, setActiveAccount, setIsFullScreen, globalSettings, useUserSettings, entryURL, logout, isStandaloneApp, isTabletLayout, proxyError, fetchHomeworks, handleEdBan, isEDPUnblockInstalled, setIsEDPUnblockInstalled, isEDPUnblockActuallyInstalled, setIsEDPUnblockActuallyInstalled, requireA2F, setRequireA2F, fetchA2F }) {
     const navigate = useNavigate();
     const location = useLocation();
@@ -437,6 +440,11 @@ export default function Root({ currentEDPVersion, token, accountsList, fakeLogin
                     <option value="balanced">DISPLAY: BALANCED</option>
                     <option value="performance">DISPLAY: PERF</option>
                 </select>}
+                {isAdmin && <select title="Forced event" value={localStorage.getItem("forcedPeriodEvent") ?? "none"} name="forced-event" id="forced-event-select" onChange={(e) => { if (e.target.value === "none") { localStorage.removeItem("forcedPeriodEvent") } else { localStorage.setItem("forcedPeriodEvent", e.target.value) }; window.location.reload() }}>
+                    <option value="none">EVENT: AUTO / NONE</option>
+                    <option value="christmas">EVENT: CHRISTMAS</option>
+                    <option value="easter">EVENT: EASTER</option>
+                </select>}
                 {isAdmin && <input type="button" onClick={() => { document.documentElement.classList.remove("dark"); document.documentElement.classList.remove("light"); document.documentElement.classList.add("tritanopia") }} value="TRITANOPIA" />}
                 {isAdmin && <input type="button" onClick={syncSettings} value="SYNC SETTINGS" />}
                 {isAdmin && <input type="button" onClick={() => { createFolderStorage("123test123") }} value="FOLDER" />}
@@ -457,6 +465,7 @@ export default function Root({ currentEDPVersion, token, accountsList, fakeLogin
             {popUp === "newEDPVersion" && <PatchNotes currentEDPVersion={currentEDPVersion} onClose={() => { setIsNewEDPVersion(false); localStorage.setItem("EDPVersion", currentEDPVersion); }} />}
             {proxyError && <ProxyErrorNotification />}
             <Outlet />
+            {currentPeriodEvent === "easter" && <EasterPopUp />}
             {requireA2F && <A2FLogin fetchA2F={fetchA2F} onClose={() => setRequireA2F(false)} />}
         </>
     );
