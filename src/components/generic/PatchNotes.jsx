@@ -24,7 +24,7 @@ export default function PatchNotes({ currentEDPVersion, onClose }) {
                         <li><b>Mon niveau</b> — moyenne, médiane, streak quotidien et record regroupés sur l'accueil.</li>
                         <li><b>Notes prévisionnelles</b> — ajoute une note fictive, son barème et son coefficient pour estimer son impact sur la moyenne.</li>
                         <li><b>Brevets blancs</b> — enregistre les résultats de Français, Maths, Histoire-Géo/EMC, Sciences et Oral avec calcul automatique.</li>
-                        <li><b>Thèmes ED+</b> — Classique, Vert, Rouge, Orange, Bleu, Violet et OLED, configurables depuis les paramètres.</li>
+                        <li><b>Nouveaux thèmes ED+</b> — Vert, Rouge, Orange, Bleu, Violet et OLED, configurables depuis les paramètres. <b>Ces nouveaux thèmes sont pour le moment compatibles uniquement avec le thème sombre d'ED+.</b></li>
                         <li><b>Mes outils</b> — nouvel espace sur l'accueil afin de garder la page Notes claire.</li>
                     </ul>
 
@@ -36,6 +36,11 @@ export default function PatchNotes({ currentEDPVersion, onClose }) {
                         <li>Amélioration du responsive pour les différentes tailles d'écran.</li>
                         <li>Nettoyage et découpage du code pour faciliter les prochaines évolutions.</li>
                     </ul>
+
+                    <h3 className="sub-header">ℹ️ À savoir</h3>
+                    <p className="sub-paragraph">
+                        Pour profiter correctement des nouveaux thèmes de couleur, activez d'abord le <b>thème sombre</b> dans Paramètres, puis choisissez votre couleur ED+.
+                    </p>
 
                     <h3 className="sub-header">🧹 Changements</h3>
                     <p className="sub-paragraph">
