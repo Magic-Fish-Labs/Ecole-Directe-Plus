@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -10,6 +9,7 @@ import {
     WindowContent
 } from "../../generic/Window";
 import LastGrades from "./LastGrades";
+import StudentTools from "./StudentTools";
 import Notebook from "../Homeworks/Notebook";
 import BottomSheet from "../../generic/PopUps/BottomSheet";
 import EncodedHTMLDiv from "../../generic/CustomDivs/EncodedHTMLDiv";
@@ -23,18 +23,18 @@ import FileComponent from "../../generic/FileComponent";
 export default function Dashboard({ fetchUserGrades, grades, fetchHomeworks, activeAccount, isLoggedIn, useUserData, sortGrades, isTabletLayout }) {
     const navigate = useNavigate();
     const userData = useUserData();
-    const location = useLocation()
+    const location = useLocation();
 
     const sortedGrades = userData.get("sortedGrades");
+    const selectedPeriod = userData.get("activePeriod");
     const homeworks = useUserData("sortedHomeworks");
 
-    const hashParameters = location.hash.split(";")
-    const selectedTask = hashParameters.length > 1 && homeworks.get() && homeworks.get()[hashParameters[0].slice(1)]?.find(e => e.id == hashParameters[1])
+    const hashParameters = location.hash.split(";");
+    const selectedTask = hashParameters.length > 1 && homeworks.get() && homeworks.get()[hashParameters[0].slice(1)]?.find(e => e.id == hashParameters[1]);
 
-    // Behavior
     useEffect(() => {
         document.title = "Accueil • Ecole Directe Plus";
-    }, [])
+    }, []);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -45,32 +45,23 @@ export default function Dashboard({ fetchUserGrades, grades, fetchHomeworks, act
                 sortGrades(grades, activeAccount);
             }
         }
-
-        return () => {
-            controller.abort();
-        }
+        return () => controller.abort();
     }, [grades, isLoggedIn, activeAccount]);
 
     useEffect(() => {
         const controller = new AbortController();
-        if (isLoggedIn) {
-            if (homeworks.get() === undefined) {
-                fetchHomeworks(controller);
-            }
+        if (isLoggedIn && homeworks.get() === undefined) {
+            fetchHomeworks(controller);
         }
-
-        return () => {
-            controller.abort();
-        }
+        return () => controller.abort();
     }, [homeworks.get(), isLoggedIn, activeAccount]);
 
     useEffect(() => {
         if (hashParameters.length > 2 && (hashParameters[2] === "s" && !selectedTask?.sessionContent)) {
-            navigate(`${hashParameters[0]};${hashParameters[1]}`, { replace: true })
+            navigate(`${hashParameters[0]};${hashParameters[1]}`, { replace: true });
         }
-    }, [location.hash])
+    }, [location.hash]);
 
-    // JSX DISCODO
     return (
         <div id="dashboard">
             <WindowsContainer name="dashboard">
@@ -78,15 +69,6 @@ export default function Dashboard({ fetchUserGrades, grades, fetchHomeworks, act
                     <WindowsLayout direction="column" growthFactor={2.5}>
                         <WindowsLayout direction="row">
                             <LastGrades activeAccount={activeAccount} />
-                            {/* <Window WIP={true}>
-                                <WindowHeader onClick={() => navigate("../grades")}>
-                                    <h2>Dernière notes</h2>
-                                </WindowHeader>
-                                <WindowContent>
-                                    
-                                </WindowContent>
-                            </Window> */}
-
                             <Window>
                                 <WindowHeader onClick={() => navigate("../homeworks")}>
                                     <h2>Prochains devoirs surveillés</h2>
@@ -106,23 +88,23 @@ export default function Dashboard({ fetchUserGrades, grades, fetchHomeworks, act
                             </WindowContent>
                         </Window>
                     </WindowsLayout>
-                    <WindowsLayout>
-                        <Window WIP={true}>
-                            <WindowHeader onClick={() => navigate("../timetable")}>
-                                <h2>Emploi du temps</h2>
+                    <WindowsLayout growthFactor={1.35}>
+                        <Window className="student-tools-window">
+                            <WindowHeader>
+                                <h2>Mes outils</h2>
                             </WindowHeader>
                             <WindowContent>
-
+                                <StudentTools sortedGrades={sortedGrades} selectedPeriod={selectedPeriod} />
                             </WindowContent>
                         </Window>
                     </WindowsLayout>
                 </WindowsLayout>
             </WindowsContainer>
-            {(hashParameters.length > 2 && hashParameters[2] === "s" && selectedTask) && <BottomSheet heading="Contenu de séance" onClose={() => { navigate(`${hashParameters[0]};${hashParameters[1]}`, { replace: true }) }}>
+            {(hashParameters.length > 2 && hashParameters[2] === "s" && selectedTask) && <BottomSheet heading="Contenu de séance" onClose={() => { navigate(`${hashParameters[0]};${hashParameters[1]}`, { replace: true }); }}>
                 <EncodedHTMLDiv>{selectedTask.sessionContent}</EncodedHTMLDiv>
             </BottomSheet>}
-            {(hashParameters.length > 2 && hashParameters[2] === "f" && selectedTask) && <PopUp className="task-file-pop-up" onClose={() => { navigate(`${hashParameters[0]};${hashParameters[1]}`, { replace: true }) }}>
-            <div className="header-container">
+            {(hashParameters.length > 2 && hashParameters[2] === "f" && selectedTask) && <PopUp className="task-file-pop-up" onClose={() => { navigate(`${hashParameters[0]};${hashParameters[1]}`, { replace: true }); }}>
+                <div className="header-container">
                     <h2 className="file-title">Fichiers joints</h2>
                     <p className="file-subject">{selectedTask.subject} • {formatDateRelative(new Date(selectedTask.addDate))}</p>
                 </div>
@@ -136,5 +118,5 @@ export default function Dashboard({ fetchUserGrades, grades, fetchHomeworks, act
                 </div>
             </PopUp>}
         </div>
-    )
+    );
 }
