@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { calcMedian } from "../../../utils/gradesTools";
+import { calcAverage, calcMedian } from "../../../utils/gradesTools";
 import "./StudentSuite.css";
 
 const STORAGE_KEY = "edpStudentSuiteV1";
@@ -13,20 +13,11 @@ const THEMES = {
     oled: { header: "12, 12, 12", bg0: "0, 0, 0", bg1: "12, 12, 12", bg2: "28, 28, 28", border: "88, 88, 88", alt: "225, 225, 225" }
 };
 
-const DEFAULT_STATE = {
-    theme: "default",
-    simulations: [],
-    brevets: [],
-    qcms: [],
-    streak: { count: 0, best: 0, lastVisit: null }
-};
+const DEFAULT_STATE = { theme: "default", simulations: [], brevets: [], qcms: [], streak: { count: 0, best: 0, lastVisit: null } };
 
 function loadState() {
-    try {
-        return { ...DEFAULT_STATE, ...JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") };
-    } catch {
-        return DEFAULT_STATE;
-    }
+    try { return { ...DEFAULT_STATE, ...JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") }; }
+    catch { return DEFAULT_STATE; }
 }
 
 function dayKey(date = new Date()) {
@@ -53,27 +44,16 @@ function mean(values) {
 }
 
 function ThemePicker({ value, onChange }) {
-    return <div className="suite-theme-list">
-        {Object.keys(THEMES).map(theme => <button
-            key={theme}
-            type="button"
-            className={`suite-theme ${value === theme ? "active" : ""}`}
-            data-theme={theme}
-            onClick={() => onChange(theme)}
-        >{theme === "default" ? "Classique" : theme === "green" ? "Vert" : theme === "red" ? "Rouge" : theme === "orange" ? "Orange" : theme === "blue" ? "Bleu" : theme === "purple" ? "Violet" : "OLED"}</button>)}
-    </div>;
+    const labels = { default: "Classique", green: "Vert", red: "Rouge", orange: "Orange", blue: "Bleu", purple: "Violet", oled: "OLED" };
+    return <div className="suite-theme-list">{Object.keys(THEMES).map(theme => <button key={theme} type="button" className={`suite-theme ${value === theme ? "active" : ""}`} data-theme={theme} onClick={() => onChange(theme)}>{labels[theme]}</button>)}</div>;
 }
 
-function Simulations({ items, onChange, realAverage }) {
+function Simulations({ items, onChange, realGrades }) {
     const [draft, setDraft] = useState({ subject: "", value: 10, scale: 20, coef: 1 });
     const predicted = useMemo(() => {
-        if (realAverage == null) return null;
-        const valid = items.filter(item => Number(item.scale) > 0 && Number(item.coef) > 0);
-        if (!valid.length) return realAverage;
-        const simulatedWeight = valid.reduce((sum, item) => sum + Number(item.coef), 0);
-        const simulatedTotal = valid.reduce((sum, item) => sum + Number(item.value) * 20 / Number(item.scale) * Number(item.coef), 0);
-        return Math.round(((realAverage + simulatedTotal) / (1 + simulatedWeight)) * 100) / 100;
-    }, [items, realAverage]);
+        const simulated = items.map(item => ({ value: Number(item.value), scale: Number(item.scale), coef: Number(item.coef), isSignificant: true }));
+        return calcAverage([...(realGrades ?? []), ...simulated]);
+    }, [items, realGrades]);
 
     function add(event) {
         event.preventDefault();
@@ -83,7 +63,7 @@ function Simulations({ items, onChange, realAverage }) {
     }
 
     return <div className="suite-section">
-        <div className="suite-section-title"><h3>🧮 Notes prévisionnelles</h3>{predicted != null && <span>Moyenne estimée : <strong>{predicted}/20</strong></span>}</div>
+        <div className="suite-section-title"><h3>🧮 Notes prévisionnelles</h3>{predicted !== "N/A" && <span>Moyenne estimée : <strong>{predicted}/20</strong></span>}</div>
         <form className="suite-inline-form" onSubmit={add}>
             <input placeholder="Matière" value={draft.subject} onChange={e => setDraft({ ...draft, subject: e.target.value })} />
             <input type="number" min="0" step="0.1" value={draft.value} onChange={e => setDraft({ ...draft, value: e.target.value })} />
@@ -99,13 +79,12 @@ function Brevet({ items, onChange }) {
     const [name, setName] = useState("Brevet blanc");
     const [marks, setMarks] = useState({ francais: 10, maths: 10, histoire: 10, sciences: 10, oral: 10 });
     const average = mean(Object.values(marks).map(Number));
-    function save() {
-        onChange([...items, { id: crypto.randomUUID(), name, date: dayKey(), marks: { ...marks }, average }]);
-    }
+    const labels = { francais: "Français", maths: "Maths", histoire: "Histoire-Géo/EMC", sciences: "Sciences", oral: "Oral" };
+    function save() { onChange([...items, { id: crypto.randomUUID(), name, date: dayKey(), marks: { ...marks }, average }]); }
     return <div className="suite-section">
         <div className="suite-section-title"><h3>🎓 Brevets blancs</h3><span>Moyenne simulée : <strong>{average}/20</strong></span></div>
         <input className="suite-name-input" value={name} onChange={e => setName(e.target.value)} />
-        <div className="suite-mark-grid">{Object.entries(marks).map(([key, value]) => <label key={key}><span>{key === "francais" ? "Français" : key === "maths" ? "Maths" : key === "histoire" ? "Histoire-Géo/EMC" : key === "sciences" ? "Sciences" : "Oral"}</span><input type="number" min="0" max="20" step="0.5" value={value} onChange={e => setMarks({ ...marks, [key]: e.target.value })} /><small>/20</small></label>)}</div>
+        <div className="suite-mark-grid">{Object.entries(marks).map(([key, value]) => <label key={key}><span>{labels[key]}</span><input type="number" min="0" max="20" step="0.5" value={value} onChange={e => setMarks({ ...marks, [key]: e.target.value })} /><small>/20</small></label>)}</div>
         <button className="suite-primary" onClick={save}>Enregistrer ce brevet</button>
         <div className="suite-history">{items.slice().reverse().map(exam => <div key={exam.id}><strong>{exam.name}</strong><span>{exam.date}</span><b>{exam.average}/20</b><button onClick={() => onChange(items.filter(x => x.id !== exam.id))}>Supprimer</button></div>)}</div>
     </div>;
@@ -143,19 +122,9 @@ function Games({ streak }) {
     const [target, setTarget] = useState(() => Math.floor(Math.random() * 100) + 1);
     const [guessHint, setGuessHint] = useState("Trouve un nombre entre 1 et 100");
 
-    function startReaction() {
-        setReaction("Attends…"); setStartedAt(null);
-        setTimeout(() => { setStartedAt(performance.now()); setReaction("CLIQUE !"); }, 900 + Math.random() * 1800);
-    }
-    function hitReaction() {
-        if (startedAt == null) return startReaction();
-        setReaction(`${Math.round(performance.now() - startedAt)} ms — rejouer`); setStartedAt(null);
-    }
-    function tryGuess() {
-        const value = Number(guess);
-        if (value === target) { setGuessHint("🎉 Trouvé ! Nouveau nombre généré."); setTarget(Math.floor(Math.random() * 100) + 1); }
-        else setGuessHint(value < target ? "⬆️ Plus grand" : "⬇️ Plus petit");
-    }
+    function startReaction() { setReaction("Attends…"); setStartedAt(null); setTimeout(() => { setStartedAt(performance.now()); setReaction("CLIQUE !"); }, 900 + Math.random() * 1800); }
+    function hitReaction() { if (startedAt == null) return startReaction(); setReaction(`${Math.round(performance.now() - startedAt)} ms — rejouer`); setStartedAt(null); }
+    function tryGuess() { const value = Number(guess); if (value === target) { setGuessHint("🎉 Trouvé ! Nouveau nombre généré."); setTarget(Math.floor(Math.random() * 100) + 1); } else setGuessHint(value < target ? "⬆️ Plus grand" : "⬇️ Plus petit"); }
 
     const unlocks = [{ days: 3, name: "Réflexes" }, { days: 7, name: "Nombre mystère" }, { days: 14, name: "Mode arcade" }];
     return <div className="suite-section">
@@ -169,10 +138,8 @@ function Games({ streak }) {
 
 export default function StudentSuite({ sortedGrades, selectedPeriod }) {
     const [state, setState] = useState(loadState);
-
     const realGrades = useMemo(() => flattenGrades(sortedGrades?.[selectedPeriod]), [sortedGrades, selectedPeriod]);
-    const realValues = useMemo(() => realGrades.map(grade => Number(grade.value) * 20 / Number(grade.scale)), [realGrades]);
-    const realAverage = useMemo(() => mean(realValues), [realValues]);
+    const realAverage = useMemo(() => calcAverage(realGrades), [realGrades]);
     const median = useMemo(() => calcMedian(realGrades), [realGrades]);
 
     useEffect(() => {
@@ -206,10 +173,10 @@ export default function StudentSuite({ sortedGrades, selectedPeriod }) {
     return <section className="student-suite">
         <div className="suite-hero">
             <div><span className="suite-kicker">ED+ STUDENT SUITE</span><h2>Mon niveau</h2><p>Des outils locaux pour comprendre tes notes, préparer le brevet et rester régulier.</p></div>
-            <div className="suite-stats"><div><small>Moyenne</small><strong>{realAverage ?? "—"}</strong><span>/20</span></div><div><small>Médiane</small><strong>{median}</strong><span>/20</span></div><div><small>Streak</small><strong>🔥 {state.streak.count}</strong><span>record {state.streak.best}</span></div></div>
+            <div className="suite-stats"><div><small>Moyenne</small><strong>{realAverage}</strong><span>/20</span></div><div><small>Médiane</small><strong>{median}</strong><span>/20</span></div><div><small>Streak</small><strong>🔥 {state.streak.count}</strong><span>record {state.streak.best}</span></div></div>
         </div>
         <div className="suite-section"><h3>🎨 Thèmes</h3><ThemePicker value={state.theme} onChange={value => update("theme", value)} /></div>
-        <Simulations items={state.simulations} onChange={value => update("simulations", value)} realAverage={realAverage} />
+        <Simulations items={state.simulations} onChange={value => update("simulations", value)} realGrades={realGrades} />
         <Brevet items={state.brevets} onChange={value => update("brevets", value)} />
         <Qcm items={state.qcms} onChange={value => update("qcms", value)} />
         <Games streak={state.streak.count} />
