@@ -1,189 +1,114 @@
 export function getGradeValue(gradeValue) {
-    if (gradeValue.includes("Abs")) {
-        return "Abs";
-    } else if (gradeValue.includes("Disp")) {
-        return "Disp";
-    } else if (gradeValue.includes("NE")) {
-        return "NE";
-    } else if (gradeValue.includes("EA")) {
-        return "EA";
-    } else if (gradeValue === "") {
-        return "Comp"
-    }
-
-    const output = parseFloat(gradeValue?.replace(",", "."));
-
-    return isNaN(output) ? "N/A" : output;
+    if (typeof gradeValue !== "string") return safeParseFloat(gradeValue);
+    if (gradeValue.includes("Abs")) return "Abs";
+    if (gradeValue.includes("Disp")) return "Disp";
+    if (gradeValue.includes("NE")) return "NE";
+    if (gradeValue.includes("EA")) return "EA";
+    if (gradeValue === "") return "Comp";
+    return safeParseFloat(gradeValue);
 }
 
 export function safeParseFloat(value) {
-    if (typeof value === "number") {
-        return value
-    }
-    const parsedValue = parseFloat(value?.replace(",", "."))
-    return isNaN(parsedValue) ? "N/A" : parsedValue
+    if (typeof value === "number") return Number.isFinite(value) ? value : "N/A";
+    const parsedValue = Number.parseFloat(String(value ?? "").replace(",", "."));
+    return Number.isFinite(parsedValue) ? parsedValue : "N/A";
+}
+
+function normalizedEntries(list, valueKey = "value") {
+    const valid = (list ?? []).filter(item => (item.isSignificant ?? true) && Number.isFinite(Number(item[valueKey])) && Number(item.scale) > 0);
+    const hasCoefficient = valid.some(item => Number(item.coef) > 0);
+    return valid.map(item => ({
+        value: Number(item[valueKey]) * 20 / Number(item.scale),
+        weight: hasCoefficient ? Math.max(0, Number(item.coef) || 0) : 1
+    })).filter(item => item.weight > 0);
+}
+
+function averageEntries(entries) {
+    const totalWeight = entries.reduce((sum, item) => sum + item.weight, 0);
+    if (!totalWeight) return "N/A";
+    const total = entries.reduce((sum, item) => sum + item.value * item.weight, 0);
+    return Math.round((total / totalWeight) * 100) / 100;
 }
 
 export function calcAverage(list) {
-    let average = 0;
-    let coef = 0;
-    list.forEach(i => {
-        if ((i.isSignificant ?? true) && !isNaN(i.value)) {
-            coef += i.coef;
-        }
-    })
-
-    const noCoef = !coef;
-
-    list.forEach(i => {
-        if ((i.isSignificant ?? true) && !isNaN(i.value)) {
-            if (noCoef) {
-                average += (i.value * 20 / i.scale);
-                coef += 1;
-            } else {
-                average += (i.value * 20 / i.scale) * i.coef;
-            }
-        }
-    })
-
-    if (coef > 0 && list.length > 0) {
-        return Math.round(average / coef * 100) / 100;
-    } else {
-        return "N/A"
-    }
+    return averageEntries(normalizedEntries(list));
 }
 
 export function calcClassAverage(list) {
-    let average = 0;
-    let coef = 0;
-    for (let i of list) {
-        if ((i.isSignificant ?? true) && !isNaN(i.classAverage)) {
-            coef += i.coef;
-        }
-    }
+    return averageEntries(normalizedEntries(list, "classAverage"));
+}
 
-    const noCoef = !coef;
-
-    for (let i of list) {
-        if ((i.isSignificant ?? true) && !isNaN(i.classAverage)) {
-            if (noCoef) {
-                average += (i.classAverage * 20 / i.scale);
-                coef += 1;
-            } else {
-                average += (i.classAverage * 20 / i.scale) * i.coef;
-            }
-        }
-    }
-
-    if (coef > 0 && list.length > 0) {
-        return Math.ceil(average / coef * 100) / 100;
-    } else {
-        return "N/A"
-    }
+export function calcMedian(list, valueKey = "value") {
+    const values = normalizedEntries(list, valueKey).map(item => item.value).sort((a, b) => a - b);
+    if (!values.length) return "N/A";
+    const middle = Math.floor(values.length / 2);
+    const median = values.length % 2 ? values[middle] : (values[middle - 1] + values[middle]) / 2;
+    return Math.round(median * 100) / 100;
 }
 
 export function findCategory(period, subject) {
-    const subjectsKeys = Object.keys(period.subjects);
-    let i = subjectsKeys.indexOf(subject);
-    while (--i > 0 && !period.subjects[subjectsKeys[i]]?.isCategory) { } // très sad
-    if (!period.subjects[subjectsKeys[i]]?.isCategory) {
-        return null;
-    }
+    const subjectsKeys = Object.keys(period?.subjects ?? {});
+    let index = subjectsKeys.indexOf(subject) - 1;
+    while (index >= 0 && !period.subjects[subjectsKeys[index]]?.isCategory) index--;
+    return index >= 0 ? period.subjects[subjectsKeys[index]] : null;
+}
 
-    return period.subjects[subjectsKeys[i]];
+function getSubjectCoefMultiplier(period, currentSubject) {
+    if (!currentSubject.isSubSubject) return 1;
+    const subjectCode = currentSubject.name.split(" - ")[0];
+    const parent = period.subjects[subjectCode];
+    if (!parent) return 0;
+    const sum = Object.keys(period.subjects)
+        .filter(key => key !== subjectCode && key.includes(subjectCode))
+        .reduce((total, key) => total + (Number(period.subjects[key].coef) || 0), 0);
+    return sum ? (Number(parent.coef) || 0) / sum : 0;
+}
+
+function subjectToAverageEntry(period, subject, valueKey = "average") {
+    const value = subject[valueKey];
+    return {
+        value: value ?? 0,
+        scale: 20,
+        coef: value === undefined ? 0 : (Number(subject.coef) || 0) * getSubjectCoefMultiplier(period, subject)
+    };
 }
 
 export function calcCategoryAverage(period, category) {
+    const subjects = Object.values(period?.subjects ?? {});
+    const categoryIndex = subjects.findIndex(subject => subject.name === category.name);
+    if (categoryIndex < 0) return "N/A";
     const list = [];
-    const subjectsKeys = Object.keys(period.subjects);
-    let i = 0;
-    while (i < subjectsKeys.length && period.subjects[subjectsKeys[i]].name !== category.name) { i++ }
-    while (++i < subjectsKeys.length && !period.subjects[subjectsKeys[i]].isCategory) {
-        const currentSubject = period.subjects[subjectsKeys[i]];
-        let coefMultiplicator = 1;
-        if (currentSubject.isSubSubject) {
-            const subjectCode = currentSubject.name.split(" - ")[0];
-            const validKeys = Object.keys(period.subjects).filter((key) => (key !== subjectCode && key.includes(subjectCode))); // selects other subsubjects (and exclude the parent subject)
-            let sum = 0;
-            for (let validKey of validKeys) {
-                sum += period.subjects[validKey].coef;
-            }
-            coefMultiplicator = period.subjects[subjectCode].coef / sum;
-        }
-        list.push({
-            value: currentSubject.average ?? 0,
-            scale: 20,
-            coef: currentSubject.average === undefined ? 0 : (currentSubject.coef * coefMultiplicator)
-        })
+    for (let i = categoryIndex + 1; i < subjects.length && !subjects[i].isCategory; i++) {
+        list.push(subjectToAverageEntry(period, subjects[i]));
     }
+    return calcAverage(list);
+}
 
+function calcPeriodAverage(period, valueKey) {
+    const list = Object.values(period?.subjects ?? {})
+        .filter(subject => !subject.isCategory)
+        .map(subject => subjectToAverageEntry(period, subject, valueKey));
     return calcAverage(list);
 }
 
 export function calcGeneralAverage(period) {
-    const list = []
-    for (let subject in period.subjects) {
-        const currentSubject = period.subjects[subject];
-        if (!currentSubject.isCategory) {
-            let coefMultiplicator = 1;
-            if (currentSubject.isSubSubject) {
-                const subjectCode = currentSubject.name.split(" - ")[0];
-                const validKeys = Object.keys(period.subjects).filter((key) => (key !== subjectCode && key.includes(subjectCode))); // selects other subsubjects (and exclude the parent subject)
-                let sum = 0;
-                for (let validKey of validKeys) {
-                    sum += period.subjects[validKey].coef;
-                }
-                coefMultiplicator = sum ? (period.subjects[subjectCode].coef / sum) : 0; // Handle the case where the sum of subSubject coef is 0 
-            }
-            list.push({
-                value: currentSubject.average ?? 0,
-                scale: 20,
-                coef: currentSubject.average === undefined ? 0 : (currentSubject.coef * coefMultiplicator)
-            })
-        }
-    }
-
-    return calcAverage(list);
+    return calcPeriodAverage(period, "average");
 }
 
 export function calcClassGeneralAverage(period) {
-    const list = []
-    for (let subject in period.subjects) {
-        const currentSubject = period.subjects[subject];
-        if (!currentSubject.isCategory) {
-            let coefMultiplicator = 1;
-            if (currentSubject.isSubSubject) {
-                const subjectCode = currentSubject.name.split(" - ")[0];
-                const validKeys = Object.keys(period.subjects).filter((key) => (key !== subjectCode && key.includes(subjectCode))); // selects other subsubjects (and exclude the parent subject)
-                let sum = 0;
-                for (let validKey of validKeys) {
-                    sum += period.subjects[validKey].coef;
-                }
-                coefMultiplicator = period.subjects[subjectCode].coef / sum;
-            }
-            list.push({
-                value: currentSubject.classAverage ?? 0,
-                scale: 20,
-                coef: currentSubject.classAverage === undefined ? 0 : (currentSubject.coef * coefMultiplicator)
-            })
-        }
-    }
-
-    return calcAverage(list);
+    return calcPeriodAverage(period, "classAverage");
 }
 
-const skillsValues = ["Non atteint", "Partiellement atteint", "Atteint", "Dépassé"]
+const skillsValues = ["Non atteint", "Partiellement atteint", "Atteint", "Dépassé"];
 
-export function formatSkills(skills) {
-    return skills.map(el => ({
-        id: el.idElemProg,
-        name: el.libelleCompetence,
-        description: el.descriptif,
-        // On ne connait pas encore les valeures lorsque les compétences ne sont pas valides 
-        // donc on utilisera isNaN() pour savoir si la valeure est un nombre ou non et si ce 
-        // n'est pas le cas on met la valeure à "non évaluée" dans le cas ou les absence, 
-        // les dispense et les non évalués soit aussi des nombres on ajoute la condition que 
-        // el.valeur soit entre 1 et 4 inclus
-        value: isNaN(parseInt(el.valeur)) || parseInt(el.valeur) < 1 || parseInt(el.valeur) > 4 ? "Non évaluée" : skillsValues[parseInt(el.valeur) - 1] // la pire compétence possible commence à 1 donc on ajuste pour les tableaux js
-    }))
+export function formatSkills(skills = []) {
+    return skills.map(el => {
+        const parsed = Number.parseInt(el.valeur, 10);
+        return {
+            id: el.idElemProg,
+            name: el.libelleCompetence,
+            description: el.descriptif,
+            value: Number.isInteger(parsed) && parsed >= 1 && parsed <= 4 ? skillsValues[parsed - 1] : "Non évaluée"
+        };
+    });
 }
