@@ -5,7 +5,6 @@ import Information from "./Information";
 import Strengths from "./Strengths";
 import Results from "./Results";
 import MobileResults from "./MobileResults";
-import StudentSuite from "./StudentSuite";
 
 import {
     WindowsContainer,
@@ -62,7 +61,6 @@ export default function Grades({ grades, fetchUserGrades, activeAccount, isLogge
                         </DOMSimulation>
                     </WindowsLayout>
                 </WindowsLayout>
-                <StudentSuite sortedGrades={sortedGrades} selectedPeriod={selectedPeriod} />
             </WindowsContainer>
         </div>
     );
