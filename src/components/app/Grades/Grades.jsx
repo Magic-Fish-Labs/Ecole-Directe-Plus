@@ -1,10 +1,11 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 import StreakScore from "./StreakScore";
 import Information from "./Information";
 import Strengths from "./Strengths";
 import Results from "./Results";
 import MobileResults from "./MobileResults";
+import StudentSuite from "./StudentSuite";
 
 import {
     WindowsContainer,
@@ -16,25 +17,21 @@ import DOMSimulation from "./GradeSimulation";
 
 export default function Grades({ grades, fetchUserGrades, activeAccount, isLoggedIn, useUserData, sortGrades, isTabletLayout }) {
     const userData = useUserData();
-
     const [selectedDisplayType, setSelectedDisplayType] = useState("Évaluations");
     const [selectedPeriod, setSelectedPeriod] = useState(userData.get("activePeriod"));
-
     const sortedGrades = userData.get("sortedGrades");
 
     useEffect(() => {
-        setSelectedPeriod(userData.get("activePeriod"))
+        setSelectedPeriod(userData.get("activePeriod"));
     }, [sortedGrades]);
 
     useEffect(() => {
         userData.set("activePeriod", selectedPeriod);
-    }, [selectedPeriod])
+    }, [selectedPeriod]);
 
-
-    // Behavior
     useEffect(() => {
         document.title = "Notes • Ecole Directe Plus";
-    }, [])
+    }, []);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -45,13 +42,9 @@ export default function Grades({ grades, fetchUserGrades, activeAccount, isLogge
                 sortGrades(grades, activeAccount);
             }
         }
-
-        return () => {
-            controller.abort();
-        }
+        return () => controller.abort();
     }, [grades, isLoggedIn, activeAccount]);
 
-    // JSX
     return (
         <div id="grades">
             <WindowsContainer name="grades">
@@ -64,25 +57,13 @@ export default function Grades({ grades, fetchUserGrades, activeAccount, isLogge
                     <WindowsLayout growthFactor={2}>
                         <DOMSimulation>
                             {isTabletLayout
-                                ? <MobileResults
-                                    activeAccount={activeAccount}
-                                    sortedGrades={sortedGrades}
-                                    selectedPeriod={selectedPeriod}
-                                    setSelectedPeriod={setSelectedPeriod}
-                                    selectedDisplayType={selectedDisplayType}
-                                    setSelectedDisplayType={setSelectedDisplayType} />
-                                : <Results
-                                    activeAccount={activeAccount}
-                                    sortedGrades={sortedGrades}
-                                    selectedPeriod={selectedPeriod}
-                                    setSelectedPeriod={setSelectedPeriod}
-                                    selectedDisplayType={selectedDisplayType}
-                                    setSelectedDisplayType={setSelectedDisplayType} />
-                            }
+                                ? <MobileResults activeAccount={activeAccount} sortedGrades={sortedGrades} selectedPeriod={selectedPeriod} setSelectedPeriod={setSelectedPeriod} selectedDisplayType={selectedDisplayType} setSelectedDisplayType={setSelectedDisplayType} />
+                                : <Results activeAccount={activeAccount} sortedGrades={sortedGrades} selectedPeriod={selectedPeriod} setSelectedPeriod={setSelectedPeriod} selectedDisplayType={selectedDisplayType} setSelectedDisplayType={setSelectedDisplayType} />}
                         </DOMSimulation>
                     </WindowsLayout>
                 </WindowsLayout>
+                <StudentSuite sortedGrades={sortedGrades} selectedPeriod={selectedPeriod} />
             </WindowsContainer>
         </div>
-    )
+    );
 }
