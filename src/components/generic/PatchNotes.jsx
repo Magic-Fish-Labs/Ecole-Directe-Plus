@@ -1,12 +1,14 @@
 import InfoPopUp from "./PopUps/InfoPopUp";
 import "./PatchNotes.css";
 
-export default function PatchNotes({ currentEDPVersion, onClose }) {
+const STUDENT_SUITE_VERSION = "0.5.0";
+
+export default function PatchNotes({ onClose }) {
     return (
         <div id="patch-notes">
             <InfoPopUp
                 type="info"
-                header={`ED+ Student Suite 🎓 v${currentEDPVersion}`}
+                header={`ED+ Student Suite 🎓 v${STUDENT_SUITE_VERSION}`}
                 subHeader="19 Août 2026"
                 contentTitle="Patch notes :"
                 onClose={onClose}
