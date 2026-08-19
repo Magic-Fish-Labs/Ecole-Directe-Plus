@@ -3,39 +3,52 @@ import { createRoot } from "react-dom/client";
 import DOMNotification from "./components/generic/PopUps/Notification";
 import App from "./App";
 import IframeRequestLinker from "./utils/iframeRequest/iframeRequestLinker";
+import { ACCENT_THEMES, loadStudentToolsState, restoreAccentTheme, setAccentTheme } from "./utils/studentTools";
 
 const splashScreen = document.getElementById("loading-start");
 const iframeRequest = new IframeRequestLinker();
 
-const STUDENT_SUITE_THEMES = {
-    green: ["0, 132, 88", "7, 35, 22", "18, 79, 37", "44, 112, 61", "72, 167, 111", "177, 235, 196"],
-    red: ["187, 0, 0", "30, 0, 0", "68, 18, 18", "91, 49, 49", "156, 79, 79", "242, 187, 187"],
-    orange: ["255, 87, 34", "12, 12, 12", "31, 31, 31", "65, 65, 65", "143, 102, 67", "255, 174, 0"],
-    blue: ["21, 101, 192", "10, 20, 38", "24, 49, 83", "45, 79, 120", "70, 130, 180", "174, 214, 255"],
-    purple: ["103, 58, 183", "27, 18, 43", "55, 38, 82", "83, 59, 117", "139, 105, 190", "221, 195, 255"],
-    oled: ["12, 12, 12", "0, 0, 0", "12, 12, 12", "28, 28, 28", "88, 88, 88", "225, 225, 225"]
-};
+restoreAccentTheme();
 
-function restoreStudentSuiteTheme() {
-    try {
-        const suite = JSON.parse(localStorage.getItem("edpStudentSuiteV1") || "{}");
-        const palette = STUDENT_SUITE_THEMES[suite.theme];
-        if (!palette) return;
-        const [header, bg0, bg1, bg2, border, alt] = palette;
-        const root = document.documentElement;
-        root.dataset.edpAccent = suite.theme;
-        root.style.setProperty("--background-color-header", header);
-        root.style.setProperty("--background-color-0", bg0);
-        root.style.setProperty("--background-color-1", bg1);
-        root.style.setProperty("--background-color-2", bg2);
-        root.style.setProperty("--border-color-0", border);
-        root.style.setProperty("--text-color-alt", alt);
-    } catch {
-        // Invalid local preference: ignore it and keep the standard ED+ theme.
-    }
+function installAccentThemeSettings() {
+    const renderPicker = () => {
+        const host = document.querySelector("#display-theme");
+        if (!host || host.querySelector(".accent-theme-settings")) return;
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "accent-theme-settings";
+        wrapper.style.cssText = "display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin-top:.8rem;width:100%";
+
+        const label = document.createElement("span");
+        label.textContent = "Couleur ED+";
+        label.style.cssText = "width:100%;opacity:.8";
+        wrapper.appendChild(label);
+
+        const currentTheme = loadStudentToolsState().theme;
+        Object.entries(ACCENT_THEMES).forEach(([name, theme]) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = name === "default" ? "Classique" : theme.label;
+            button.dataset.theme = name;
+            button.style.cssText = "border:1px solid rgba(var(--border-color-0),.5);border-radius:.8rem;padding:.7rem 1rem;color:rgb(var(--text-color-main));background:rgba(var(--background-color-2),.65);cursor:pointer";
+            if (name === currentTheme) button.style.outline = "2px solid rgb(var(--text-color-alt))";
+            button.addEventListener("click", () => {
+                setAccentTheme(name);
+                wrapper.querySelectorAll("button").forEach(item => item.style.outline = "none");
+                button.style.outline = "2px solid rgb(var(--text-color-alt))";
+            });
+            wrapper.appendChild(button);
+        });
+
+        host.appendChild(wrapper);
+    };
+
+    const observer = new MutationObserver(renderPicker);
+    observer.observe(document.body, { childList: true, subtree: true });
+    renderPicker();
 }
 
-restoreStudentSuiteTheme();
+installAccentThemeSettings();
 
 const handleIframeLoad = (event) => {
     iframeRequest.setIframe(event.target);
