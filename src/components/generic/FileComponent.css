@@ -25,7 +25,7 @@
 
 .file-component.clicked::after {
     width: 100%;
-    transition: opacity 0s, width .9s linear;
+    transition: opacity 0s, width .9s ease;
     opacity: 1;
 }
 

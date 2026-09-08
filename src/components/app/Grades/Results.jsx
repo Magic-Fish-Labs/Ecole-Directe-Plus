@@ -19,11 +19,13 @@ import Charts from "./Charts";
 import { GradeSimulationTrigger } from "./GradeSimulation"
 
 import "./Results.css";
+import { getBrowser } from "../../../utils/utils";
 
 export default function Results({ activeAccount, sortedGrades, selectedPeriod, setSelectedPeriod, selectedDisplayType, setSelectedDisplayType, ...props }) {
     const { isTabletLayout, actualDisplayTheme, useUserSettings } = useContext(AppContext);
     const settings = useUserSettings();
     const contentLoadersRandomValues = useRef({ subjectNameWidth: Array.from({ length: 13 }, (_) => Math.round(Math.random() * 100) + 100), gradeNumbers: Array.from({ length: 13 }, (_) => Math.floor(Math.random() * 8) + 2) })
+    const [fixFirefoxLayout, setFixFirefoxLayout] = useState(true);
     const location = useLocation();
 
 
@@ -46,7 +48,7 @@ export default function Results({ activeAccount, sortedGrades, selectedPeriod, s
         <MoveableContainer className="results-container" style={{ flex: "1", display: "flex", flexFlow: "row nowrap", gap: "20px" }} name="results-utimate-container" {...props}>
             {!isTabletLayout ? <MoveableContainer style={{ display: "flex", flexFlow: "column nowrap", gap: "20px" }} >
                 <GradeScaleToggle />
-                <Tabs tabs={["Évaluations", "Graphiques"]} selected={selectedDisplayType} onChange={setSelectedDisplayType} fieldsetName="displayType" dir="column" style={{ flex: 1 }} />
+                <Tabs contentLoader={getBrowser() === "Firefox" && fixFirefoxLayout && (() => { setInterval(() => {console.log("fixFirefoxLayout:", fixFirefoxLayout); setFixFirefoxLayout(false) }, 0); return true })()} tabs={["Évaluations", "Graphiques"]} selected={selectedDisplayType} onChange={setSelectedDisplayType} fieldsetName="displayType" dir="column" style={{ flex: 1 }} />
             </MoveableContainer> : null}
             <MoveableContainer className="results-container" style={{ flex: "1", display: "flex", flexFlow: "column nowrap", gap: "20px" }}>
                 <MoveableContainer>
