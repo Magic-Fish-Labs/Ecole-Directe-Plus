@@ -22,8 +22,11 @@ import {
 import BottomSheet from "../../generic/PopUps/BottomSheet";
 import EncodedHTMLDiv from "../../generic/CustomDivs/EncodedHTMLDiv";
 import FileComponent from "../../generic/FileComponent";
+import InfoButton from "../../generic/Informative/InfoButton";
 
 import "./Timetable.css";
+import { textToHSL } from "../../../utils/utils";
+import WalkingCanardman from "../../graphics/WalkingCanardman";
 
 const WEEK_DAYS = 7;
 const THREE_DAY_WINDOW = 3;
@@ -31,7 +34,7 @@ const DEFAULT_START_MINUTES = 8 * 60;
 const DEFAULT_END_MINUTES = 18 * 60;
 const TIME_OFFSET_MINUTES = 30;
 const TIME_STEP_MINUTES = 30;
-const HOUR_HEIGHT = 48;
+const HOUR_HEIGHT = 56; // TODO: taille dynamique dépendante de la hauteur de l'écran
 const IDLE_COURSEWORK = { status: "idle", items: [], error: "" };
 
 function dateKey(date) {
@@ -96,6 +99,7 @@ function normalizeCourse(course) {
         start,
         end,
         color: safeColor(course.color),
+        // color: `hsl(${textToHSL(course.codeMatiere)[0]}, ${textToHSL(course.codeMatiere)[1]}%, ${textToHSL(course.codeMatiere)[2]}%)`,
         isCancelled,
         isModified,
         isExempted,
@@ -250,8 +254,8 @@ function CourseworkPanel({ activeAccount, course, coursework, onRetry }) {
             <section className="coursework-panel loading" aria-live="polite">
                 <div className="timetable-loader" aria-hidden="true" />
                 <div>
-                    <strong>Chargement du cahier de texte…</strong>
-                    <p>Le travail de ce cours est récupéré auprès d’EcoleDirecte.</p>
+                    <strong>Chargement du cahier de texte...</strong>
+                    <p>Récupération des devoirs associés au cours...</p>
                 </div>
             </section>
         );
@@ -260,7 +264,7 @@ function CourseworkPanel({ activeAccount, course, coursework, onRetry }) {
     if (coursework.status === "error") {
         return (
             <section className="coursework-panel error" role="alert">
-                <strong>Le détail du travail n’a pas pu être chargé</strong>
+                <strong>Le détail des devoirs à faire n'a pas pu être chargé</strong>
                 <p>{coursework.error}</p>
                 <div className="coursework-error-actions">
                     <button type="button" onClick={onRetry}>Réessayer</button>
@@ -574,7 +578,7 @@ export default function Timetable({ isLoggedIn, activeAccount, fetchTimetable, f
                                 <h2>Emploi du temps</h2>
                             </WindowHeader>
                             <WindowContent>
-                                <section className="timetable-content" aria-busy={loading || refreshing}>
+                                <section className={`timetable-content ${refreshing ? "refreshing" : ""}`} aria-busy={loading || refreshing}>
                                     <div className="timetable-toolbar">
                                         <div className="week-navigation" aria-label="Navigation entre les périodes">
                                             <button type="button" className="timetable-icon-button" onClick={() => changePeriod(-1)} aria-label={viewMode === "three-day" ? "3 jours précédents" : "Semaine précédente"}>‹</button>
@@ -583,7 +587,7 @@ export default function Timetable({ isLoggedIn, activeAccount, fetchTimetable, f
                                                 <strong>{formatPeriodRange(periodStart, periodLength)}</strong>
                                             </div>
                                             <button type="button" className="timetable-icon-button" onClick={() => changePeriod(1)} aria-label={viewMode === "three-day" ? "3 jours suivants" : "Semaine suivante"}>›</button>
-                                            <button type="button" className="timetable-action-button" onClick={goToToday} disabled={visibleDays.some((day) => isSameDay(day, today))}>Aujourd’hui</button>
+                                            <button type="button" className="timetable-action-button" onClick={goToToday} disabled={visibleDays.some((day) => isSameDay(day, today))}>Aujourd'hui</button>
                                         </div>
 
                                         <div className="timetable-view-actions">
@@ -591,7 +595,19 @@ export default function Timetable({ isLoggedIn, activeAccount, fetchTimetable, f
                                                 <button type="button" className={viewMode === "week" ? "selected" : ""} onClick={() => changeViewMode("week")} aria-pressed={viewMode === "week"}>Semaine</button>
                                                 <button type="button" className={viewMode === "three-day" ? "selected" : ""} onClick={() => changeViewMode("three-day")} aria-pressed={viewMode === "three-day"}>3 jours</button>
                                             </div>
-                                            <details className="timetable-info">
+                                            <InfoButton className="" options={{
+                                                placement: "bottom"
+                                            }}>
+                                                <div className="timetable-info-panel">
+                                                    <strong>Résumé de la période</strong>
+                                                    <dl>
+                                                        <div><dt>Volume</dt><dd>{formatDuration(totalMinutes)}</dd></div>
+                                                        <div><dt>Changements</dt><dd>{cancelledCount} annulé{cancelledCount > 1 ? "s" : ""} · {modifiedCount} modifié{modifiedCount > 1 ? "s" : ""}</dd></div>
+                                                        <div><dt>Mis à jour</dt><dd>{lastUpdated ? format(lastUpdated, "HH:mm") : "—"}</dd></div>
+                                                    </dl>
+                                                </div>
+                                            </InfoButton>
+                                            {/* <details className="timetable-info">
                                                 <summary aria-label="Afficher le résumé de la période">i</summary>
                                                 <div className="timetable-info-panel">
                                                     <strong>Résumé de la période</strong>
@@ -601,7 +617,7 @@ export default function Timetable({ isLoggedIn, activeAccount, fetchTimetable, f
                                                         <div><dt>Mis à jour</dt><dd>{lastUpdated ? format(lastUpdated, "HH:mm") : "—"}</dd></div>
                                                     </dl>
                                                 </div>
-                                            </details>
+                                            </details> */}
                                             <label className="cancelled-toggle">
                                                 <input type="checkbox" checked={showCancelled} onChange={(event) => setShowCancelled(event.target.checked)} aria-label="Afficher les cours annulés" />
                                                 <span aria-hidden="true" />
@@ -610,8 +626,8 @@ export default function Timetable({ isLoggedIn, activeAccount, fetchTimetable, f
                                             <div className="timetable-output-actions">
                                                 <button type="button" onClick={() => exportCalendar(displayedCourses, periodStart)}>Exporter .ics</button>
                                                 <button type="button" onClick={() => window.print()}>Imprimer</button>
+                                                <button type="button" className="timetable-action-button" onClick={refresh} disabled={refreshing}>{refreshing ? "Actualisation…" : "Actualiser"}</button>
                                             </div>
-                                            <button type="button" className="timetable-action-button" onClick={refresh} disabled={refreshing}>{refreshing ? "Actualisation…" : "Actualiser"}</button>
                                         </div>
                                     </div>
 
@@ -636,7 +652,7 @@ export default function Timetable({ isLoggedIn, activeAccount, fetchTimetable, f
                                     {loading && (
                                         <div className="timetable-state" role="status">
                                             <div className="timetable-loader" aria-hidden="true" />
-                                            <strong>Chargement de la période…</strong>
+                                            <strong>Chargement de la période...</strong>
                                             <span>Nous préparons vos cours et les éventuels changements.</span>
                                         </div>
                                     )}
@@ -689,6 +705,7 @@ export default function Timetable({ isLoggedIn, activeAccount, fetchTimetable, f
                                                     </div>
                                                 </div>
                                             </div>
+                                            {refreshing && <WalkingCanardman className="refreshing-timetable-canardman" />}
                                         </div>
                                     )}
                                 </section>

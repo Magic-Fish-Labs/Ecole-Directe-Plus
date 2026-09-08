@@ -3,6 +3,17 @@
     min-height: 100%;
 }
 
+/*TODO: enlever quand taille dynamique fixed*/
+@media only screen and (min-width: 868px) {
+    #timetable-page {
+        display: flex;
+        align-items: center;
+    }
+    #timetable-page #windows-container {
+        flex: 1;
+    }
+}
+
 #timetable-page #windows-container,
 #timetable-page .windows-layout {
     height: auto;
@@ -15,17 +26,11 @@
     max-height: none;
 }
 
-#timetable-page .timetable-window > .window-content {
-    overflow: visible;
-    background:
-        radial-gradient(circle at 8% 0%, rgba(var(--border-color-1), 0.10), transparent 34%),
-        rgb(var(--background-color-2));
-}
 
 .timetable-content {
     min-height: 100%;
     padding: clamp(16px, 2.2vw, 28px);
-    color: rgb(var(--text-color-main));
+    /* color: rgb(var(--text-color-main)); */
 }
 
 .timetable-toolbar,
@@ -95,7 +100,7 @@
     font-weight: var(--font-weight-semi-bold);
     outline: none;
     cursor: pointer;
-    transition: background-color 0.15s, border-color 0.15s, transform 0.15s;
+    transition: .1s;
 }
 
 .timetable-icon-button:hover,
@@ -115,7 +120,7 @@
 .timetable-icon-button:active,
 .timetable-action-button:active,
 .timetable-output-actions button:active {
-    transform: scale(0.96);
+    background-color: rgba(var(--background-color-focus), .8);
 }
 
 .timetable-icon-button {
@@ -137,9 +142,8 @@
 }
 
 .timetable-action-button:disabled {
-    cursor: default;
+    pointer-events: none;
     opacity: 0.45;
-    transform: none;
 }
 
 .view-switch {
@@ -199,26 +203,6 @@
     outline: none;
 }
 
-.timetable-info-panel {
-    width: min(330px, calc(100vw - 32px));
-    position: absolute;
-    top: calc(100% + 9px);
-    left: 50%;
-    z-index: 20;
-    transform: translateX(-50%);
-    padding: 14px;
-    display: none;
-    border: 1px solid rgba(var(--border-color-contrast), 0.48);
-    border-radius: 14px;
-    background: rgb(var(--background-color-1));
-    box-shadow: 0 16px 36px rgba(var(--text-color-main), 0.18);
-}
-
-.timetable-info[open] .timetable-info-panel,
-.timetable-info:hover .timetable-info-panel,
-.timetable-info:focus-within .timetable-info-panel {
-    display: block;
-}
 
 .timetable-info-panel > strong {
     display: block;
@@ -275,7 +259,7 @@
     position: relative;
     border-radius: 99px;
     background: rgba(var(--text-color-alt), 0.32);
-    transition: background-color 0.2s;
+    transition: .1s;
 }
 
 .cancelled-toggle input + span::after {
@@ -288,7 +272,7 @@
     border-radius: 50%;
     background: rgb(var(--text-color-main-reverse));
     box-shadow: 0 1px 5px rgba(0, 0, 0, 0.25);
-    transition: transform 0.2s;
+    transition: .1s;
 }
 
 .cancelled-toggle input:checked + span {
@@ -312,12 +296,12 @@
     gap: 8px;
 }
 
-.timetable-output-actions button {
-    min-height: 34px;
+/* .timetable-output-actions button {
+    min-height: 40px;
     padding: 5px 10px;
     background: transparent;
     font-size: var(--font-size-13);
-}
+} */
 
 .day-selector {
     display: grid;
@@ -359,7 +343,7 @@
 }
 
 .timetable-state {
-    min-height: 420px;
+    min-height: 665px;
     padding: 30px;
     display: flex;
     flex-direction: column;
@@ -386,6 +370,20 @@
 
 .timetable-state .timetable-action-button {
     margin-top: 8px;
+}
+
+.refreshing .timetable-course {
+    opacity: .3;
+}
+
+.refreshing-timetable-canardman {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    filter: drop-shadow(0 30px 20px rgba(var(--background-color-0), 1));
+    width: 200px;
+    z-index: 1;
 }
 
 .timetable-loader {
@@ -477,7 +475,7 @@
 }
 
 .day-heading.today strong {
-    color: rgb(var(--border-color-1));
+    color: rgb(var(--text-color-alt));
 }
 
 .time-axis {
@@ -537,7 +535,7 @@
     align-items: flex-start;
     overflow: hidden;
     border: 1px solid color-mix(in srgb, var(--course-color), white 15%);
-    border-radius: 10px;
+    border-radius: 7px;
     background: color-mix(in srgb, var(--course-color), rgb(var(--background-color-1)) 48%);
     color: white;
     font: inherit;
@@ -545,7 +543,7 @@
     cursor: pointer;
     box-shadow: 0 5px 13px rgba(0, 0, 0, 0.18);
     outline: none;
-    transition: transform 0.16s, box-shadow 0.16s, filter 0.16s;
+    transition: .1s;
 }
 
 .timetable-course:hover,
@@ -1022,17 +1020,6 @@
     font-size: var(--font-size-13);
 }
 
-@media only screen and (max-width: 1100px) {
-    .timetable-toolbar {
-        grid-template-columns: 1fr;
-    }
-
-    .timetable-view-actions {
-        width: 100%;
-        justify-content: flex-start;
-    }
-}
-
 @media only screen and (max-width: 869px) {
     #timetable-page .timetable-window {
         min-height: 0;
@@ -1046,6 +1033,9 @@
         width: 100%;
         grid-template-columns: 40px minmax(0, 1fr) 40px;
     }
+    .view-switch {
+        display: none;
+    }timetable
 
     .week-title {
         width: auto;
@@ -1062,6 +1052,16 @@
     }
 }
 
+@media only screen and (max-width: 650px) {
+    .timetable-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    .timetable-view-actions {
+        width: 100%;
+        justify-content: center;
+    }
+}
 @media only screen and (max-width: 520px) {
     .timetable-content {
         padding: 12px;
@@ -1087,7 +1087,7 @@
     .timetable-view-actions {
         gap: 7px;
     }
-
+    
     .cancelled-toggle-label {
         display: none;
     }
@@ -1194,6 +1194,7 @@
     to { transform: rotate(360deg); }
 }
 
+/* TODO: activer le mode de performance équilibré quand prefers-reduced-motion activé */
 @media (prefers-reduced-motion: reduce) {
     .timetable-loader {
         animation-duration: 1.8s;
