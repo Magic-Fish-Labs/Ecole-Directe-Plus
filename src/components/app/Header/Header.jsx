@@ -186,7 +186,7 @@ export default function Header({ currentEDPVersion, accountsList, setActiveAccou
             link: `/app/${activeAccount}/timetable`,
             icon: <TimetableIcon />,
             notifications: notifications?.timetable || 0,
-            isNew: false
+            isNew: true
         },
         {
             enabled: accountsList[activeAccount]?.modules?.filter((item) => item.code === "MESSAGERIE").map((item) => item.enable).includes(true) ?? true,

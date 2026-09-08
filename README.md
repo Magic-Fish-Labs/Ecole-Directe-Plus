@@ -21,8 +21,9 @@ Enjoy the most-requested features and a ton of small but game changer improvemen
 - Instant averages calculation
 - Last grades overview
 - Dark/light mode
-- Your strengths
+- Your strengths/weaknesses
 - Upcoming assignments
+- Enriched timetable
 - And so much more...
 
 ## Getting started

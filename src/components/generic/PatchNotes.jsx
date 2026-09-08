@@ -3,22 +3,62 @@ import { Link } from "react-router-dom";
 import "./PatchNotes.css";
 
 const contributors = [
+    "saumon-brule",
+    "TruiteSeche",
     "Vooxify",
     "Fefedu973",
     "FU0X0",
-    "Aldess",
     "Ewalwi",
-    "saumon-brule",
-    "TruiteSeche",
+    "akash02ab",
+    "Beta-Way",
+    "xav35000",
+    "misieur",
+    "AldessScratch",
+    "M6a5x98"
 ]
 
 export default function PatchNotes({ currentEDPVersion, onClose }) {
 
     return (
         <div id="patch-notes">
-            <InfoPopUp type="info" header={"Nouvelle mise à jour EDP ! 🎊 v" + currentEDPVersion} subHeader={"14 Novembre 2024"} contentTitle={"Patch notes :"} onClose={onClose} >
+            <InfoPopUp type="info" header={"Nouvelle mise à jour EDP ! 🎊 v" + currentEDPVersion} subHeader={"09 Novembre 2026"} contentTitle={"Patch notes :"} onClose={onClose} >
                 <div>
                     <hr />
+                    <p className="first-paragraph">
+                        Grande nouvelle pour fêter la rentrée 🥳
+                    </p>
+                    <h3 className="sub-header">Nouveautés</h3>
+                    Après 1 an et demi sans mise à jour majeure, du fait d'une réécriture d'une partie du code d'EDP (encore en cours),
+                    cette mise à jour introduit une fonctionnalité très attendue sur EDP :<br/>✨ l'emploi du temps ✨<br/> Vous pouvez profiter de cet emploi du temps enrichi de fonctionnalités de qualité de vie exclusives grâce à la contribution appréciée de <a href="https://github.com/M6a5x98" target="_blank">M6a5x98</a>.
+                    {contributors && <>
+                        <h3 className="sub-header">Contributeurs</h3>
+                        {contributors.length > 1
+                            ? contributors.reduce((acc, element, index) => {
+                                if (index == 1) {
+                                    return [
+                                        <a className="contributor" href={`https://github.com/${acc}`} target="_blank">{acc}</a>,
+                                        ", ",
+                                        <a className="contributor" href={`https://github.com/${element}`} target="_blank">{element}</a>
+                                    ]
+                                } else {
+                                    acc.push(", ");
+                                    acc.push(<a className="contributor" href={`https://github.com/${element}`} target="_blank">{element}</a>);
+                                    return acc;
+                                }
+                            })
+                            : <a href={`https://github.com/${contributors[0]}`}>{contributors[0]}</a>
+                        }
+                    </>}
+                    <h3 className="sub-header">Divers</h3>
+                    <ul>
+                        <li>Veuillez noter qu'Ecole Directe Plus est un service non-affilié à Aplim ou EcoleDirecte et est encore en cours de développement. Bénévolement, nous travaillons d'arrache-pied pour vous fournir la meilleure version possible du service.</li>
+                        <li>Vous avez un problème ou avez rencontré un bug ? Vous pouvez nous partager votre expérience dans la page de feedback</li>
+                        <li>Ecole Directe Plus a son propre <a href="https://discord.gg/AKAqXfTgvE" target="_blank">serveur Discord</a> ! Rejoignez le maintenant pour discuter avec les développeurs et tout le Canardman-Gang !</li>
+                        <li>Découvrez le trailer d'annonce d'Ecole Directe Plus qui expose en quelques images les ambitions que nous avons pour ce projet en constante évolution :</li>
+                        <iframe style={{ display: "block", margin: "0 auto", width: "100%", aspectRatio: "16/9" }} src="https://www.youtube.com/embed/E3mhS5UPNYk" title="Ecole Directe Plus • Trailer d&#39;annonce" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" allowFullScreen></iframe>
+                    </ul>
+                    {/* 
+                    
                     <p className="first-paragraph">
                         Les messages c'est bien, mais les dossiers c'est mieux ! Non ? Eh bien on les a quand même fait pour vous.
                     </p>
@@ -49,33 +89,8 @@ export default function PatchNotes({ currentEDPVersion, onClose }) {
                         <li>Les pop-ups de fichiers des devoirs du dashboard ne sont plus vides</li>
                         <li>Fix d'un crash causé par un hash invalide lors du clic sur le feedback sur la page des devoirs (solution temporaire)</li>
                     </ul>
-                    {contributors && <>
-                        <h3 className="sub-header">Contributeurs</h3>
-                        {contributors.length > 1
-                            ? contributors.reduce((acc, element, index) => {
-                                if (index == 1) {
-                                    return [
-                                        <a className="contributor" href={`https://github.com/${acc}`} target="_blank">{acc}</a>,
-                                        ", ",
-                                        <a className="contributor" href={`https://github.com/${element}`} target="_blank">{element}</a>
-                                    ]
-                                } else {
-                                    acc.push(", ");
-                                    acc.push(<a className="contributor" href={`https://github.com/${element}`} target="_blank">{element}</a>);
-                                    return acc;
-                                }
-                            })
-                            : <a href={`https://github.com/${contributors[0]}`}>{contributors[0]}</a>
-                        }
-                    </>}
-                    <h3 className="sub-header">Divers</h3>
-                    <ul>
-                        <li>Veuillez noter qu'Ecole Directe Plus est un service non-affilié à Aplim ou EcoleDirecte et est encore en cours de développement. Bénévolement, nous travaillons d'arrache-pied pour vous fournir la meilleure version possible du service.</li>
-                        <li>Vous avez un problème ou avez rencontré un bug ? Vous pouvez nous partager votre expérience dans la page de feedback</li>
-                        <li>Ecole Directe Plus a son propre <a href="https://discord.gg/AKAqXfTgvE" target="_blank">serveur Discord</a> ! Rejoignez le maintenant pour discuter avec les développeurs et tout le Canardman-Gang !</li>
-                        <li>Découvrez le trailer d'annonce d'Ecole Directe Plus qui expose en quelques images les ambitions que nous avons pour ce projet en constante évolution :</li>
-                        <iframe style={{ display: "block", margin: "0 auto", width: "100%", aspectRatio: "16/9" }} src="https://www.youtube.com/embed/E3mhS5UPNYk" title="Ecole Directe Plus • Trailer d&#39;annonce" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" allowFullScreen></iframe>
-                    </ul>
+                    
+                    */}
                     {/* Nouvelle mise à jour EDP ! 🎊 v0.4.0
                     
                     <hr />
