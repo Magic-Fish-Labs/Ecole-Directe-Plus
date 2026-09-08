@@ -69,6 +69,12 @@ export default function Policy({ onCloseNavigateURL }) {
             - <a href="https://github.com/Beta-Way">Beta-Way</a><br />
             - <a href="https://github.com/xav35000">xav35000</a><br />
             - <a href="https://github.com/Vooxify">Vooxify</a><br />
+            - <a href="https://github.com/Ewalwi">Ewalwi</a><br />
+            - <a href="https://github.com/vexcited">Vexcited</a><br />
+            - <a href="https://github.com/misieur">misieur</a><br />
+            - <a href="https://github.com/FU0X0">FU0X0</a><br />
+            - <a href="https://github.com/AldessScratch">Aldess</a><br />
+            - <a href="https://github.com/M6a5x98">M6a5x98 </a><br />
             <br />
             APIs et services tiers :<br />
             - EcoleDirecte<br />
