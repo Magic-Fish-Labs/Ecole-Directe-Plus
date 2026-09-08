@@ -33,7 +33,7 @@ Enjoy the most-requested features and a ton of small but game changer improvemen
 
 ## FAQ
 
-- An error of any kind?<br>Please install EDP Unblock from the [Mozilla Add-On Store](https://addons.mozilla.org/en-US/firefox/addon/ecole-directe-plus-unblock/) or the [Chrome Web Store](https://chromewebstore.google.com/detail/ecole-directe-plus-unbloc/jglboadggdgnaicfaejjgmnfhfdnflkb) before reporting a bug or asking for help in the [discord](https://discord.gg/AKAqXfTgvE).
+- An error of any kind?<br>Please install EDP Unblock from the [self hosted build for Firefox](https://ecole-directe.plus/edp-unblock) or the [Chrome Web Store](https://chromewebstore.google.com/detail/ecole-directe-plus-unbloc/jglboadggdgnaicfaejjgmnfhfdnflkb) before reporting a bug or asking for help in the [discord](https://discord.gg/AKAqXfTgvE).
 - A release date?<br>When it's ready.
 - My data?<br>We don't and will never collect any data about you, more details in our privacy policy.
 - Do I need an application?<br>No, you don't. Ecole Directe Plus is a web application therefore you just need a browser, however you can easily install it as an application (check out our tutorial).
