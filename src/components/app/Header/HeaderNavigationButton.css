@@ -25,7 +25,9 @@
 }
 
 .header-button svg {
+    width: 60px;
     height: 60px;
+    display: block;
 }
 
 .header-button svg [class="fill-text-main"] {
@@ -43,7 +45,13 @@
 }
 
 .header-button .icon-container {
+    width: 60px;
+    height: 60px;
+    flex: 0 0 60px;
     position: relative;
+    display: grid;
+    place-items: center;
+    line-height: 0;
 }
 
 .header-button .notifications {
@@ -103,8 +111,11 @@
 }
 
 .header-button .header-button-title {
+    min-height: 1.35em;
+    display: block;
     text-align: center;
     font-weight: var(--font-weight-semi-bold);
+    line-height: 1.35;
     color: rgb(var(--text-color-alt));
     white-space: nowrap;
     overflow: hidden;
@@ -114,4 +125,17 @@
 
 .header-button.selected .header-button-title {
     color: rgb(var(--text-color-main));    
+}
+
+@media only screen and (max-width: 450px) {
+    .header-button .icon-container {
+        width: 45px;
+        height: 45px;
+        flex-basis: 45px;
+    }
+
+    .header-button .icon-container svg {
+        width: 45px;
+        height: 45px;
+    }
 }
