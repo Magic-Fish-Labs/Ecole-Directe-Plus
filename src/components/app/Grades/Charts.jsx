@@ -309,7 +309,7 @@ export default function Charts({ selectedPeriod }) {
     useEffect(() => {
         refreshChart();
         useUserSettings("selectedChart").set(selectedChart);
-    }, [selectedChart, activeAccount, selectedPeriod]);
+    }, [selectedChart, activeAccount, selectedPeriod, actualDisplayTheme]);
 
     useEffect(() => {
         const script = document.createElement("script");
