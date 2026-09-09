@@ -14,7 +14,8 @@ const contributors = [
     "xav35000",
     "misieur",
     "AldessScratch",
-    "M6a5x98"
+    "M6a5x98",
+    "mTxBeN"
 ]
 
 export default function PatchNotes({ currentEDPVersion, onClose }) {
@@ -29,7 +30,7 @@ export default function PatchNotes({ currentEDPVersion, onClose }) {
                     </p>
                     <h3 className="sub-header">Nouveautés</h3>
                     Après 1 an et demi sans mise à jour majeure, du fait d'une réécriture d'une partie du code d'EDP (encore en cours),
-                    cette mise à jour introduit une fonctionnalité très attendue sur EDP :<br/>✨ l'emploi du temps ✨<br/> Vous pouvez profiter de cet emploi du temps enrichi de fonctionnalités de qualité de vie exclusives grâce à la contribution appréciée de <a href="https://github.com/M6a5x98" target="_blank">M6a5x98</a>.
+                    cette mise à jour introduit une fonctionnalité très attendue sur EDP :<br/>✨ l'emploi du temps ✨<br/> Vous pouvez profiter de cet emploi du temps enrichi de fonctionnalités de qualité de vie exclusives grâce à la contribution appréciée de <a href="https://github.com/mTxBeN" target="_blank">mTxBeN</a>.
                     {contributors && <>
                         <h3 className="sub-header">Contributeurs</h3>
                         {contributors.length > 1

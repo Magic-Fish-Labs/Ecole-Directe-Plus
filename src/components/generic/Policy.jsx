@@ -75,6 +75,7 @@ export default function Policy({ onCloseNavigateURL }) {
             - <a href="https://github.com/FU0X0">FU0X0</a><br />
             - <a href="https://github.com/AldessScratch">Aldess</a><br />
             - <a href="https://github.com/M6a5x98">M6a5x98 </a><br />
+            - <a href="https://github.com/mTxBeN">mTxBeN </a><br />
             <br />
             APIs et services tiers :<br />
             - EcoleDirecte<br />
