@@ -27,6 +27,7 @@ div#error-page {
     margin: 0;    
 }
 
-.data-sender > :last-child {
+.data-sender > :last-child,
+.data-sender a {
     color: rgb(var(--text-color-error));
 }

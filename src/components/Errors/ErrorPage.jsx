@@ -1,6 +1,6 @@
 
 import { useState, useContext, useRef } from "react";
-import { useRouteError } from "react-router-dom";
+import { useRouteError, Link } from "react-router-dom";
 import { AppContext } from "../../App";
 
 import { generateUUID, sendToWebhook, sendJsonToWebhook } from "../../utils/utils";
@@ -84,7 +84,7 @@ export default function ErrorPage({ sardineInsolente }) {
                     : <p>Failed to send error report: {reportSent}</p>
                 }
                 <div className="data-sender">
-                    <h2>Pour nous aider vous pouvez :</h2>
+                    {/* <h2>Pour nous aider vous pouvez :</h2>
                     <div className="button-wrapper">
                         <Button onClick={() => handleDataSend("sortedGrades")} disabled={!userData.get("sortedGrades") || userDataSent.includes("sortedGrades")} >
                             {userDataSent.includes("sortedGrades") ? "Merci pour votre retour !" : "Envoyer vos notes"}
@@ -92,9 +92,10 @@ export default function ErrorPage({ sardineInsolente }) {
                         <Button onClick={() => handleDataSend("sortedHomeworks")} disabled={!userData.get("sortedHomeworks") || userDataSent.includes("sortedHomeworks")} >
                             {userDataSent.includes("sortedHomeworks") ? "Merci pour votre retour !" : "Envoyer vos devoirs"}
                         </Button>
-                    </div>
+                    </div> */}
                     
-                    <p>IMPORTANT : Ces retours peuvent contenir des informations personnelles, c'est pourquoi nous avons besoin de votre consentement pour les effectuer, mais ils nous permettrons de mieux identifier le bug qui vous a touché.</p>
+                    {/* <p>IMPORTANT : Ces retours peuvent contenir des informations personnelles, c'est pourquoi nous avons besoin de votre consentement pour les effectuer, mais ils nous permettrons de mieux identifier le bug qui vous a touché.</p> */}
+                    <p>Un erreur inattendue est survenue. Essayez de rafraîchir la page, effacez toutes les données liées au site depuis les paramètres de votre navigateur, et vérifiez la bonne installation et version de l'extension EDP-Unblock. Si l'erreur persiste, rejoignez le <Link to="https://discord.gg/AKAqXfTgvE" target="_blank">serveur discord communautaire</Link> pour obtenir de l'aide.</p>
                 </div>
             </div>
         );
