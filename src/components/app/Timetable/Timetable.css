@@ -97,6 +97,7 @@
     background: rgba(var(--background-color-1), 0.64);
     color: rgb(var(--text-color-main));
     font: inherit;
+    font-size: var(--font-size-14);
     font-weight: var(--font-weight-semi-bold);
     outline: none;
     cursor: pointer;
@@ -584,7 +585,7 @@
     position: absolute;
     inset: 5px auto 5px 4px;
     border-radius: 99px;
-    background: color-mix(in srgb, var(--course-color), white 28%);
+    background: color-mix(in srgb, var(--course-color), rgb(var(--text-color-main)) 28%);
 }
 
 .course-title {
@@ -968,20 +969,22 @@
 
 .coursework-badges span {
     padding: 3px 7px;
-    border-radius: 99px;
+    border-radius: 7px;
+    border: 1px solid rgb(var(--text-color-soft-error-alt), .3);
     font-size: var(--font-size-11);
     font-weight: var(--font-weight-extra-bold);
 }
 
 .coursework-badges .todo,
 .coursework-badges .test {
-    background: rgba(var(--background-color-warning-0), 0.18);
-    color: rgb(var(--background-color-warning-0));
+    background: rgba(var(--background-color-soft-error), 0.18);
+    color: rgb(var(--text-color-soft-error-alt));
 }
 
 .coursework-badges .done {
-    background: rgba(48, 164, 108, 0.18);
-    color: rgb(36, 132, 86);
+    background: rgba(var(--background-color-success), 0.18);
+    color: rgb(var(--border-color-success), .8);
+    border-color: rgb(var(--border-color-success), .3);
 }
 
 .coursework-content {

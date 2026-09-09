@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
     addDays,
@@ -25,8 +25,9 @@ import FileComponent from "../../generic/FileComponent";
 import InfoButton from "../../generic/Informative/InfoButton";
 
 import "./Timetable.css";
-import { textToHSL } from "../../../utils/utils";
+import { anonymizeTeacher, textToHSL } from "../../../utils/utils";
 import WalkingCanardman from "../../graphics/WalkingCanardman";
+import { AppContext } from "../../../App";
 
 const WEEK_DAYS = 7;
 const THREE_DAY_WINDOW = 3;
@@ -204,7 +205,7 @@ function exportCalendar(courses, weekStart) {
     URL.revokeObjectURL(url);
 }
 
-function CourseCard({ course, gridStart, gridEnd, onSelect }) {
+function CourseCard({ course, gridStart, gridEnd, onSelect, isStreamerModeEnabled }) {
     const startMinutes = minutesSinceMidnight(course.start);
     const endMinutes = minutesSinceMidnight(course.end);
     const visibleStart = Math.max(startMinutes, gridStart);
@@ -228,7 +229,7 @@ function CourseCard({ course, gridStart, gridEnd, onSelect }) {
             {course.devoirAFaire && <span className="course-homework-alert" aria-hidden="true">✎</span>}
             <span className="course-title">{course.subject}</span>
             <span className="course-time">{format(course.start, "HH:mm")}–{format(course.end, "HH:mm")}</span>
-            {!compact && <span className="course-meta">{course.room} · {course.teacher}</span>}
+            {!compact && <span className="course-meta">{course.room} · {isStreamerModeEnabled ? anonymizeTeacher(course.teacher) : course.teacher}</span>}
             <span className="course-badges">
                 {course.isCancelled && <span className="course-badge danger">Annulé</span>}
             </span>
@@ -246,7 +247,7 @@ function CourseworkFiles({ files }) {
     );
 }
 
-function CourseworkPanel({ activeAccount, course, coursework, onRetry }) {
+function CourseworkPanel({ activeAccount, course, coursework, onRetry, isStreamerModeEnabled }) {
     const notebookLink = `/app/${activeAccount}/homeworks#${dateKey(course.start)}`;
 
     if (coursework.status === "loading") {
@@ -291,7 +292,6 @@ function CourseworkPanel({ activeAccount, course, coursework, onRetry }) {
             <div className="coursework-heading">
                 <div>
                     <span>Cahier de texte</span>
-                    <h3>Travail associé au cours</h3>
                 </div>
                 <Link to={notebookLink}>Tout ouvrir</Link>
             </div>
@@ -301,7 +301,7 @@ function CourseworkPanel({ activeAccount, course, coursework, onRetry }) {
                         <header>
                             <div>
                                 <strong>{item.subject}</strong>
-                                <span>{item.teacher}</span>
+                                <span>{isStreamerModeEnabled ? anonymizeTeacher(item.teacher) : item.teacher}</span>
                             </div>
                             <div className="coursework-badges">
                                 {item.isInterrogation && <span className="test">Contrôle</span>}
@@ -311,7 +311,6 @@ function CourseworkPanel({ activeAccount, course, coursework, onRetry }) {
                         </header>
                         {(item.homeworkContent || item.files.length > 0) && (
                             <div className="coursework-content">
-                                <h4>Travail à faire</h4>
                                 {item.homeworkContent && <EncodedHTMLDiv>{item.homeworkContent}</EncodedHTMLDiv>}
                                 <CourseworkFiles files={item.files} />
                             </div>
@@ -358,6 +357,8 @@ export default function Timetable({ isLoggedIn, activeAccount, fetchTimetable, f
     const courseworkRequestId = useRef(0);
     const fetchTimetableRef = useRef(fetchTimetable);
     const fetchCourseworkRef = useRef(fetchCoursework);
+    const { useUserSettings } = useContext(AppContext);
+    const settings = useUserSettings();
 
     const periodLength = viewMode === "three-day" ? THREE_DAY_WINDOW : WEEK_DAYS;
     const periodEnd = useMemo(() => addDays(periodStart, periodLength - 1), [periodLength, periodStart]);
@@ -424,10 +425,10 @@ export default function Timetable({ isLoggedIn, activeAccount, fetchTimetable, f
     }, [viewMode]);
 
     useEffect(() => {
-        if (!isLoggedIn || typeof fetchTimetableRef.current !== "function") {
-            setLoading(false);
-            return undefined;
-        }
+        // if (!isLoggedIn || typeof fetchTimetableRef.current !== "function") {
+        //     setLoading(false);
+        //     return undefined;
+        // }
 
         const cached = cache.current.get(periodKey);
         if (cached) {
@@ -465,9 +466,9 @@ export default function Timetable({ isLoggedIn, activeAccount, fetchTimetable, f
                 }
             })
             .finally(() => {
+                setRefreshing(false);
                 if (!controller.signal.aborted) {
                     setLoading(false);
-                    setRefreshing(false);
                 }
             });
 
@@ -693,7 +694,7 @@ export default function Timetable({ isLoggedIn, activeAccount, fetchTimetable, f
                                                             const showNow = isSameDay(day, now) && nowMinutes >= gridRange.start && nowMinutes <= gridRange.end;
                                                             return (
                                                                 <div className={`day-column${isSameDay(day, today) ? " today" : ""}`} key={dateKey(day)}>
-                                                                    {dayCourses.map((course) => <CourseCard course={course} gridStart={gridRange.start} gridEnd={gridRange.end} onSelect={openCourse} key={course.id} />)}
+                                                                    {dayCourses.map((course) => <CourseCard course={course} gridStart={gridRange.start} gridEnd={gridRange.end} onSelect={openCourse} key={course.id} isStreamerModeEnabled={settings.get("isStreamerModeEnabled")} />)}
                                                                     {showNow && (
                                                                         <span className="current-time-line" style={{ top: ((nowMinutes - gridRange.start) / 60) * HOUR_HEIGHT }} aria-label={`Heure actuelle : ${format(now, "HH:mm")}`}>
                                                                             <i aria-hidden="true" />
@@ -724,23 +725,18 @@ export default function Timetable({ isLoggedIn, activeAccount, fetchTimetable, f
                             <p>{format(selectedCourse.start, "HH:mm")} – {format(selectedCourse.end, "HH:mm")} · {formatDuration(Math.round((selectedCourse.end - selectedCourse.start) / 60_000))}</p>
                         </div>
                         <dl>
-                            <div><dt>Professeur</dt><dd>{selectedCourse.teacher}</dd></div>
+                            <div><dt>Professeur</dt><dd>{settings.get("isStreamerModeEnabled") ? anonymizeTeacher(selectedCourse.teacher) : selectedCourse.teacher}</dd></div>
                             <div><dt>Salle</dt><dd>{selectedCourse.room}</dd></div>
                             <div><dt>Groupe</dt><dd>{selectedCourse.group}</dd></div>
                             <div><dt>Matière</dt><dd>{selectedCourse.codeMatiere || "Non renseignée"}</dd></div>
                         </dl>
-                        {(selectedCourse.contenuDeSeance || selectedCourse.devoirAFaire) && (
-                            <div className="course-links">
-                                {selectedCourse.contenuDeSeance && <span>Contenu de séance disponible</span>}
-                                {selectedCourse.devoirAFaire && <span>{selectedCourse.homeworkDone ? "Travail marqué comme fait" : "Travail à faire associé"}</span>}
-                            </div>
-                        )}
                         {(selectedCourse.contenuDeSeance || selectedCourse.devoirAFaire) && (
                             <CourseworkPanel
                                 activeAccount={activeAccount}
                                 course={selectedCourse}
                                 coursework={coursework}
                                 onRetry={() => openCourse(selectedCourse, true)}
+                                isStreamerModeEnabled={settings.get("isStreamerModeEnabled")}
                             />
                         )}
                     </article>

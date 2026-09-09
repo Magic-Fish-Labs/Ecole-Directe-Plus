@@ -171,3 +171,7 @@ export function textToHSL(str, initialS = 42, initialL = 73, variationS = 10, va
 export function removeAccents(str) {
     return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
+
+export function anonymizeTeacher(teacher) {
+    return teacher.split(" ").map((str) => "-".repeat(str.length)).join(" ")
+}
