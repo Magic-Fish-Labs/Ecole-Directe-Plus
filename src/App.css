@@ -484,3 +484,7 @@ p.error-message a {
         scrollbar-size: auto;
     }
 }
+
+#bento .bento-grid .bento-outline-effect{
+    cursor: default;
+}
