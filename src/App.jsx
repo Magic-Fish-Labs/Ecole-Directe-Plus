@@ -3053,7 +3053,7 @@ export default function App({ edpFetch }) {
                             path: "timetable"
                         },
                         {
-                            element: <Timetable isLoggedIn={isLoggedIn} activeAccount={activeAccount} fetchTimetable={fetchTimetable} fetchCoursework={fetchTimetableCoursework} />,
+                            element: <Timetable isLoggedIn={isLoggedIn} activeAccount={activeAccount} accountId={accountsListState[activeAccount]?.id} fetchTimetable={fetchTimetable} fetchCoursework={fetchTimetableCoursework} />,
                             path: ":userId/timetable"
                         },
                         {

@@ -1,34 +1,29 @@
 #timetable-page {
-    height: auto;
-    min-height: 100%;
-}
-
-/*TODO: enlever quand taille dynamique fixed*/
-@media only screen and (min-width: 868px) {
-    #timetable-page {
-        display: flex;
-        align-items: center;
-    }
-    #timetable-page #windows-container {
-        flex: 1;
-    }
+    height: 100%;
+    min-height: 0;
 }
 
 #timetable-page #windows-container,
 #timetable-page .windows-layout {
-    height: auto;
-    max-height: none;
-    min-height: 100%;
+    height: 100%;
+    min-height: 0;
 }
 
 #timetable-page .timetable-window {
     min-height: 0;
-    max-height: none;
+    overflow: hidden;
 }
 
+#timetable-page .timetable-window .window-content {
+    min-height: 0;
+    overflow: hidden;
+}
 
 .timetable-content {
-    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
     padding: clamp(16px, 2.2vw, 28px);
     /* color: rgb(var(--text-color-main)); */
 }
@@ -398,9 +393,11 @@
 }
 
 .timetable-grid-frame {
+    flex: 1;
+    min-height: 0;
     max-width: 100%;
     overflow-x: auto;
-    overflow-y: clip;
+    overflow-y: hidden;
     border: 1px solid rgba(var(--border-color-contrast), 0.42);
     border-radius: 16px;
     background: rgba(var(--background-color-0), 0.38);
@@ -417,6 +414,9 @@
 }
 
 .timetable-grid-canvas {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
     width: 100%;
 }
 
@@ -426,7 +426,14 @@
     grid-template-columns: 54px minmax(0, 1fr);
 }
 
+.timetable-grid-body {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
 .timetable-days-header {
+    flex: none;
     position: sticky;
     top: 0;
     z-index: 8;
@@ -493,6 +500,10 @@
     font-variant-numeric: tabular-nums;
 }
 
+.time-axis > span:first-child {
+    transform: translateY(2px);
+}
+
 .days-columns {
     position: relative;
     display: grid;
@@ -526,7 +537,7 @@
 
 .timetable-course {
     width: calc(100% - 8px);
-    min-height: 34px;
+    min-height: 0;
     position: absolute;
     left: 4px;
     z-index: 3;
@@ -1131,7 +1142,7 @@
     }
     .view-switch {
         display: none;
-    }timetable
+    }
 
     .week-title {
         width: auto;
@@ -1282,10 +1293,17 @@
 
     .timetable-grid-frame,
     .timetable-grid-canvas {
+        flex: none;
+        height: auto !important;
         min-width: 100% !important;
         overflow: visible !important;
         border: 0;
         box-shadow: none;
+    }
+
+    .timetable-grid-body {
+        flex: none;
+        overflow: visible;
     }
 
     .timetable-course {
