@@ -205,10 +205,19 @@
         </script>
         <script>
             if ("serviceWorker" in navigator) {
-                navigator.serviceWorker.register("/serviceWorker.js")
-                    .catch(function (error) {
-                        console.error("Échec de l'enregistrement du Service Worker:", error);
+                if (location.hostname === "local.ecole-directe.plus") {
+                    // Keep the real-API local preview free from a previously installed offline shell.
+                    navigator.serviceWorker.getRegistrations().then(async function (registrations) {
+                        if (registrations.length === 0) return;
+                        await Promise.all(registrations.map((registration) => registration.unregister()));
+                        if (navigator.serviceWorker.controller) location.reload();
                     });
+                } else {
+                    navigator.serviceWorker.register("/serviceWorker.js")
+                        .catch(function (error) {
+                            console.error("Échec de l'enregistrement du Service Worker:", error);
+                        });
+                }
             }
         </script>
     </div>

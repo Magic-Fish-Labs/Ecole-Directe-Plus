@@ -1,6 +1,6 @@
 
-import { useEffect } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useContext, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import {
     WindowsContainer,
@@ -19,11 +19,15 @@ import PopUp from "../../generic/PopUps/PopUp";
 import "./Dashboard.css";
 import { formatDateRelative } from "../../../utils/date";
 import FileComponent from "../../generic/FileComponent";
+import { DashboardTimetable } from "../Timetable/Timetable";
+import { AppContext } from "../../../App";
 
-export default function Dashboard({ fetchUserGrades, grades, fetchHomeworks, activeAccount, isLoggedIn, useUserData, sortGrades, isTabletLayout }) {
+export default function Dashboard({ fetchUserGrades, grades, fetchHomeworks, fetchTimetable, activeAccount, isLoggedIn, useUserData, sortGrades, isTabletLayout }) {
     const navigate = useNavigate();
     const userData = useUserData();
     const location = useLocation()
+    const { useUserSettings } = useContext(AppContext);
+    const settings = useUserSettings();
 
     const sortedGrades = userData.get("sortedGrades");
     const homeworks = useUserData("sortedHomeworks");
@@ -112,7 +116,7 @@ export default function Dashboard({ fetchUserGrades, grades, fetchHomeworks, act
                                 <h2>Emploi du temps</h2>
                             </WindowHeader>
                             <WindowContent>
-                                <p className="dashboard-timetable-info">L'emploi du temps est enfin disponible, merci pour votre patience !<Link className="timetable-page-link" to={`/app/${activeAccount}/timetable`}>Accéder à l'emploi du temps</Link>L'aperçu rapide supposé apparaître ici est encore en cours de développement...<br/>Rejoignez le <a href="https://discord.gg/AKAqXfTgvE" target="_blank">serveur Discord d'EDP</a> pour en suivre l'avancée !</p>
+                                <DashboardTimetable activeAccount={activeAccount} fetchTimetable={fetchTimetable} onOpen={() => navigate("../timetable")} isStreamerModeEnabled={settings.get("isStreamerModeEnabled")} />
                             </WindowContent>
                         </Window>
                     </WindowsLayout>

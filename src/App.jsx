@@ -70,7 +70,7 @@ function consoleLogEDPLogo() {
 
 consoleLogEDPLogo();
 
-const currentEDPVersion = "0.5.0";
+const currentEDPVersion = "0.5.1";
 const apiVersion = "4.69.1";
 
 // secret webhooks
@@ -168,19 +168,29 @@ function homeworkMatchesCourse(homework, course) {
             && (homeworkSubject.startsWith(courseSubject) || courseSubject.startsWith(homeworkSubject)));
 }
 
-function enrichTimetableWithHomework(courses, homeworkByDate) {
+function enrichTimetableWithHomework(courses, homeworkByDate, detailedHomeworkByDate = {}) {
     return (courses ?? []).map((course) => {
         const courseDate = String(course.start_date ?? "").slice(0, 10);
         const matchingHomework = (homeworkByDate?.[courseDate] ?? [])
             .filter((homework) => homeworkMatchesCourse(homework, course));
-        const assignedHomework = matchingHomework.filter((homework) => apiBoolean(homework.aFaire));
+        const assignedHomework = matchingHomework.filter((homework) =>
+            apiBoolean(homework.aFaire) || apiBoolean(homework.interrogation));
+        const detailedHomework = (detailedHomeworkByDate[courseDate] ?? [])
+            .filter((homework) => homeworkMatchesCourse(homework, course))
+            .filter((homework) => homework.aFaire && typeof homework.aFaire === "object")
+            .map((homework) => ({
+                effectue: homework.aFaire.effectue,
+                interrogation: homework.interrogation,
+            }));
+        const courseHomework = detailedHomework.length > 0 ? detailedHomework : assignedHomework;
 
         return {
             ...course,
-            devoirAFaire: apiBoolean(course.devoirAFaire) || assignedHomework.length > 0,
-            homeworkSummary: assignedHomework,
-            homeworkDone: assignedHomework.length > 0
-                && assignedHomework.every((homework) => apiBoolean(homework.effectue)),
+            devoirAFaire: apiBoolean(course.devoirAFaire) || courseHomework.length > 0,
+            homeworkSummary: courseHomework,
+            homeworkDone: courseHomework.length > 0
+                && courseHomework.every((homework) => apiBoolean(homework.effectue)),
+            homeworkInterrogation: courseHomework.some((homework) => apiBoolean(homework.interrogation)),
         };
     });
 }
@@ -1764,8 +1774,10 @@ export default function App({ edpFetch }) {
             }
 
             const timetableToken = timetableResponse.token || tokenState;
+            let detailToken = timetableToken;
             setTokenState((old) => timetableResponse.token || old);
 
+            let homeworkByDate = {};
             try {
                 const homeworkResponse = await edpFetch(
                     `https://api.ecoledirecte.com/v3/Eleves/${accountsListState[activeAccount].id}/cahierdetexte.awp?verbe=get&v=${apiVersion}`,
@@ -1785,7 +1797,8 @@ export default function App({ edpFetch }) {
 
                 if (homeworkResponse.code === 200) {
                     setTokenState((old) => homeworkResponse.token || old);
-                    return enrichTimetableWithHomework(timetableResponse.data, homeworkResponse.data);
+                    detailToken = homeworkResponse.token || detailToken;
+                    homeworkByDate = homeworkResponse.data || {};
                 }
                 if (homeworkResponse.code === 520 || homeworkResponse.code === 525) {
                     requireLogin();
@@ -1801,7 +1814,46 @@ export default function App({ edpFetch }) {
                 console.warn("Impossible d’enrichir l’emploi du temps avec le cahier de texte.", homeworkError);
             }
 
-            return enrichTimetableWithHomework(timetableResponse.data, {});
+            const detailedHomeworkByDate = {};
+            const todayKey = getLocalISODate(new Date());
+            const pastDates = [...new Set((timetableResponse.data ?? [])
+                .map((course) => String(course.start_date ?? "").slice(0, 10))
+                .filter((date) => /^\d{4}-\d{2}-\d{2}$/.test(date) && date <= todayKey))].sort();
+            for (const date of pastDates) {
+                try {
+                    const response = await edpFetch(
+                        `https://api.ecoledirecte.com/v3/Eleves/${accountsListState[activeAccount].id}/cahierdetexte/${date}.awp?verbe=get&v=${apiVersion}`,
+                        {
+                            method: "POST",
+                            headers: {
+                                "X-Token": detailToken,
+                                "2FA-Token": token2faState,
+                                "Content-Type": "application/x-www-form-urlencoded",
+                            },
+                            body: "data={}",
+                            signal: controller.signal,
+                            referrerPolicy: "no-referrer",
+                        },
+                        "json",
+                    );
+                    if (response.code === 520 || response.code === 525) {
+                        requireLogin();
+                        throw new Error("Votre session a expiré. Reconnectez-vous pour actualiser l’emploi du temps.");
+                    }
+                    if (response.code === 200) {
+                        detailedHomeworkByDate[date] = response.data?.matieres ?? [];
+                        detailToken = response.token || detailToken;
+                        setTokenState((old) => response.token || old);
+                    }
+                } catch (detailError) {
+                    if (detailError?.name === "AbortError" || detailError?.message?.startsWith("Votre session a expiré")) {
+                        throw detailError;
+                    }
+                    console.warn(`Impossible de charger le cahier de texte du ${date}.`, detailError);
+                }
+            }
+
+            return enrichTimetableWithHomework(timetableResponse.data, homeworkByDate, detailedHomeworkByDate);
         } catch (error) {
             if (error.message === "Unexpected token 'P', \"Proxy error\" is not valid JSON") {
                 setProxyError(true);
@@ -2977,7 +3029,7 @@ export default function App({ edpFetch }) {
                             path: "dashboard",
                         },
                         {
-                            element: <Dashboard fetchUserGrades={fetchUserGrades} grades={grades} fetchHomeworks={fetchHomeworks} activeAccount={activeAccount} isLoggedIn={isLoggedIn} useUserData={useUserData} sortGrades={sortGrades} isTabletLayout={isTabletLayout} />,
+                            element: <Dashboard fetchUserGrades={fetchUserGrades} grades={grades} fetchHomeworks={fetchHomeworks} fetchTimetable={fetchTimetable} activeAccount={activeAccount} isLoggedIn={isLoggedIn} useUserData={useUserData} sortGrades={sortGrades} isTabletLayout={isTabletLayout} />,
                             path: ":userId/dashboard"
                         },
                         {
@@ -3001,7 +3053,7 @@ export default function App({ edpFetch }) {
                             path: "timetable"
                         },
                         {
-                            element: <Timetable isLoggedIn={isLoggedIn} activeAccount={activeAccount} fetchTimetable={fetchTimetable} fetchCoursework={fetchTimetableCoursework} />,
+                            element: <Timetable isLoggedIn={isLoggedIn} activeAccount={activeAccount} accountId={accountsListState[activeAccount]?.id} fetchTimetable={fetchTimetable} fetchCoursework={fetchTimetableCoursework} />,
                             path: ":userId/timetable"
                         },
                         {
