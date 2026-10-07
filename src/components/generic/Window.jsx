@@ -784,7 +784,7 @@ export function WindowsContainer({ children, name = "", className = "", id = "",
         }
 
         for (let header of headers) {
-            if (allowWindowsManagement) {
+            if (allowWindowsManagement && allowWindowsArrangement.get()) {
                 header.addEventListener("pointerdown", handleMouseDown);
                 for (let child of header.children) {
                     child.addEventListener("pointerdown", stopEventPropagation);

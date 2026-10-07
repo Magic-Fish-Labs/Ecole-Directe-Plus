@@ -14,6 +14,7 @@
     content: "";
     background: radial-gradient(250px circle at var(--mouse-x) var(--mouse-y), var(--gradient-color) 0, transparent 100%);
     will-change: background;
+    border-radius: 10px;
 }
 
 .outline-effect-div .inner-container {
