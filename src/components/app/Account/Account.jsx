@@ -8,10 +8,12 @@ import FileComponent from "../../generic/FileComponent";
 import ContentLoader from "react-content-loader";
 import CanardmanSleeping from "../../graphics/CanardmanSleeping";
 import ConfusedCanardman from "../../graphics/ConfusedCanardman";
+import Statistics from "./Statistics";
+import AccountSettings from "./AccountSettings";
 
 import "./Account.css";
 
-export default function Account({ schoolLife, fetchSchoolLife, fetchAdministrativeDocuments, sortSchoolLife, isLoggedIn, activeAccount }) {
+export default function Account({ schoolLife, fetchSchoolLife, fetchAdministrativeDocuments, sortSchoolLife, isLoggedIn, activeAccount, grades }) {
     const { actualDisplayTheme, accountsListState, useUserData, useUserSettings } = useContext(AppContext)
 
     const settings = useUserSettings();
@@ -30,6 +32,7 @@ export default function Account({ schoolLife, fetchSchoolLife, fetchAdministrati
     const contentLoaderRandomValues = useRef({ documentsNumber: Array.from({ length: 3 }, (_) => Math.floor(Math.random() * 10) + 1), fileNameWidth: Array.from({ length: 10 }, (_) => Math.floor(Math.random() * 31) + 60 ) });
 
     const [isLoadingDocuments, setIsLoadingDocuments] = useState(true);
+    const [isStatisticsOpen, setIsStatisticsOpen] = useState(false);
 
     useEffect(() => {
         document.title = "Compte • Ecole Directe Plus";
@@ -129,12 +132,10 @@ export default function Account({ schoolLife, fetchSchoolLife, fetchAdministrati
                         {accountsListState[activeAccount].phoneNumber &&
                             <span>Num. téléphone : {settings.get("isStreamerModeEnabled") ? "00 00 00 00 00" : accountsListState[activeAccount].phoneNumber}</span>}
                     </address>
-                    <Button disabled={true} id="statistics">Statistiques</Button>
-                </div>
-                <div className="coming-soon">
-                    En cours de développement (bientôt disponible)
+                    <Button id="statistics" onClick={() => setIsStatisticsOpen(true)}>Statistiques</Button>
                 </div>
             </HolographicDiv>
+            <AccountSettings />
             <section className="frame" id="documents">
                 {module?.enable ? (
                     <>
@@ -316,8 +317,17 @@ export default function Account({ schoolLife, fetchSchoolLife, fetchAdministrati
                         <span>Incidents</span>
                         <span className={"count" + (!userData.get("sortedSchoolLife")?.incidents.length ? " loading" : "")}>{userData.get("sortedSchoolLife")?.incidents.length ?? <><span style={{ "--index": 9 }}>.</span><span style={{ "--index": 10 }}>.</span><span style={{ "--index": 11 }}>.</span></>}</span>
                     </div>
+                    <div className="behavior-type">
+                        <span>Encouragements</span>
+                        <span className={"count" + (!userData.get("sortedSchoolLife")?.encouragements.length ? " loading" : "")}>{userData.get("sortedSchoolLife")?.encouragements.length ?? <><span style={{ "--index": 12 }}>.</span><span style={{ "--index": 13 }}>.</span><span style={{ "--index": 14 }}>.</span></>}</span>
+                    </div>
+                    <div className="behavior-type">
+                        <span>Dispenses</span>
+                        <span className={"count" + (!userData.get("sortedSchoolLife")?.dispenses.length ? " loading" : "")}>{userData.get("sortedSchoolLife")?.dispenses.length ?? <><span style={{ "--index": 15 }}>.</span><span style={{ "--index": 16 }}>.</span><span style={{ "--index": 17 }}>.</span></>}</span>
+                    </div>
                 </div>
             </section>
+            {isStatisticsOpen && <Statistics grades={grades} activeAccount={activeAccount} onClose={() => setIsStatisticsOpen(false)} />}
         </div>
     )
 }

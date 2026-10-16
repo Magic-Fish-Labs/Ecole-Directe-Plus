@@ -1,0 +1,30 @@
+{
+    "evt1": {
+        "typeElement": "Note",
+        "date": "2026-10-12",
+        "titre": "Nouvelles évaluations",
+        "contenu": "14.5/20/12/20",
+        "idElement": 1
+    },
+    "evt2": {
+        "typeElement": "Messagerie",
+        "date": "2026-10-11",
+        "titre": "Nouveau message de Mme DUPONT",
+        "contenu": "Problème d'hygiène au self",
+        "idElement": 1001
+    },
+    "evt3": {
+        "typeElement": "VieScolaire",
+        "date": "2026-10-09",
+        "titre": "Nouvel élément de vie scolaire",
+        "contenu": "Retard enregistré",
+        "idElement": 2001
+    },
+    "evt4": {
+        "typeElement": "Document",
+        "date": "2026-10-07",
+        "titre": "Nouveau document disponible",
+        "contenu": "Bulletin du 1er trimestre",
+        "idElement": 3001
+    }
+}

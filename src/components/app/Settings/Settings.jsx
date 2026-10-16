@@ -237,18 +237,18 @@ export default function Settings({ usersSettings, accountsList, getCurrentSchool
                     </div>
                     : null
                 }
-                {false && <div id="face-your-fears">
+                <div id="face-your-fears">
                     <h2 className="heading">AFFRONTER LA RÉALITÉ</h2>
-                    <div className="setting" id="show-old-streak">
-                        <CheckBox id="show-old-streak-cb" label={<span>Afficher les Streak passées</span>} />
+                    <div className="setting" id="show-old-streaks">
+                        <CheckBox id="show-old-streaks-cb" label={<span>Afficher les Streak passées</span>} checked={!!settings.get("showOldStreaks")} onChange={(event) => settings.set("showOldStreaks", event.target.checked)} />
                     </div>
-                    <div className="setting" id="show-negative-badges">
+                    {false && <div className="setting" id="show-negative-badges">
                         <CheckBox id="show-negative-badges-cb" label={<span>Afficher les Badges négatifs</span>} checked={settings.get("negativeBadges")} onChange={(event) => settings.set("negativeBadges", event.target.checked)} />
-                    </div>
+                    </div>}
                     <div className="setting" id="weaknesses-badges">
-                        <CheckBox id="weaknesses-cb" label={<span>Afficher les points faibles</span>} />
+                        <CheckBox id="weaknesses-cb" label={<span>Afficher les points faibles</span>} checked={!!settings.get("showWeaknesses")} onChange={(event) => settings.set("showWeaknesses", event.target.checked)} />
                     </div>
-                </div>}
+                </div>
 
 
                 {/* advanced settings */}
@@ -271,9 +271,6 @@ export default function Settings({ usersSettings, accountsList, getCurrentSchool
                         <CheckBox id="allow-anonymous-reports-cb" label={<span>Autoriser l'envoi de rapports d'erreurs anonymisés</span>} checked={settings.get("allowAnonymousReports")} onChange={(event) => settings.set("allowAnonymousReports", event.target.checked)} />
                     </div>
 
-                    <div className="setting disabled" id="info-persistence">
-                        <CheckBox id="info-persistence-cb" label={<span>Activer la persistance des informations sur tous vos appareils</span>} /> <InfoButton className="setting-tooltip">Nous utilisons les serveurs d'EcoleDirecte pour stocker vos informations de configuration. Ainsi, vos informations EDP vous suiveront sur tous vos appareils dès lors que vous serez connectés à ce même compte</InfoButton>
-                    </div>
                     <div className="setting" id="clear-local-storage">
                         <div className="setting-label">
                             <span>Nettoyer le localStorage et le sessionStorage</span>
@@ -299,10 +296,13 @@ export default function Settings({ usersSettings, accountsList, getCurrentSchool
                         <CheckBox id="synchronise-settings" label={<span>Synchroniser les paramètres sur tous les profils</span>} checked={globalSettings.shareSettings.value} onChange={() => { globalSettings.shareSettings.set(!globalSettings.shareSettings.value) }} /> <InfoButton className="setting-tooltip">Les paramètres seront synchronisés avec ceux du profil actif</InfoButton>
                     </div> : null}
 
+                    <div className="setting" id="info-persistence">
+                        <CheckBox id="info-persistence-cb" label={<span>Sauvegarder et synchroniser mes réglages dans mon compte ÉcoleDirecte</span>} checked={!!settings.get("persistSettings")} onChange={(event) => settings.set("persistSettings", event.target.checked)} /> <InfoButton className="setting-tooltip">Vos réglages sont stockés dans votre compte ÉcoleDirecte (paramètres individuels) et restaurés automatiquement lors de la connexion. La sauvegarde nécessite des métadonnées de connexion fraîches (idLogin) ; si celles-ci sont indisponibles, l'API renvoie une erreur qui est consignée silencieusement</InfoButton>
+                    </div>
 
-                    <div className="setting disabled" id="dynamic-loading">
+                    <div className="setting" id="dynamic-loading">
                         <div className="setting-label">
-                            <CheckBox id="dynamic-loading-cb" label={<span>Activer le chargement dynamique</span>} /> <InfoButton className="setting-tooltip">Charge le contenu uniquement lorsque vous en avez besoin (recommandé pour les petits forfaits)</InfoButton>
+                            <CheckBox id="dynamic-loading-cb" label={<span>Activer le chargement dynamique</span>} checked={!!settings.get("dynamicLoading")} onChange={(event) => settings.set("dynamicLoading", event.target.checked)} /> <InfoButton className="setting-tooltip">Charge le contenu uniquement lorsque vous en avez besoin (recommandé pour les petits forfaits)</InfoButton>
                         </div>
                     </div>
 

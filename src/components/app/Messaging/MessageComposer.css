@@ -1,0 +1,439 @@
+
+.message-composer-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background-color: rgba(0, 0, 0, 0.4);
+    animation: composer-fade-in 0.3s ease 0s forwards;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+}
+
+@keyframes composer-fade-in {
+    from {
+        background-color: rgba(0, 0, 0, 0);
+    }
+    to {
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+}
+
+.message-composer-panel {
+    display: flex;
+    flex-flow: column nowrap;
+    width: min(750px, 100%);
+    max-height: min(90vh, 850px);
+    background-color: rgb(var(--background-color-2));
+    border-radius: 20px;
+    box-shadow: var(--box-shadow-window);
+    overflow: hidden;
+    animation: composer-blur-in 0.3s ease-out 0s;
+    animation-timing-function: var(--timing-function-spring-effect);
+}
+
+@keyframes composer-blur-in {
+    from {
+        opacity: 0;
+        transform: scale(0.85);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.message-composer-header {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(var(--text-color-alt), .5);
+}
+
+.message-composer-header h3 {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.message-composer-close {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border: none;
+    background-color: transparent;
+    color: rgb(var(--text-color-alt));
+    font-weight: var(--font-weight-extra-bold);
+    outline: none;
+    cursor: pointer;
+    transition: .1s;
+}
+
+.message-composer-close:is(:hover, :focus-visible) {
+    color: rgb(var(--text-color-main));
+}
+
+.message-composer-form {
+    display: flex;
+    flex-flow: column nowrap;
+    gap: 15px;
+    padding: 15px 20px;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.message-composer-fields {
+    display: flex;
+    flex-flow: column nowrap;
+    gap: 12px;
+}
+
+.composer-field-label {
+    color: rgb(var(--text-color-alt));
+    flex-shrink: 0;
+}
+
+.recipients-field {
+    display: flex;
+    flex-flow: column nowrap;
+    gap: 8px;
+}
+
+.recipients-chips {
+    list-style-type: none;
+    display: flex;
+    flex-flow: row wrap;
+    gap: 8px;
+}
+
+.recipient-chip {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px 4px 10px;
+    background-color: rgba(var(--background-color-0), .5);
+    border: 1px solid rgba(var(--text-color-alt), .5);
+    border-radius: 999px;
+    font-size: var(--font-size-14);
+    max-width: 100%;
+}
+
+.recipient-chip-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.recipient-chip-remove {
+    flex-shrink: 0;
+    border: none;
+    background-color: transparent;
+    color: rgb(var(--text-color-alt));
+    outline: none;
+    cursor: pointer;
+    transition: .1s;
+    padding: 2px;
+}
+
+.recipient-chip-remove:is(:hover, :focus-visible) {
+    color: rgb(var(--text-color-main));
+}
+
+.recipients-placeholder {
+    color: rgb(var(--text-color-alt));
+    font-size: var(--font-size-14);
+}
+
+.recipients-search-input .text-input-container {
+    height: 2.4em;
+}
+
+.composer-tabs {
+    display: flex;
+    flex-flow: row wrap;
+    gap: 6px;
+}
+
+.composer-tab {
+    padding: 6px 12px;
+    background-color: rgba(var(--background-color-0), .4);
+    border: 1px solid rgba(var(--text-color-alt), .5);
+    border-radius: 999px;
+    color: rgb(var(--text-color-alt));
+    font-size: var(--font-size-14);
+    outline: none;
+    cursor: pointer;
+    transition: .1s;
+    white-space: nowrap;
+}
+
+.composer-tab:is(:hover, :focus-visible) {
+    background-color: rgba(var(--background-color-0), .7);
+}
+
+.composer-tab.selected {
+    background-color: rgb(var(--background-color-3));
+    color: rgb(var(--text-color-main));
+    border-color: rgb(var(--text-color-alt));
+}
+
+.scroll-shaded-div.contacts-list-container {
+    max-height: 200px;
+    border: 1px solid rgba(var(--text-color-alt), .3);
+    border-radius: 10px;
+}
+
+.contacts-list {
+    list-style-type: none;
+}
+
+.contact-entry {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 12px;
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(var(--text-color-alt), .2);
+    color: rgb(var(--text-color-main));
+    font-size: var(--font-size-15);
+    text-align: left;
+    outline: none;
+    cursor: pointer;
+    transition: .1s;
+}
+
+.contact-entry:last-child {
+    border-bottom: none;
+}
+
+.contact-entry:is(:hover, :focus-visible) {
+    background-color: rgba(var(--background-color-0), .4);
+}
+
+.contact-entry.selected {
+    background-color: rgba(var(--background-color-focus));
+}
+
+.contact-entry:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+.contact-entry-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.contact-entry-detail {
+    flex-shrink: 0;
+    color: rgb(var(--text-color-alt));
+    font-size: var(--font-size-13);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.contacts-list-hint {
+    padding: 12px;
+    color: rgb(var(--text-color-alt));
+    text-align: center;
+}
+
+.composer-body-textarea {
+    resize: vertical;
+    min-height: 160px;
+    width: 100%;
+    padding: 12px;
+    background-color: rgba(var(--background-color-0), .4);
+    border: 2px solid rgb(var(--border-color-0));
+    border-radius: 15px;
+    color: rgb(var(--text-color-main));
+    font-size: var(--font-size-16);
+    font-family: inherit;
+    outline: none;
+    transition: .1s;
+    box-sizing: border-box;
+}
+
+.composer-body-textarea:hover {
+    border-color: rgba(var(--border-color-1), 0.8);
+}
+
+.composer-body-textarea:focus {
+    background-color: rgba(var(--background-color-focus));
+    border-color: rgb(var(--border-color-1));
+}
+
+.composer-attachments {
+    display: flex;
+    flex-flow: row wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.composer-file-input {
+    display: none;
+}
+
+.attach-file-button {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background-color: transparent;
+    border: 1px solid rgba(var(--text-color-alt), .5);
+    border-radius: 10px;
+    color: rgb(var(--text-color-main));
+    font-size: var(--font-size-15);
+    outline: none;
+    cursor: pointer;
+    transition: .1s;
+}
+
+.attach-file-button:is(:hover, :focus-visible) {
+    background-color: rgba(var(--text-color-alt), .1);
+}
+
+.attach-file-icon {
+    height: 18px;
+}
+
+.composer-files-list {
+    list-style-type: none;
+    display: flex;
+    flex-flow: row wrap;
+    gap: 8px;
+}
+
+.composer-file-chip {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px 6px 10px;
+    background-color: rgba(var(--background-color-0), .5);
+    border: 1px solid rgba(var(--text-color-alt), .5);
+    border-radius: 10px;
+    font-size: var(--font-size-14);
+    max-width: 100%;
+}
+
+.composer-file-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+.composer-file-icon {
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.file-upload-spinner {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(var(--text-color-alt), .5);
+    border-top-color: rgb(var(--text-color-main));
+    border-radius: 50%;
+    animation: composer-file-spin 0.8s linear infinite;
+}
+
+@keyframes composer-file-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.remove-file-button {
+    flex-shrink: 0;
+    border: none;
+    background-color: transparent;
+    outline: none;
+    cursor: pointer;
+    padding: 2px;
+    transition: .1s;
+}
+
+.remove-file-button:is(:hover, :focus-visible) .remove-file-icon path {
+    stroke: rgb(var(--text-color-main));
+}
+
+.remove-file-icon {
+    height: 16px;
+}
+
+.composer-footer {
+    display: flex;
+    flex-flow: row wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    border-top: 1px solid rgba(var(--text-color-alt), .5);
+    padding-top: 15px;
+}
+
+.composer-inline-error {
+    color: rgb(var(--text-color-error));
+    font-size: var(--font-size-14);
+    flex: 1;
+    min-width: 0;
+}
+
+.composer-actions {
+    display: flex;
+    flex-flow: row wrap;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.composer-actions .button {
+    margin: 0;
+    font-size: var(--font-size-15);
+    padding: 8px 12px;
+    border-radius: 12px;
+}
+
+.composer-send-button {
+    border-color: rgb(var(--text-color-main));
+}
+
+@media only screen and (max-width: 600px) {
+    .message-composer-overlay {
+        padding: 0;
+    }
+
+    .message-composer-panel {
+        width: 100%;
+        max-height: 100%;
+        height: 100%;
+        border-radius: 0;
+    }
+
+    .composer-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .composer-actions {
+        margin-left: 0;
+        justify-content: stretch;
+    }
+
+    .composer-actions .button {
+        flex-grow: 1;
+    }
+}

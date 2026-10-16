@@ -14,6 +14,7 @@ import { AppContext } from "../../../App";
 import "./Messaging.css";
 import Inbox from "./Inbox";
 import MessageReader from "./MessageReader";
+import MessageComposer from "./MessageComposer";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../generic/PopUps/Tooltip";
 import FolderIcon from "../../graphics/FolderIcon";
 import InboxIcon from "../../graphics/InboxIcon";
@@ -57,6 +58,7 @@ export default function Messaging({ isLoggedIn, activeAccount, fetchMessages, fe
 
     const [isEditingFolder, setIsEditingFolder] = useState(false);
     const [newFolderName, setNewFolderName] = useState('');
+    const [composerState, setComposerState] = useState(null);
 
     // behavior
     useEffect(() => {
@@ -234,6 +236,22 @@ export default function Messaging({ isLoggedIn, activeAccount, fetchMessages, fe
         setIsEditingFolder(false);
     }, [selectedFolder]);
 
+    const handleOpenComposer = (mode, message = null) => {
+        setComposerState({ mode, message });
+    };
+
+    const handleReply = (message) => {
+        handleOpenComposer("reply", message);
+    };
+
+    const handleForward = (message) => {
+        handleOpenComposer("forward", message);
+    };
+
+    const handleEditDraft = (message) => {
+        handleOpenComposer("draft", message);
+    };
+
     // JSX
     return (
         <div id="messaging">
@@ -336,6 +354,13 @@ export default function Messaging({ isLoggedIn, activeAccount, fetchMessages, fe
                                                 : "Créer un dossier"
                                             }
                                         </h2>
+                                        {canSendMessages && !composerState && selectedFolder !== -3
+                                            ? <button type="button" className="new-message-button" title="Nouveau message" aria-label="Nouveau message" onClick={() => handleOpenComposer("new")}>
+                                                <EditIcon className="new-message-button-icon" />
+                                                <span className="new-message-button-label">Nouveau message</span>
+                                            </button>
+                                            : null
+                                        }
                                     </div>
                             )}
                         </WindowHeader>
@@ -348,11 +373,15 @@ export default function Messaging({ isLoggedIn, activeAccount, fetchMessages, fe
                             <h2>Message</h2>
                         </WindowHeader>
                         <WindowContent>
-                            <MessageReader selectedMessage={selectedMessage} fetchMessageMarkAsUnread={fetchMessageMarkAsUnread} setSelectedMessage={setSelectedMessage} archiveMessage={archiveMessage} unarchiveMessage={unarchiveMessage} moveMessage={moveMessage} deleteMessage={deleteMessage} />
+                            <MessageReader selectedMessage={selectedMessage} fetchMessageMarkAsUnread={fetchMessageMarkAsUnread} setSelectedMessage={setSelectedMessage} archiveMessage={archiveMessage} unarchiveMessage={unarchiveMessage} moveMessage={moveMessage} deleteMessage={deleteMessage} onReply={canSendMessages ? handleReply : null} onForward={canSendMessages ? handleForward : null} onEditDraft={canSendMessages ? handleEditDraft : null} />
                         </WindowContent>
                     </Window>
                 </WindowsLayout>
             </WindowsContainer>
+            {composerState
+                ? <MessageComposer mode={composerState.mode} initialMessage={composerState.message} onClose={() => setComposerState(null)} fetchMessageContent={fetchMessageContent} canSendMessages={canSendMessages} />
+                : null
+            }
         </div>
     );
 }

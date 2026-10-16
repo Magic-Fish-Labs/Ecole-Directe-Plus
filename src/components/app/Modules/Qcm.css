@@ -1,0 +1,229 @@
+.qcm-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.qcm-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    flex-wrap: wrap;
+    padding: 20px;
+    border-radius: 15px;
+    background-color: rgba(var(--background-color-1), 0.5);
+    border: 1px solid rgba(var(--border-color-0), 0.3);
+    box-shadow: var(--box-shadow-window);
+}
+
+.qcm-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+
+.qcm-card-title {
+    margin: 0;
+    font-size: var(--font-size-18);
+    font-weight: var(--font-weight-semi-bold);
+    color: rgba(var(--text-color-main), 1);
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.qcm-card-badges {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.qcm-badge {
+    font-size: var(--font-size-14);
+    font-weight: var(--font-weight-semi-bold);
+    padding: 3px 10px;
+    border-radius: 10px;
+    white-space: nowrap;
+}
+
+.qcm-badge-done {
+    background-color: rgba(var(--border-color-1), 0.15);
+    color: rgb(var(--border-color-1));
+}
+
+.qcm-badge-progress {
+    background-color: rgba(var(--text-color-alt), 0.15);
+    color: rgba(var(--text-color-alt), 0.9);
+}
+
+.qcm-badge-disabled {
+    background-color: rgba(var(--text-color-alt), 0.1);
+    color: rgba(var(--text-color-alt), 0.7);
+}
+
+.qcm-card-actions {
+    margin-left: auto;
+}
+
+.qcm-questionnaire {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.qcm-questionnaire-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.qcm-questionnaire-title {
+    margin: 0;
+    font-size: var(--font-size-24);
+    font-weight: var(--font-weight-semi-bold);
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.qcm-progress {
+    margin-left: auto;
+    font-size: var(--font-size-14);
+    font-weight: var(--font-weight-semi-bold);
+    color: rgba(var(--text-color-alt), 0.9);
+    white-space: nowrap;
+}
+
+.qcm-question {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+    border-radius: 15px;
+    background-color: rgba(var(--background-color-1), 0.5);
+    border: 1px solid rgba(var(--border-color-0), 0.3);
+    box-shadow: var(--box-shadow-window);
+}
+
+.qcm-question-enonce,
+.qcm-question-text {
+    font-size: var(--font-size-16);
+    color: rgba(var(--text-color-main), 1);
+    overflow-wrap: anywhere;
+}
+
+.qcm-choices {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.qcm-choice label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: var(--font-size-16);
+}
+
+.qcm-choice label:hover {
+    background-color: rgba(var(--text-color-alt), 0.08);
+}
+
+.qcm-choice input {
+    margin-top: 4px;
+    accent-color: rgb(var(--border-color-1));
+    flex-shrink: 0;
+}
+
+.qcm-text-hole {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.qcm-hole-label {
+    font-size: var(--font-size-16);
+}
+
+.qcm-text-hole input {
+    flex: 1;
+    min-width: 150px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(var(--border-color-0), 0.5);
+    background-color: rgba(var(--background-color-2), 0.6);
+    color: rgba(var(--text-color-main), 1);
+    font-size: var(--font-size-16);
+}
+
+.qcm-question-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 5px;
+}
+
+.qcm-saved-flag {
+    font-size: var(--font-size-14);
+    color: rgba(var(--text-color-alt), 0.8);
+    font-style: italic;
+}
+
+.qcm-question-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-left: auto;
+}
+
+.qcm-error {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.qcm-error-message {
+    color: rgb(var(--text-color-error));
+    font-size: var(--font-size-16);
+    margin: 0;
+}
+
+.qcm-ended-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 12px 15px;
+    border-radius: 10px;
+    font-size: var(--font-size-16);
+    background-color: rgba(var(--border-color-1), 0.12);
+    color: rgba(var(--text-color-main), 1);
+}
+
+.qcm-result {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 15px 20px;
+    border-radius: 15px;
+    background-color: rgba(var(--background-color-1), 0.5);
+    border: 1px solid rgba(var(--border-color-0), 0.3);
+}
+
+.qcm-result h4 {
+    margin: 0;
+    font-size: var(--font-size-18);
+    font-weight: var(--font-weight-semi-bold);
+}

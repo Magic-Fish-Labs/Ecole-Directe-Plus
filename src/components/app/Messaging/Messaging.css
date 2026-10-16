@@ -199,6 +199,40 @@ h3:has(~ .edit-folder-container) {
     justify-content: center;    
 }
 
+.new-message-button {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    margin-left: 10px;
+    flex-shrink: 0;
+    background-color: transparent;
+    border: 1px solid rgba(var(--text-color-alt), .5);
+    border-radius: 10px;
+    color: rgb(var(--text-color-main));
+    font-size: var(--font-size-16);
+    white-space: nowrap;
+    outline: none;
+    cursor: pointer;
+    transition: .1s;
+}
+
+.new-message-button:is(:hover, :focus-visible) {
+    background-color: rgba(var(--background-color-3), .6);
+}
+
+.new-message-button-icon {
+    height: 20px;
+    width: 20px;
+}
+
+@media only screen and (max-width: 869px) {
+    .new-message-button .new-message-button-label {
+        display: none;
+    }
+}
+
 .prevent-highlight {
     cursor:  grab !important;
     background-color: transparent !important;

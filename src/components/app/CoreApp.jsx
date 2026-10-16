@@ -12,6 +12,8 @@ import Settings from "./Settings/Settings";
 import Account from "./Account/Account";
 import Feedback from "../Feedback/Feedback";
 import LoginBottomSheet from "../Login/LoginBottomSheet";
+import SchoolLife from "./SchoolLife/SchoolLife";
+import Modules from "./Modules/Modules";
 
 
 export { Lab };
@@ -27,5 +29,7 @@ export { Settings };
 export { Account };
 export { Feedback };
 export { LoginBottomSheet };
+export { SchoolLife };
+export { Modules };
 
 // export default { Header, Dashboard, Grades, Homeworks, Timetable, Messaging }

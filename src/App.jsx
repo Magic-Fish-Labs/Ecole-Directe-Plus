@@ -37,6 +37,8 @@ const Settings = lazy(() => import("./components/app/CoreApp").then((module) => 
 const Account = lazy(() => import("./components/app/CoreApp").then((module) => { return { default: module.Account } }));
 const Feedback = lazy(() => import("./components/app/CoreApp").then((module) => { return { default: module.Feedback } }));
 const LoginBottomSheet = lazy(() => import("./components/app/CoreApp").then((module) => { return { default: module.LoginBottomSheet } }));
+const SchoolLife = lazy(() => import("./components/app/CoreApp").then((module) => { return { default: module.SchoolLife } }));
+const Modules = lazy(() => import("./components/app/CoreApp").then((module) => { return { default: module.Modules } }));
 
 
 function consoleLogEDPLogo() {
@@ -115,7 +117,10 @@ const defaultSettings = {
     negativeBadges: false,
     allowAnonymousReports: true,
     isDevChannel: false,
-    selectedChart: 0
+    selectedChart: 0,
+    showOldStreaks: false,
+    showWeaknesses: true,
+    persistSettings: false
 }
 
 const browserExtensionDownloadLink = {
@@ -140,6 +145,16 @@ function getLocalISODate(date) {
 
 function apiBoolean(value) {
     return value === true || value === 1 || value === "1" || value === "true";
+}
+
+function encodeBase64(str) {
+    // encode UTF-8 string to base64 (btoa seul ne gère pas les accents)
+    const bytes = new TextEncoder().encode(str);
+    let binary = "";
+    for (let i = 0; i < bytes.length; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
 }
 
 function normalizeTimetableSubject(value) {
@@ -282,6 +297,15 @@ function initSettings(accountList) {
             },
             allowAnonymousReports: {
                 value: getSetting("allowAnonymousReports", i),
+            },
+            showOldStreaks: {
+                value: getSetting("showOldStreaks", i),
+            },
+            showWeaknesses: {
+                value: getSetting("showWeaknesses", i),
+            },
+            persistSettings: {
+                value: getSetting("persistSettings", i),
             }
         })
     }
@@ -347,6 +371,7 @@ export default function App({ edpFetch }) {
     // diverse
     const abortControllers = useRef([]); // permet d'abort tous les fetch en cas de déconnexion de l'utilisateur pendant une requête
     const loginAbortControllers = useRef([]); // permet d'abort tous les fetch en cas de déconnexion de l'utilisateur pendant une requête
+    const persistSettingsTimeoutId = useRef(null); // debounce de la sauvegarde des réglages dans le compte EcoleDirecte
     const entryURL = useRef(window.location.href);
     const actualDisplayTheme = getActualDisplayTheme(); // thème d'affichage réel (ex: dark ou light, et non pas auto)
     const createNotification = useCreateNotification();
@@ -532,6 +557,23 @@ export default function App({ edpFetch }) {
             localStorage.setItem("userSettings", JSON.stringify(lsUserSettings));
         }
     }, [userSettings]);
+
+    useEffect(() => {
+        // persiste les réglages dans le compte EcoleDirecte (parametreIndividuel.awp) lorsque l'option est active
+        if (userSettings?.length > 0 && isLoggedIn && getUserSettingValue("persistSettings")) {
+            clearTimeout(persistSettingsTimeoutId.current);
+            persistSettingsTimeoutId.current = setTimeout(() => {
+                savePersistedSettings(userSettings).then((result) => {
+                    if (!result?.ok) {
+                        console.warn("Sauvegarde des réglages dans le compte impossible :", result?.error);
+                    }
+                });
+            }, 1500);
+        }
+        return () => {
+            clearTimeout(persistSettingsTimeoutId.current);
+        };
+    }, [userSettings, isLoggedIn]);
 
     useEffect(() => {
         if (tokenState !== "") {
@@ -1189,6 +1231,16 @@ export default function App({ edpFetch }) {
         return sortedHomeworks
     }
 
+    function sortHomeworkComments(comments) {
+        return (comments ?? []).filter((comment) => !apiBoolean(comment.supprime)).map((comment) => ({
+            id: comment.id,
+            author: comment.auteur ?? "",
+            profile: comment.profilAuteur ?? null,
+            date: comment.date,
+            content: comment.message ?? "",
+        }));
+    }
+
     function sortDayHomeworks(homeworks) { // This function will sort (I would rather call it translate) the EcoleDirecte response to a better js object 
         const sortedHomeworks = Object.fromEntries(Object.entries(homeworks).map((day) => {
             return [day[0], day[1].map((homework) => {
@@ -1204,7 +1256,7 @@ export default function App({ edpFetch }) {
 
                 if (aFaire) {
 
-                    const { donneLe, effectue, contenu, documents } = aFaire;
+                    const { donneLe, effectue, contenu, documents, commentaires } = aFaire;
 
                     return {
                         id: id,
@@ -1218,7 +1270,9 @@ export default function App({ edpFetch }) {
                         content: contenu,
                         files: documents.map((e) => (new File(e.id, e.type, e.libelle))),
                         sessionContent: contenuDeSeance.contenu,
-                        sessionContentFiles: contenuDeSeance.documents.map((e) => (new File(e.id, e.type, e.libelle)))
+                        sessionContentFiles: contenuDeSeance.documents.map((e) => (new File(e.id, e.type, e.libelle))),
+                        comments: sortHomeworkComments(commentaires ?? contenuDeSeance?.commentaires),
+                        sessionComments: sortHomeworkComments(contenuDeSeance?.commentaires)
                     }
                 }
                 else {
@@ -1231,7 +1285,9 @@ export default function App({ edpFetch }) {
                         addDate: day[0],
                         teacher: nomProf,
                         sessionContent: contenuDeSeance.contenu,
-                        sessionContentFiles: contenuDeSeance.documents.map((e) => (new File(e.id, e.type, e.libelle)))
+                        sessionContentFiles: contenuDeSeance.documents.map((e) => (new File(e.id, e.type, e.libelle))),
+                        comments: sortHomeworkComments(contenuDeSeance?.commentaires),
+                        sessionComments: sortHomeworkComments(contenuDeSeance?.commentaires)
                     }
                 }
             }).filter((item) => item)]
@@ -1388,10 +1444,13 @@ export default function App({ edpFetch }) {
         const sortedSchoolLife = {
             delays: [],
             absences: [],
+            dispenses: [],
             sanctions: [],
-            incidents: []
+            incidents: [],
+            encouragements: [],
+            parametrage: schoolLife[activeAccount]?.parametrage ?? null
         };
-        schoolLife[activeAccount]?.absencesRetards.concat(schoolLife[activeAccount].sanctionsEncouragements ?? []).forEach((item) => {
+        (schoolLife[activeAccount]?.absencesRetards ?? []).concat(schoolLife[activeAccount]?.sanctionsEncouragements ?? []).forEach((item) => {
             const newItem = {};
             newItem.type = item.typeElement;
             newItem.id = item.id;
@@ -1403,6 +1462,9 @@ export default function App({ edpFetch }) {
             newItem.comment = item.commentaire;
             newItem.todo = item.aFaire;
             newItem.by = item.par;
+            newItem.occurrenceDate = item.dateDeroulement;
+            newItem.justificationType = item.typeJustification ?? null;
+            newItem.todoDone = apiBoolean(item.aFaire?.effectue);
             switch (newItem.type) {
                 case "Retard":
                     sortedSchoolLife.delays.push(newItem);
@@ -1412,11 +1474,19 @@ export default function App({ edpFetch }) {
                     sortedSchoolLife.absences.push(newItem);
                     break;
 
+                case "Dispense":
+                    sortedSchoolLife.dispenses.push(newItem);
+                    break;
+
                 case "Punition":
                     sortedSchoolLife.sanctions.push(newItem);
                     break;
                 case "Incident":
                     sortedSchoolLife.incidents.push(newItem);
+                    break;
+
+                case "Encouragement":
+                    sortedSchoolLife.encouragements.push(newItem);
                     break;
 
                 default:
@@ -1603,6 +1673,7 @@ export default function App({ edpFetch }) {
                     return;
                 }
                 const accountType = accounts.typeCompte; // collecte du type de compte
+                const loginId = accounts.idLogin; // id du login (utilisé par l'API logins/{idLogin}.awp)
                 if (accountType === "E") {
                     // compte élève
                     accountsList.push({
@@ -1615,7 +1686,11 @@ export default function App({ edpFetch }) {
                         picture: accounts.profile.photo, // url de la photo
                         schoolName: accounts.profile.nomEtablissement, // nom de l'établissement
                         class: (accounts.profile.classe ? [accounts.profile.classe.code, accounts.profile.classe.libelle] : ["inconnu", "inconnu"]), // classe de l'élève, code : 1G4, libelle : Première G4
-                        modules: accounts.modules
+                        classId: accounts.profile.classe?.id, // id de la classe (contacts, vie de la classe, ...)
+                        modules: accounts.modules,
+                        idLogin: loginId,
+                        identifiant: accounts.identifiant,
+                        individualParameters: accounts.parametresIndividuels
                     });
                 } else {
                     // compte parent
@@ -1632,7 +1707,11 @@ export default function App({ edpFetch }) {
                             picture: account.photo,
                             schoolName: account.nomEtablissement,
                             class: (account.classe ? [account.classe.code, account.classe.libelle] : ["inconnu", "inconnu"]), // classe de l'élève, code : 1G4, libelle : Première G4
-                            modules: account.modules.concat(accounts.modules) // merge modules with those of parents
+                            classId: account.classe?.id,
+                            modules: account.modules.concat(accounts.modules), // merge modules with those of parents
+                            idLogin: loginId,
+                            identifiant: account.identifiant ?? accounts.identifiant,
+                            individualParameters: account.parametresIndividuels ?? accounts.parametresIndividuels
                         })
                     });
                 }
@@ -1722,6 +1801,13 @@ export default function App({ edpFetch }) {
                 } else if (code === 520 || code === 525) {
                     // token invalide
                     requireLogin();
+                } else if (code === 49969) {
+                    // guest: fixture locale
+                    import("./data/timeline.json").then((module) => {
+                        const oldTimeline = structuredClone(timeline);
+                        oldTimeline[activeAccount] = module.data;
+                        setTimeline(oldTimeline);
+                    })
                 }
                 setTokenState((old) => (response?.token || old));
             })
@@ -1731,6 +1817,9 @@ export default function App({ edpFetch }) {
     }
 
     async function fetchTimetable({ startDate, endDate, controller = (new AbortController()) }) {
+        if (isGuest()) {
+            return [];
+        }
         abortControllers.current.push(controller);
 
         try {
@@ -1816,6 +1905,9 @@ export default function App({ edpFetch }) {
     }
 
     async function fetchTimetableCoursework({ course, controller = (new AbortController()) }) {
+        if (isGuest()) {
+            return [];
+        }
         abortControllers.current.push(controller);
 
         try {
@@ -1992,7 +2084,7 @@ export default function App({ edpFetch }) {
                 .catch((error) => {
                     if (error.message === "Unexpected token 'P', \"Proxy error\" is not valid JSON") {
                         setProxyError(true);
-                    } else {
+                    } else if (error.name !== "AbortError") {
                         console.error(error)
                     }
                 })
@@ -2187,10 +2279,21 @@ export default function App({ edpFetch }) {
                     // token invalide
                     requireLogin();
                 } else if (code === 49969) {
-                    // TODO: add data/messages.json for guest user
-                    // import("./data/messages.json").then((module) => {
-                    //     changeUserData("sortedMessages", sortMessages(module.data));;
-                    // })
+                    // guest: fixture locale
+                    import("./data/messages.json").then((module) => {
+                        let oldSortedMessages = useUserData("sortedMessages").get() ?? [];
+                        oldSortedMessages.push(sortMessages(module.data, specialFolderType));
+                        oldSortedMessages = oldSortedMessages.flat().filter((item, index, self) => self.findIndex((item2) => item2.id === item.id) === index);
+                        if (specialFolderType === "sent") {
+                            folderId = -1;
+                        } else if (specialFolderType === "archived") {
+                            folderId = -2;
+                        } else if (specialFolderType === "draft") {
+                            folderId = -4;
+                        }
+                        changeUserData("sortedMessages", oldSortedMessages);
+                        changeUserData("messageFolders", sortMessageFolders(module.data, folderId));
+                    })
                 }
                 setTokenState((old) => (response?.token || old));
             })
@@ -2238,14 +2341,22 @@ export default function App({ edpFetch }) {
                 }
                 if (code === 200) {
                     sortMessageContent(response.data)
+                    const targetMessage = (useUserData("sortedMessages").get() ?? []).find((item) => item.id === id);
+                    if (targetMessage && targetMessage.folderId !== -1 && targetMessage.folderId !== -4) {
+                        fetchMessageMarkAsRead([id]);
+                    }
                 } else if (code === 520 || code === 525) {
                     // token invalide
                     requireLogin();
                 } else if (code === 49969) {
-                    // TODO: add data/messages.json for guest user
-                    // import("./data/messages.json").then((module) => {
-                    //      sortMessageContent(module.data)
-                    // })
+                    // guest: fixture locale
+                    import("./data/messages.json").then((module) => {
+                        const allMessages = (Object.values(module.data.messages ?? {})).flat();
+                        const foundMessage = allMessages.find((message) => message.id === id);
+                        if (foundMessage) {
+                            sortMessageContent(foundMessage);
+                        }
+                    })
                 }
                 setTokenState((old) => (response?.token || old));
             })
@@ -2322,7 +2433,7 @@ export default function App({ edpFetch }) {
             .then((response) => {
                 let code;
                 if (accountsListState[activeAccount].firstName === "Guest") {
-                    code = 403;
+                    code = 49969;
                 } else {
                     code = response.code;
                 }
@@ -2335,6 +2446,13 @@ export default function App({ edpFetch }) {
                     // token invalide
                     console.log("INVALID TOKEN: LOGIN REQUIRED");
                     requireLogin();
+                } else if (code === 49969) {
+                    // guest: fixture locale
+                    import("./data/viescolaire.json").then((module) => {
+                        const oldSchoolLife = structuredClone(schoolLife);
+                        oldSchoolLife[activeAccount] = module.data;
+                        setSchoolLife(oldSchoolLife);
+                    })
                 } else if (code === 403) {
                     setTokenState((old) => (response.token || old));
                 }
@@ -2723,6 +2841,1701 @@ export default function App({ edpFetch }) {
     }
 
 
+    function messagesEntityPath() {
+        const account = accountsListState[activeAccount];
+        return account.accountType === "E" ? `eleves/${account.id}` : `familles/${account.familyId}`;
+    }
+
+    function messagesYear() {
+        return getUserSettingValue("isSchoolYearEnabled") ? getUserSettingValue("schoolYear").join("-") : getCurrentSchoolYear().join("-");
+    }
+
+    function isGuest() {
+        return accountsListState[activeAccount]?.firstName === "Guest";
+    }
+
+    async function fetchMessageMarkAsRead(ids = [], controller = new AbortController()) {
+        if (ids.length < 1) {
+            return { ok: false, error: "Aucun message sélectionné" };
+        }
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/${messagesEntityPath()}/messages.awp?verbe=put&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: `data=${JSON.stringify({ anneeMessages: messagesYear(), action: "marquerCommeLu", ids })}`,
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 200) {
+                const oldSortedMessages = useUserData("sortedMessages").get() ?? [];
+                useUserData("sortedMessages").set(oldSortedMessages.map((message) => (ids.includes(message.id) ? { ...message, read: true } : message)));
+            } else if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            return { ok: response.code === 200, error: response.code === 200 ? undefined : response.message };
+        } catch (error) {
+            console.error(error);
+            return { ok: false, error: error.message };
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function fetchContacts(type = "professeurs", controller = new AbortController()) {
+        if (isGuest()) {
+            return [];
+        }
+        abortControllers.current.push(controller);
+        try {
+            const account = accountsListState[activeAccount];
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/messagerie/contacts/${type}.awp?nom=&idClasse=${account.classId ?? ""}&verbe=get&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: "data={}",
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 200) {
+                const payload = response.data;
+                const contacts = Array.isArray(payload) ? payload : (payload?.contacts ?? payload?.destinataires ?? []);
+                const oldContacts = useUserData("contacts").get() ?? {};
+                oldContacts[type] = contacts;
+                useUserData("contacts").set(oldContacts);
+                return contacts;
+            } else if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            return [];
+        } catch (error) {
+            console.error(error);
+            return [];
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function sendMessage({ subject = "", html = "", recipients = [], files = [], draft = false, replyTo = null, forwardOf = null, existingId = null, idClasseur = 0 }, controller = new AbortController()) {
+        if (!draft && recipients.length < 1) {
+            return { ok: false, error: "Aucun destinataire" };
+        }
+        abortControllers.current.push(controller);
+        try {
+            const groups = [];
+            for (const recipient of recipients) {
+                const type = recipient.type ?? "P";
+                let group = groups.find((item) => item.selection.type === type);
+                if (!group) {
+                    group = { selection: { type }, destinataires: [] };
+                    groups.push(group);
+                }
+                group.destinataires.push({
+                    ...recipient,
+                    isSelected: true,
+                    to_cc_cci: recipient.to_cc_cci ?? "to",
+                    uniqID: recipient.uniqID ?? `${recipient.id}_${type}_0_0_${String(recipient.matiere ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`,
+                });
+            }
+            const now = new Date();
+            const pad = (value) => String(value).padStart(2, "0");
+            const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+            const account = accountsListState[activeAccount];
+            const data = {
+                message: {
+                    subject,
+                    content: encodeBase64(html),
+                    groupesDestinataires: groups,
+                    transfertFiles: [],
+                    files: files.map((file) => ({
+                        id: file.id ?? "0",
+                        libelle: file.libelle ?? `${file.name ?? "fichier"}${file.extension ? `.${file.extension}` : ""}`,
+                        displayText: file.libelle ?? file.name ?? "fichier",
+                        unc: file.unc,
+                    })),
+                    date,
+                    read: true,
+                    from: { role: account.accountType, id: account.id, read: true },
+                    brouillon: !!draft,
+                    ...(replyTo ? { responseId: replyTo } : {}),
+                    ...(forwardOf ? { forwardId: forwardOf } : {}),
+                    ...(idClasseur ? { idClasseur } : {}),
+                    ...(existingId ? { id: existingId } : {}),
+                },
+                anneeMessages: messagesYear(),
+            };
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/${messagesEntityPath()}/messages.awp?verbe=post&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: `data=${JSON.stringify(data)}`,
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            if (response.code === 200) {
+                const oldMessageFolders = useUserData("messageFolders").get() ?? [];
+                useUserData("messageFolders").set(oldMessageFolders.map((folder) => ((folder.id === -1 || folder.id === -4) ? { ...folder, fetchInitiated: false, fetched: false } : folder)));
+                if (existingId && !draft) {
+                    const oldSortedMessages = useUserData("sortedMessages").get() ?? [];
+                    useUserData("sortedMessages").set(oldSortedMessages.filter((message) => message.id !== existingId));
+                }
+                return { ok: true, id: response.data?.id };
+            }
+            return { ok: false, error: response.message || "Le message n'a pas pu être envoyé" };
+        } catch (error) {
+            console.error(error);
+            return { ok: false, error: error.message };
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function uploadTemporaryFile(file, controller = new AbortController()) {
+        abortControllers.current.push(controller);
+        try {
+            const url = `https://api.ecoledirecte.com/v3/televersement.awp?verbe=post&v=${apiVersion}`;
+            const baseParams = {
+                method: "POST",
+                headers: {
+                    "X-Token": tokenState,
+                    "2FA-Token": token2faState,
+                },
+                signal: controller.signal,
+                referrerPolicy: "no-referrer",
+            };
+            let response;
+            try {
+                const formData = new FormData();
+                formData.append("fichier", file, file.name);
+                response = await edpFetch(url, { ...baseParams, body: formData }, "json");
+            } catch {
+                response = null;
+            }
+            if (!response || response.code !== 200) {
+                response = await edpFetch(url, { ...baseParams, body: file }, "json");
+            }
+            if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            if (response.code === 200) {
+                return { ok: true, unc: response.data?.unc, libelle: response.data?.libelle ?? file.name };
+            }
+            return { ok: false, error: response.message || "Le fichier n'a pas pu être téléversé" };
+        } catch (error) {
+            console.error(error);
+            return { ok: false, error: error.message };
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function fetchCommonTimeline(controller = new AbortController()) {
+        if (isGuest()) {
+            useUserData("postits").set([]);
+            return [];
+        }
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/E/${accountsListState[activeAccount].id}/timelineAccueilCommun.awp?verbe=get&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: "data={}",
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 200) {
+                const postits = response.data?.postits ?? [];
+                useUserData("postits").set(postits);
+                setTokenState((old) => (response?.token || old));
+                return postits;
+            } else if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            return [];
+        } catch (error) {
+            console.error(error);
+            return [];
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function fetchVisios(controller = new AbortController()) {
+        if (isGuest()) {
+            return [];
+        }
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/E/${accountsListState[activeAccount].id}/visios.awp?verbe=get&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: "data={}",
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 200) {
+                const visios = Array.isArray(response.data) ? response.data : (response.data?.visios ?? []);
+                useUserData("visios").set(visios);
+                setTokenState((old) => (response?.token || old));
+                return visios;
+            } else if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            return [];
+        } catch (error) {
+            console.error(error);
+            return [];
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function fetchWorkspaces(controller = new AbortController()) {
+        if (isGuest()) {
+            return [];
+        }
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/E/${accountsListState[activeAccount].id}/espacestravail.awp?verbe=get&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: "data={}",
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 200) {
+                const workspaces = Array.isArray(response.data) ? response.data : [];
+                useUserData("workspaces").set(workspaces);
+                setTokenState((old) => (response?.token || old));
+                return workspaces;
+            } else if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            return [];
+        } catch (error) {
+            console.error(error);
+            return [];
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function fetchWorkspace(id, controller = new AbortController()) {
+        if (isGuest()) {
+            return null;
+        }
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/E/${accountsListState[activeAccount].id}/espacestravail/${id}.awp?verbe=get&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: "data={}",
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 200) {
+                const workspace = response.data;
+                const oldWorkspaces = useUserData("workspaces").get() ?? [];
+                const targetIdx = oldWorkspaces.findIndex((item) => item.id === id);
+                if (targetIdx !== -1) {
+                    oldWorkspaces[targetIdx] = { ...oldWorkspaces[targetIdx], ...workspace };
+                    useUserData("workspaces").set([...oldWorkspaces]);
+                }
+                setTokenState((old) => (response?.token || old));
+                return workspace;
+            } else if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            return null;
+        } catch (error) {
+            console.error(error);
+            return null;
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function joinWorkspace(workspace, controller = new AbortController()) {
+        if (isGuest()) {
+            return { ok: false, error: "Non disponible en mode invité" };
+        }
+        abortControllers.current.push(controller);
+        try {
+            const { type, creeLe, ...rest } = workspace;
+            const data = {
+                ...rest,
+                cloudLibelle: workspace.titre,
+                fullLoaded: false,
+            };
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/E/${accountsListState[activeAccount].id}/espacestravail/${workspace.id}/acces.awp?verbe=post&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: `data=${JSON.stringify(data)}`,
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            if (response.code === 200) {
+                await fetchWorkspaces();
+                return { ok: true };
+            }
+            return { ok: false, error: response.message || "Impossible de rejoindre l'espace de travail" };
+        } catch (error) {
+            console.error(error);
+            return { ok: false, error: error.message };
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function leaveWorkspace(workspace, controller = new AbortController()) {
+        if (isGuest()) {
+            return { ok: false, error: "Non disponible en mode invité" };
+        }
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/E/${accountsListState[activeAccount].id}/espacestravail/${workspace.id}/acces.awp?verbe=delete&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: "data={}",
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            if (response.code === 200) {
+                await fetchWorkspaces();
+                return { ok: true };
+            }
+            return { ok: false, error: response.message || "Impossible de quitter l'espace de travail" };
+        } catch (error) {
+            console.error(error);
+            return { ok: false, error: error.message };
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function fetchManuals(controller = new AbortController()) {
+        if (isGuest()) {
+            return [];
+        }
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/Eleves/${accountsListState[activeAccount].id}/manuelsNumeriques.awp?verbe=get&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: "data={}",
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 200) {
+                const manuals = Array.isArray(response.data) ? response.data : [];
+                useUserData("manuals").set(manuals);
+                setTokenState((old) => (response?.token || old));
+                return manuals;
+            } else if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            return [];
+        } catch (error) {
+            console.error(error);
+            return [];
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    function edFormsPayload() {
+        const account = accountsListState[activeAccount];
+        return {
+            anneeForms: getUserSettingValue("isSchoolYearEnabled") ? getUserSettingValue("schoolYear").join("-") : getCurrentSchoolYear().join("-"),
+            typeEntity: "E",
+            idEntity: account.id,
+        };
+    }
+
+    async function fetchForms(controller = new AbortController()) {
+        if (isGuest()) {
+            return [];
+        }
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/edforms.awp?verbe=get&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: `data=${JSON.stringify(edFormsPayload())}`,
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 200) {
+                const forms = Array.isArray(response.data) ? response.data : [];
+                useUserData("forms").set(forms);
+                setTokenState((old) => (response?.token || old));
+                return forms;
+            } else if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            return [];
+        } catch (error) {
+            console.error(error);
+            return [];
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function submitFormAnswers(form, answers, controller = new AbortController()) {
+        // l'API EDForms (POST) n'est pas documentée : contract best-effort
+        if (isGuest()) {
+            return { ok: false, error: "Non disponible en mode invité" };
+        }
+        abortControllers.current.push(controller);
+        try {
+            const data = {
+                ...edFormsPayload(),
+                formulaire: { id: form.formulaire?.id, typeF: form.formulaire?.typeF },
+                participant: { id: form.participant?.id },
+                questions: (form.questions ?? []).map((question) => ({
+                    id: question.id,
+                    reponses: answers?.[question.id] ?? [],
+                })),
+            };
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/edforms.awp?verbe=post&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: `data=${JSON.stringify(data)}`,
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            if (response.code === 200) {
+                return { ok: true, data: response.data };
+            }
+            return { ok: false, error: response.message || "Le formulaire n'a pas pu être envoyé" };
+        } catch (error) {
+            console.error(error);
+            return { ok: false, error: error.message };
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function fetchCarnetCorrespondance(controller = new AbortController()) {
+        if (isGuest()) {
+            return [];
+        }
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/eleves/${accountsListState[activeAccount].id}/eleveCarnetCorrespondance.awp?verbe=get&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: "data={}",
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 200) {
+                const carnet = response.data ?? [];
+                useUserData("carnet").set(carnet);
+                setTokenState((old) => (response?.token || old));
+                return carnet;
+            } else if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            return [];
+        } catch (error) {
+            console.error(error);
+            return [];
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function fetchVieDeLaClasse(controller = new AbortController()) {
+        if (isGuest()) {
+            return null;
+        }
+        abortControllers.current.push(controller);
+        try {
+            const classId = accountsListState[activeAccount].classId;
+            if (!classId) {
+                return null;
+            }
+            const baseParams = {
+                method: "POST",
+                headers: {
+                    "X-Token": tokenState,
+                    "2FA-Token": token2faState,
+                },
+                body: "data={}",
+                signal: controller.signal,
+                referrerPolicy: "no-referrer",
+            };
+            let response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/Classes/${classId}/viedelaclasse.awp?verbe=get&v=${apiVersion}`,
+                baseParams,
+                "json"
+            );
+            const isEmpty = !response.data || (Array.isArray(response.data) && response.data.length === 0) || (typeof response.data === "object" && Object.keys(response.data).length === 0);
+            if (response.code === 200 && isEmpty) {
+                response = await edpFetch(
+                    `https://api.ecoledirecte.com/v3/R/${classId}/viedelaclasse.awp?verbe=get&v=${apiVersion}`,
+                    baseParams,
+                    "json"
+                );
+            }
+            if (response.code === 200) {
+                useUserData("vieDeLaClasse").set(response.data);
+                setTokenState((old) => (response?.token || old));
+                return response.data;
+            } else if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            return null;
+        } catch (error) {
+            console.error(error);
+            return null;
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function fetchCanteenMenus(controller = new AbortController()) {
+        if (isGuest()) {
+            return [];
+        }
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/menusRestaurationScolaire.awp?verbe=get&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: "data={}",
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 200) {
+                const menus = Array.isArray(response.data) ? response.data : [];
+                useUserData("canteenMenus").set(menus);
+                setTokenState((old) => (response?.token || old));
+                return menus;
+            } else if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            return [];
+        } catch (error) {
+            console.error(error);
+            return [];
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function fetchCanteenOrders(controller = new AbortController()) {
+        if (isGuest()) {
+            return null;
+        }
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/E/${accountsListState[activeAccount].id}/commandesPassage.awp?verbe=get&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: "data={}",
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 200) {
+                const orders = response.data ?? {};
+                useUserData("canteenOrders").set(orders);
+                setTokenState((old) => (response?.token || old));
+                return orders;
+            } else if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            return null;
+        } catch (error) {
+            console.error(error);
+            return null;
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function fetchCanteenOrderAvailability(idPDP, date, controller = new AbortController()) {
+        if (isGuest()) {
+            return null;
+        }
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/E/${accountsListState[activeAccount].id}/commandesPassage/pointsDePassage/${idPDP}/${date}.awp?verbe=get&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: "data={}",
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 200) {
+                setTokenState((old) => (response?.token || old));
+                return response.data;
+            } else if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            return null;
+        } catch (error) {
+            console.error(error);
+            return null;
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function placeCanteenOrder({ articles = [], creneau = "", date = "", pointDePassage = 0 }, controller = new AbortController()) {
+        if (isGuest()) {
+            return { ok: false, error: "Non disponible en mode invité" };
+        }
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/E/${accountsListState[activeAccount].id}/commandesPassage.awp?verbe=post&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: `data=${JSON.stringify({ articles, creneau, date, pointDePassage })}`,
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            if (response.code === 200) {
+                await fetchCanteenOrders();
+                return { ok: true, order: response.data };
+            }
+            return { ok: false, error: response.message || "La commande n'a pas pu être passée" };
+        } catch (error) {
+            console.error(error);
+            return { ok: false, error: error.message };
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function cancelCanteenOrder(idCommande, controller = new AbortController()) {
+        if (isGuest()) {
+            return { ok: false, error: "Non disponible en mode invité" };
+        }
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/E/${accountsListState[activeAccount].id}/commandesPassage/${idCommande}.awp?verbe=delete&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: "data={}",
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            if (response.code === 200 || response.code === 210) {
+                await fetchCanteenOrders();
+                return { ok: true };
+            }
+            return { ok: false, error: response.message || "La commande n'a pas pu être annulée" };
+        } catch (error) {
+            console.error(error);
+            return { ok: false, error: error.message };
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    function cloudEntityPath(entity = null) {
+        return entity ?? `E/${accountsListState[activeAccount].id}`;
+    }
+
+    async function fetchCloudNode(folderPath = "", entity = null, controller = new AbortController()) {
+        if (isGuest()) {
+            return [];
+        }
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/cloud/${cloudEntityPath(entity)}.awp?verbe=get${folderPath ? `&idfolder=${encodeURIComponent(folderPath)}` : ""}&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: "data={}",
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 200) {
+                const nodes = Array.isArray(response.data) ? response.data : [];
+                setTokenState((old) => (response?.token || old));
+                return nodes;
+            } else if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            return [];
+        } catch (error) {
+            console.error(error);
+            return [];
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function createCloudNode(parentNodeId, libelle, typeRessource = "folder", entity = null, controller = new AbortController()) {
+        if (isGuest()) {
+            return { ok: false, error: "Non disponible en mode invité" };
+        }
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/cloud/${cloudEntityPath(entity)}.awp?verbe=post&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: `data=${JSON.stringify({ parentNode: { id: parentNodeId }, libelle, typeRessource })}`,
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            if (response.code === 200) {
+                return { ok: true, node: response.data };
+            }
+            return { ok: false, error: response.message || "Impossible de créer le nœud" };
+        } catch (error) {
+            console.error(error);
+            return { ok: false, error: error.message };
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function renameCloudNode(node, newLibelle, entity = null, controller = new AbortController()) {
+        if (isGuest()) {
+            return { ok: false, error: "Non disponible en mode invité" };
+        }
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/cloud/${cloudEntityPath(entity)}.awp?verbe=put&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: `data=${JSON.stringify({ node, newLibelle })}`,
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            if (response.code === 200) {
+                return { ok: true, data: response.data };
+            }
+            return { ok: false, error: response.message || "Impossible de renommer le nœud" };
+        } catch (error) {
+            console.error(error);
+            return { ok: false, error: error.message };
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function deleteCloudNodes(tabNodes, entity = null, controller = new AbortController()) {
+        if (isGuest()) {
+            return { ok: false, error: "Non disponible en mode invité" };
+        }
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/cloud/${cloudEntityPath(entity)}.awp?verbe=delete&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: `data=${JSON.stringify({ tabNodes })}`,
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            if (response.code === 200) {
+                return { ok: true };
+            }
+            return { ok: false, error: response.message || "La suppression a échoué" };
+        } catch (error) {
+            console.error(error);
+            return { ok: false, error: error.message };
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function copyCloudNodes(parentNode, clipboard, entity = null, controller = new AbortController()) {
+        if (isGuest()) {
+            return { ok: false, error: "Non disponible en mode invité" };
+        }
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/cloud/${cloudEntityPath(entity)}.awp?verbe=copy&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: `data=${JSON.stringify({ parentNode, clipboard })}`,
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            if (response.code === 200) {
+                return { ok: true, node: response.data };
+            }
+            return { ok: false, error: response.message || "La copie a échoué" };
+        } catch (error) {
+            console.error(error);
+            return { ok: false, error: error.message };
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function uploadCloudFile(file, destPath, entity = null, controller = new AbortController()) {
+        if (isGuest()) {
+            return { ok: false, error: "Non disponible en mode invité" };
+        }
+        abortControllers.current.push(controller);
+        try {
+            const formData = new FormData();
+            formData.append("fichier", file, file.name);
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/televersement.awp?verbe=post&mode=CLOUD&dest=${encodeURIComponent(destPath)}&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: formData,
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            if (response.code === 200) {
+                return { ok: true, node: response.data };
+            }
+            return { ok: false, error: response.message || (response.code === 573 ? "Un fichier du même nom existe déjà" : "Le fichier n'a pas pu être téléversé") };
+        } catch (error) {
+            console.error(error);
+            return { ok: false, error: error.message };
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function downloadCloudFile(path, entity = null, controller = new AbortController()) {
+        abortControllers.current.push(controller);
+        try {
+            const blob = await edpFetch(
+                `https://api.ecoledirecte.com/v3/telechargement.awp?verbe=get&leTypeDeFichier=CLOUD&fichierId=${encodeURIComponent(path)}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "x-token": tokenState,
+                    },
+                    body: `data=${JSON.stringify({ forceDownload: 0 })}`,
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "blob"
+            );
+            return blob;
+        } catch (error) {
+            console.error(error);
+            return null;
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function postHomeworkComment(idContenu, message = "", controller = new AbortController()) {
+        if (isGuest()) {
+            return { ok: false, error: "Non disponible en mode invité" };
+        }
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/eleves/${accountsListState[activeAccount].id}/afaire/commentaires.awp?verbe=post&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: `data=${JSON.stringify({ message: encodeBase64(message), idContenu })}`,
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            if (response.code === 200) {
+                return { ok: true, id: response.data?.id };
+            }
+            return { ok: false, error: response.message || "Le commentaire n'a pas pu être publié" };
+        } catch (error) {
+            console.error(error);
+            return { ok: false, error: error.message };
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function fetchQcms(controller = new AbortController()) {
+        if (isGuest()) {
+            return [];
+        }
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/eleves/${accountsListState[activeAccount].id}/qcms/0/associations.awp?verbe=get&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: "data={}",
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 200) {
+                useUserData("qcms").set(response.data);
+                setTokenState((old) => (response?.token || old));
+                return response.data;
+            } else if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            return [];
+        } catch (error) {
+            console.error(error);
+            return [];
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function qcmEntityPath() {
+        return accountsListState[activeAccount]?.accountType === "E"
+            ? "eleves/" + accountsListState[activeAccount].id
+            : "familles/" + accountsListState[activeAccount].familyId;
+    }
+
+    async function fetchQcmQuestionnaire({ idQCM, idAssociation, controller = (new AbortController()) }) {
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/${await qcmEntityPath()}/qcms/${idQCM}/associations/${idAssociation}.awp?verbe=get&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: "data={}",
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 200) {
+                setTokenState((old) => (response?.token || old));
+                return response.data;
+            } else if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            throw new Error(response.message || "Le questionnaire n’a pas pu être chargé.");
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function saveQcmAnswer({ idQCM, idAssociation, idParticipant, reponse, controller = (new AbortController()) }) {
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/${await qcmEntityPath()}/qcms/${idQCM}/associations/${idAssociation}/participants/${idParticipant}/reponse/${reponse.id}.awp?verbe=patch&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: `data=${JSON.stringify({ reponse })}`,
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 200) {
+                setTokenState((old) => (response?.token || old));
+                return response.data;
+            } else if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            throw new Error(response.message || "La réponse n’a pas pu être enregistrée.");
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function setQcmParticipantState({ idQCM, idAssociation, idParticipant, action, controller = (new AbortController()) }) {
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/${await qcmEntityPath()}/qcms/${idQCM}/associations/${idAssociation}/participants/${idParticipant}.awp?verbe=patch&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: `data=${JSON.stringify({ action })}`,
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            return response.code === 200;
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function fetchQcmResult({ idQCM, idAssociation, controller = (new AbortController()) }) {
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/${await qcmEntityPath()}/qcms/${idQCM}/associations/${idAssociation}/resultat.awp?verbe=get&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: "data={}",
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 200) {
+                setTokenState((old) => (response?.token || old));
+                return response.data;
+            } else if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            return null;
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function fetchPolls(controller = new AbortController()) {
+        if (isGuest()) {
+            return [];
+        }
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/rdt/sondages.awp?verbe=get&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: "data={}",
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 200) {
+                const polls = Array.isArray(response.data) ? response.data : [];
+                useUserData("polls").set(polls);
+                setTokenState((old) => (response?.token || old));
+                return polls;
+            } else if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            return [];
+        } catch (error) {
+            console.error(error);
+            return [];
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    function sortWallet(data) {
+        return {
+            comptes: Array.isArray(data?.comptes) ? data.comptes : [],
+            parametrage: data?.parametrage ?? {},
+        };
+    }
+
+    async function fetchWallet(controller = new AbortController()) {
+        if (isGuest()) {
+            return null;
+        }
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/comptes/detail.awp?verbe=get&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: "data={}",
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 200) {
+                const wallet = sortWallet(response.data);
+                useUserData("wallet").set(wallet);
+                setTokenState((old) => (response?.token || old));
+                return wallet;
+            } else if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            return null;
+        } catch (error) {
+            console.error(error);
+            return null;
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    function connectorsEntityPath() {
+        const account = accountsListState[activeAccount];
+        return account.accountType === "E" ? `E/${account.id}` : `F/${account.familyId}`;
+    }
+
+    function restApiUrl(path, params = "") {
+        return `https://api.ecoledirecte.com/restv3/ws/${path}?${params ? `${params}&` : ""}v=${apiVersion}`;
+    }
+
+    function extractRestList(body) {
+        if (Array.isArray(body)) {
+            return body;
+        }
+        if (Array.isArray(body?.data)) {
+            return body.data;
+        }
+        if (Array.isArray(body?.favoris)) {
+            return body.favoris;
+        }
+        return [];
+    }
+
+    async function fetchConnectors(controller = new AbortController()) {
+        if (isGuest()) {
+            return { connecteurs: [], favoris: [] };
+        }
+        abortControllers.current.push(controller);
+        try {
+            const listResponse = await edpFetch(
+                `https://api.ecoledirecte.com/v3/${connectorsEntityPath()}/connecteurs.awp?verbe=get&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: "data={}",
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            let connecteurs = [];
+            if (listResponse?.code === 200) {
+                connecteurs = Array.isArray(listResponse.data) ? listResponse.data : [];
+            } else if (listResponse?.code === 520 || listResponse?.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (listResponse?.token || old));
+            let favoris = [];
+            try {
+                const favorisResponse = await edpFetch(
+                    restApiUrl("connecteurs/favoris"),
+                    {
+                        method: "GET",
+                        headers: {
+                            "X-Token": tokenState,
+                            "2FA-Token": token2faState,
+                        },
+                        signal: controller.signal,
+                        referrerPolicy: "no-referrer",
+                    },
+                    "json"
+                );
+                favoris = extractRestList(favorisResponse);
+            } catch (error) {
+                console.warn("Impossible de récupérer les favoris Mes Applis", error);
+            }
+            const connectors = { connecteurs, favoris };
+            useUserData("connectors").set(connectors);
+            return connectors;
+        } catch (error) {
+            console.error(error);
+            return { connecteurs: [], favoris: [] };
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function toggleConnectorFavorite(code, add, controller = new AbortController()) {
+        if (isGuest()) {
+            return { ok: false, error: "Non disponible en mode invité", favoris: [] };
+        }
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                restApiUrl(`connecteurs/${encodeURIComponent(code)}/favoris`),
+                {
+                    method: add ? "POST" : "DELETE",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response && typeof response === "object" && !Array.isArray(response) && response.code !== undefined && response.code !== 200) {
+                if (response.code === 520 || response.code === 525) {
+                    requireLogin();
+                }
+                return { ok: false, error: response.message || "La modification a échoué", favoris: [] };
+            }
+            return { ok: true, favoris: extractRestList(response) };
+        } catch (error) {
+            console.error(error);
+            return { ok: false, error: error.message, favoris: [] };
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function getConnectorRedirectUrl(portail, code, controller = new AbortController()) {
+        if (isGuest()) {
+            return { ok: false, error: "Non disponible en mode invité" };
+        }
+        const params = new URLSearchParams({
+            retourJson: "1",
+            ogec: String(portail?.rne ?? ""),
+            service: String(portail?.url ?? ""),
+            codeService: String(code ?? ""),
+        });
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                restApiUrl("connecteur/redirect", params.toString()),
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            const url = response?.data?.urlRedirect || response?.urlRedirect || "";
+            if (!url) {
+                return { ok: false, error: response?.message || "Le lien de l'application n'a pas pu être généré" };
+            }
+            return { ok: true, url };
+        } catch (error) {
+            console.error(error);
+            return { ok: false, error: error.message };
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function fetchAccountSettings(controller = new AbortController()) {
+        if (isGuest()) {
+            return { ok: false, error: "Non disponible en mode invité" };
+        }
+        const idLogin = accountsListState[activeAccount]?.idLogin;
+        if (!idLogin) {
+            return { ok: false, error: "Identifiant de connexion introuvable, reconnectez-vous" };
+        }
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/logins/${idLogin}.awp?verbe=get&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: "data={}",
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 200) {
+                useUserData("accountSettings").set(response.data);
+                setTokenState((old) => (response?.token || old));
+                return { ok: true, data: response.data };
+            } else if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            return { ok: false, error: response.message || "Les paramètres du compte n'ont pas pu être récupérés" };
+        } catch (error) {
+            console.error(error);
+            return { ok: false, error: error.message };
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function updateAccountSettings(payload, controller = new AbortController()) {
+        if (isGuest()) {
+            return { ok: false, error: "Non disponible en mode invité" };
+        }
+        const idLogin = accountsListState[activeAccount]?.idLogin;
+        if (!idLogin) {
+            return { ok: false, error: "Identifiant de connexion introuvable, reconnectez-vous" };
+        }
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/logins/${idLogin}.awp?verbe=put&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: `data=${JSON.stringify({ uuid: "", ...payload })}`,
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            if (response.code === 200) {
+                useUserData("accountSettings").set(response.data);
+                return { ok: true, data: response.data };
+            }
+            return { ok: false, error: response.message || "La modification a échoué" };
+        } catch (error) {
+            console.error(error);
+            return { ok: false, error: error.message };
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    async function setIndividualParameter(key, value, controller = new AbortController()) {
+        const identifiant = accountsListState[activeAccount]?.identifiant;
+        if (!identifiant) {
+            return { ok: false, error: "Identifiant de connexion introuvable, reconnectez-vous" };
+        }
+        abortControllers.current.push(controller);
+        try {
+            const response = await edpFetch(
+                `https://api.ecoledirecte.com/v3/parametreIndividuel.awp?verbe=put&v=${apiVersion}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-Token": tokenState,
+                        "2FA-Token": token2faState,
+                    },
+                    body: `data=${JSON.stringify({ path: `Préférences/Elèves/${key}/${identifiant}`, value: String(value) })}`,
+                    signal: controller.signal,
+                    referrerPolicy: "no-referrer",
+                },
+                "json"
+            );
+            if (response.code === 520 || response.code === 525) {
+                requireLogin();
+            }
+            setTokenState((old) => (response?.token || old));
+            if (response.code === 200) {
+                return { ok: true };
+            }
+            return { ok: false, error: response.message || "Le paramètre n'a pas pu être enregistré" };
+        } catch (error) {
+            console.error(error);
+            return { ok: false, error: error.message };
+        } finally {
+            abortControllers.current.splice(abortControllers.current.indexOf(controller), 1);
+        }
+    }
+
+    function serializeSettings(settings) {
+        return JSON.stringify(settings.map((profile) => Object.fromEntries(Object.entries(profile).map(([key, setting]) => [key, setting?.value]))));
+    }
+
+    async function savePersistedSettings(settings = userSettings) {
+        if (isGuest()) {
+            return { ok: false, error: "Non disponible en mode invité" };
+        }
+        return setIndividualParameter("edpSettings", serializeSettings(settings));
+    }
+
+    function applyPersistedSettings(accountsList, settings) {
+        // applique les réglages stockés côté EcoDirecte (parametresIndividuels.edpSettings) au login
+        try {
+            const raw = accountsList?.[0]?.individualParameters?.edpSettings;
+            if (!raw) {
+                return settings;
+            }
+            const persisted = JSON.parse(raw);
+            if (!Array.isArray(persisted)) {
+                return settings;
+            }
+            const merged = structuredClone(settings);
+            persisted.forEach((persistedProfile, index) => {
+                if (!merged[index] || !persistedProfile || typeof persistedProfile !== "object") {
+                    return;
+                }
+                for (const key in persistedProfile) {
+                    if (merged[index][key] !== undefined) {
+                        merged[index][key].value = persistedProfile[key];
+                    }
+                }
+            });
+            return merged;
+        } catch (error) {
+            console.warn("Impossible d'appliquer les réglages persistés", error);
+            return settings;
+        }
+    }
+
+
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //                                                                                                                                                                                 //
     //                                                                              End Of Fetch Functions                                                                             //
@@ -2740,7 +4553,7 @@ export default function App({ edpFetch }) {
         setHomeworks(createUserLists(accountsList.length));
         setTimeline(createUserLists(accountsList.length));
         setSchoolLife(createUserLists(accountsList.length));
-        setUserSettings(initSettings(accountsList));
+        setUserSettings(applyPersistedSettings(accountsList, initSettings(accountsList)));
         setUserData(initData(accountsList.length));
         // localStorage.setItem("token", token);
         // localStorage.setItem("accountsList", JSON.stringify(accountsList));
@@ -2957,7 +4770,7 @@ export default function App({ edpFetch }) {
                             path: "account",
                         },
                         {
-                            element: <Account schoolLife={schoolLife} fetchSchoolLife={fetchSchoolLife} fetchAdministrativeDocuments={fetchAdministrativeDocuments} sortSchoolLife={sortSchoolLife} isLoggedIn={isLoggedIn} activeAccount={activeAccount} />,
+                            element: <Account schoolLife={schoolLife} fetchSchoolLife={fetchSchoolLife} fetchAdministrativeDocuments={fetchAdministrativeDocuments} sortSchoolLife={sortSchoolLife} isLoggedIn={isLoggedIn} activeAccount={activeAccount} grades={grades} />,
                             path: ":userId/account"
                         },
                         {
@@ -2977,7 +4790,7 @@ export default function App({ edpFetch }) {
                             path: "dashboard",
                         },
                         {
-                            element: <Dashboard fetchUserGrades={fetchUserGrades} grades={grades} fetchHomeworks={fetchHomeworks} activeAccount={activeAccount} isLoggedIn={isLoggedIn} useUserData={useUserData} sortGrades={sortGrades} isTabletLayout={isTabletLayout} />,
+                            element: <Dashboard fetchUserGrades={fetchUserGrades} grades={grades} fetchHomeworks={fetchHomeworks} fetchTimetable={fetchTimetable} fetchCommonTimeline={fetchCommonTimeline} activeAccount={activeAccount} isLoggedIn={isLoggedIn} useUserData={useUserData} sortGrades={sortGrades} isTabletLayout={isTabletLayout} />,
                             path: ":userId/dashboard"
                         },
                         {
@@ -3012,6 +4825,22 @@ export default function App({ edpFetch }) {
                             element: <Messaging isLoggedIn={isLoggedIn} activeAccount={activeAccount} fetchMessages={fetchMessages} fetchMessageContent={fetchMessageContent} fetchMessageMarkAsUnread={fetchMessageMarkAsUnread} renameFolder={renameFolder} deleteFolder={deleteFolder} createFolder={createFolder} archiveMessage={archiveMessage} unarchiveMessage={unarchiveMessage} moveMessage={moveMessage} deleteMessage={deleteMessage} />,
                             path: ":userId/messaging"
                         },
+                        {
+                            element: <Navigate to={`/app/${activeAccount}/vie-scolaire`} replace={true} />,
+                            path: "vie-scolaire"
+                        },
+                        {
+                            element: <SchoolLife isLoggedIn={isLoggedIn} activeAccount={activeAccount} schoolLife={schoolLife} fetchSchoolLife={fetchSchoolLife} sortSchoolLife={sortSchoolLife} />,
+                            path: ":userId/vie-scolaire"
+                        },
+                        {
+                            element: <Navigate to={`/app/${activeAccount}/modules`} replace={true} />,
+                            path: "modules"
+                        },
+                        {
+                            element: <Modules isLoggedIn={isLoggedIn} activeAccount={activeAccount} />,
+                            path: ":userId/modules"
+                        },
                     ],
                 },
             ],
@@ -3038,6 +4867,50 @@ export default function App({ edpFetch }) {
         globalSettings,
         actualDisplayTheme,
         currentEDPVersion,
+        fetchFile,
+        fetchMessageMarkAsRead,
+        fetchContacts,
+        sendMessage,
+        uploadTemporaryFile,
+        fetchCommonTimeline,
+        fetchVisios,
+        fetchWorkspaces,
+        fetchWorkspace,
+        joinWorkspace,
+        leaveWorkspace,
+        fetchManuals,
+        fetchForms,
+        submitFormAnswers,
+        fetchCarnetCorrespondance,
+        fetchVieDeLaClasse,
+        fetchCanteenMenus,
+        fetchCanteenOrders,
+        fetchCanteenOrderAvailability,
+        placeCanteenOrder,
+        cancelCanteenOrder,
+        fetchCloudNode,
+        createCloudNode,
+        renameCloudNode,
+        deleteCloudNodes,
+        copyCloudNodes,
+        uploadCloudFile,
+        downloadCloudFile,
+        postHomeworkComment,
+        fetchQcms,
+        fetchQcmQuestionnaire,
+        saveQcmAnswer,
+        setQcmParticipantState,
+        fetchQcmResult,
+        fetchPolls,
+        fetchWallet,
+        fetchConnectors,
+        toggleConnectorFavorite,
+        getConnectorRedirectUrl,
+        fetchAccountSettings,
+        updateAccountSettings,
+        setIndividualParameter,
+        savePersistedSettings,
+        createNotification,
     }), [
         useUserData,
         useUserSettings,
@@ -3057,7 +4930,51 @@ export default function App({ edpFetch }) {
         isDevChannel,
         globalSettings,
         actualDisplayTheme,
-        currentEDPVersion
+        currentEDPVersion,
+        fetchFile,
+        fetchMessageMarkAsRead,
+        fetchContacts,
+        sendMessage,
+        uploadTemporaryFile,
+        fetchCommonTimeline,
+        fetchVisios,
+        fetchWorkspaces,
+        fetchWorkspace,
+        joinWorkspace,
+        leaveWorkspace,
+        fetchManuals,
+        fetchForms,
+        submitFormAnswers,
+        fetchCarnetCorrespondance,
+        fetchVieDeLaClasse,
+        fetchCanteenMenus,
+        fetchCanteenOrders,
+        fetchCanteenOrderAvailability,
+        placeCanteenOrder,
+        cancelCanteenOrder,
+        fetchCloudNode,
+        createCloudNode,
+        renameCloudNode,
+        deleteCloudNodes,
+        copyCloudNodes,
+        uploadCloudFile,
+        downloadCloudFile,
+        postHomeworkComment,
+        fetchQcms,
+        fetchQcmQuestionnaire,
+        saveQcmAnswer,
+        setQcmParticipantState,
+        fetchQcmResult,
+        fetchPolls,
+        fetchWallet,
+        fetchConnectors,
+        toggleConnectorFavorite,
+        getConnectorRedirectUrl,
+        fetchAccountSettings,
+        updateAccountSettings,
+        setIndividualParameter,
+        savePersistedSettings,
+        createNotification,
     ]);
 
     return (

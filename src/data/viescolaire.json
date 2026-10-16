@@ -1,0 +1,87 @@
+{
+    "absencesRetards": [
+        {
+            "typeElement": "Retard",
+            "id": 9001,
+            "date": "2026-10-06",
+            "displayDate": "06/10/2026",
+            "libelle": "08h12 - 08h30 (18 minutes)",
+            "motif": "",
+            "commentaire": "",
+            "justifie": false,
+            "aFaire": "Justifier ce retard",
+            "par": "",
+            "dateDeroulement": "06/10/2026"
+        },
+        {
+            "typeElement": "Absence",
+            "id": 9002,
+            "date": "2026-09-30",
+            "displayDate": "30/09/2026",
+            "libelle": "08h00 - 12h00 (4h00)",
+            "motif": "Raison médicale",
+            "commentaire": "Consultation chez le médecin",
+            "justifie": true,
+            "aFaire": "",
+            "par": "",
+            "dateDeroulement": "30/09/2026"
+        },
+        {
+            "typeElement": "Dispense",
+            "id": 9003,
+            "date": "2026-10-02",
+            "displayDate": "02/10/2026",
+            "libelle": "EPS (1h00)",
+            "motif": "Certificat médical",
+            "commentaire": "",
+            "justifie": true,
+            "aFaire": "",
+            "par": "",
+            "dateDeroulement": "02/10/2026"
+        }
+    ],
+    "sanctionsEncouragements": [
+        {
+            "typeElement": "Punition",
+            "id": 9101,
+            "date": "2026-09-25",
+            "displayDate": "25/09/2026",
+            "libelle": "Retenue (1h00)",
+            "motif": "Travail non fait",
+            "commentaire": "",
+            "justifie": false,
+            "aFaire": "",
+            "par": "M. MARTIN",
+            "dateDeroulement": "25/09/2026"
+        },
+        {
+            "typeElement": "Encouragement",
+            "id": 9102,
+            "date": "2026-10-08",
+            "displayDate": "08/10/2026",
+            "libelle": "Encouragements",
+            "motif": "Excellente participation en cours",
+            "commentaire": "Continue comme ça !",
+            "justifie": false,
+            "aFaire": "",
+            "par": "Mme DUPONT",
+            "dateDeroulement": "08/10/2026"
+        },
+        {
+            "typeElement": "Incident",
+            "id": 9103,
+            "date": "2026-09-18",
+            "displayDate": "18/09/2026",
+            "libelle": "Incident en cour de récréation",
+            "motif": "Dispute",
+            "commentaire": "",
+            "justifie": false,
+            "aFaire": "",
+            "par": "Mme DUPONT",
+            "dateDeroulement": "18/09/2026"
+        }
+    ],
+    "parametrage": {
+        "justificationEnLigne": false
+    }
+}

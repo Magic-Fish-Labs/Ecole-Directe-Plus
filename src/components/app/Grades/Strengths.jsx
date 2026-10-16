@@ -20,6 +20,14 @@ export default function Strengths({ activeAccount, sortedGrades, selectedPeriod,
     const [displayType, setDisplayType] = useState(0); // 0: strengths; 1: weaknesses
     const { useUserSettings } = useContext(AppContext);
     const settings = useUserSettings();
+    const showWeaknesses = !!settings.get("showWeaknesses");
+    const displayedDisplayType = showWeaknesses ? displayType : 0;
+
+    useEffect(() => {
+        if (!showWeaknesses) {
+            setDisplayType(0);
+        }
+    }, [showWeaknesses]);
 
     useEffect(() => {
         function strengthsCalculation() {
@@ -69,18 +77,18 @@ export default function Strengths({ activeAccount, sortedGrades, selectedPeriod,
 
     return (<Window className={`strengths ${className}`} {...props}>
         <WindowHeader>
-            <button disabled={!sortedGrades || !sortedGrades[selectedPeriod]} className="display-type-reverse-button" onClick={() => {setDisplayType((displayType+1) % 2)}} title={displayType === 0 ? "Basculer sur les points faibles" : "Basculer sur les points forts"} > <ReverseIcon /> </button>
-            <h2>{displayType === 0 ? "Vos points forts" : "Vos points faibles"}</h2>
-            <InfoButton className={"strengths-info " + (displayType === 0 ? "info-strengths" : "info-weaknesses")}>Calculés en fonction de la différence entre votre moyenne et celle de la classe</InfoButton>
+            {showWeaknesses && <button disabled={!sortedGrades || !sortedGrades[selectedPeriod]} className="display-type-reverse-button" onClick={() => {setDisplayType((displayType+1) % 2)}} title={displayedDisplayType === 0 ? "Basculer sur les points faibles" : "Basculer sur les points forts"} > <ReverseIcon /> </button>}
+            <h2>{displayedDisplayType === 0 ? "Vos points forts" : "Vos points faibles"}</h2>
+            <InfoButton className={"strengths-info " + (displayedDisplayType === 0 ? "info-strengths" : "info-weaknesses")}>Calculés en fonction de la différence entre votre moyenne et celle de la classe</InfoButton>
         </WindowHeader>
         <WindowContent>
             {sortedGrades && sortedGrades[selectedPeriod]
-                ? <ol className={"strengths-container " + (displayType === 0 ? "display-strengths" : "display-weaknesses")}>
+                ? <ol className={"strengths-container " + (displayedDisplayType === 0 ? "display-strengths" : "display-weaknesses")}>
                     {
-                        (displayType === 0 ? strengths : weaknesses).map((strength, idx) => <li key={strength?.subject?.name || crypto.randomUUID()} style={{ "--order": idx }} className="strength-container">
+                        (displayedDisplayType === 0 ? strengths : weaknesses).map((strength, idx) => <li key={strength?.subject?.name || crypto.randomUUID()} style={{ "--order": idx }} className="strength-container">
                             <Link to={"#" + strength?.subject?.id} className="strength-wrapper">
                                 <span className="subject-container">
-                                    <span className="subject-rank">{displayType === 0 ? idx + 1 : (sortedGrades && Object.keys(sortedGrades[selectedPeriod].subjects).length || 3) - idx}</span>
+                                    <span className="subject-rank">{displayedDisplayType === 0 ? idx + 1 : (sortedGrades && Object.keys(sortedGrades[selectedPeriod].subjects).length || 3) - idx}</span>
                                     <span className="subject-name">{strength?.subject?.name}</span>
                                 </span>
                                 <span className="subject-average"><Grade grade={{ value: strength?.subject?.average ?? "N/A" }} /></span>
