@@ -27,9 +27,21 @@ function fileExtension(libelle) {
     return name.slice(dotIndex + 1).toLowerCase();
 }
 
+function cloudMetaFromNode(node) {
+    if (!node || typeof node !== "object") {
+        return null;
+    }
+    const quota = Number(node.quota) || 0;
+    const taille = Number(node.taille) || 0;
+    if (!quota && !node.readonly) {
+        return null;
+    }
+    return { quota, taille, readonly: Boolean(node.readonly) };
+}
+
 function extractListing(nodes, requestedPath) {
     if (!Array.isArray(nodes) || nodes.length === 0) {
-        return { items: [], folderId: requestedPath || null };
+        return { items: [], folderId: requestedPath || null, meta: null };
     }
     if (nodes.length === 1) {
         const only = nodes[0];
@@ -37,17 +49,25 @@ function extractListing(nodes, requestedPath) {
             ? only.id === requestedPath
             : only.type === "folder" && only.libelle === "/";
         if (only.type === "folder" && matchesRequested) {
-            return { items: Array.isArray(only.children) ? only.children : [], folderId: only.id ?? requestedPath };
+            return {
+                items: Array.isArray(only.children) ? only.children : [],
+                folderId: only.id ?? requestedPath,
+                meta: cloudMetaFromNode(only),
+            };
         }
     }
     if (!requestedPath) {
         const firstId = typeof nodes[0]?.id === "string" ? nodes[0].id : null;
-        return { items: nodes, folderId: firstId ? parentPath(firstId) : null };
+        return {
+            items: nodes,
+            folderId: firstId ? parentPath(firstId) : null,
+            meta: cloudMetaFromNode(nodes.find((node) => Number(node?.quota) > 0) ?? null),
+        };
     }
-    return { items: nodes, folderId: requestedPath };
+    return { items: nodes, folderId: requestedPath, meta: null };
 }
 
-export function CloudBrowser({ entity = null, initialNodes, onRootNodesChange }) {
+export function CloudBrowser({ entity = null, initialNodes, onRootNodesChange, readOnly = false }) {
     const {
         fetchCloudNode,
         createCloudNode,
@@ -58,9 +78,10 @@ export function CloudBrowser({ entity = null, initialNodes, onRootNodesChange })
         createNotification,
     } = useContext(AppContext);
 
-    const [stack, setStack] = useState([{ path: "", label: "Racine" }]);
+    const [stack, setStack] = useState([{ path: "", label: "Racine", readonly: false }]);
     const [nodes, setNodes] = useState(() => (Array.isArray(initialNodes) ? extractListing(initialNodes, "").items : []));
     const [rootFolderId, setRootFolderId] = useState(() => (Array.isArray(initialNodes) ? extractListing(initialNodes, "").folderId : null));
+    const [cloudMeta, setCloudMeta] = useState(() => (Array.isArray(initialNodes) ? extractListing(initialNodes, "").meta : null));
     const [isLoading, setIsLoading] = useState(initialNodes === undefined);
     const [isBusy, setIsBusy] = useState(false);
     const [dialog, setDialog] = useState(null);
@@ -71,12 +92,18 @@ export function CloudBrowser({ entity = null, initialNodes, onRootNodesChange })
 
     const currentPath = stack[stack.length - 1].path;
     const currentFolderId = stack.length === 1 ? rootFolderId : currentPath;
+    const currentReadOnly = stack.length === 1 ? Boolean(cloudMeta?.readonly) : Boolean(stack[stack.length - 1].readonly);
+    const writeAllowed = !readOnly && !currentReadOnly;
+    const storageRatio = cloudMeta?.quota > 0 ? Math.max(0, Number(cloudMeta.taille) || 0) / cloudMeta.quota : 0;
 
     useEffect(() => {
         if (initialNodes !== undefined && initialNodes !== null) {
-            const { items, folderId } = extractListing(initialNodes, "");
+            const { items, folderId, meta } = extractListing(initialNodes, "");
             listingsRef.current[""] = items;
             setRootFolderId((old) => folderId ?? old);
+            if (meta) {
+                setCloudMeta(meta);
+            }
             if (stack.length === 1) {
                 setNodes(items);
             }
@@ -92,9 +119,12 @@ export function CloudBrowser({ entity = null, initialNodes, onRootNodesChange })
             setIsLoading(true);
             try {
                 const result = await fetchCloudNode("", entity);
-                const { items, folderId } = extractListing(result, "");
+                const { items, folderId, meta } = extractListing(result, "");
                 listingsRef.current[""] = items;
                 setRootFolderId((old) => folderId ?? old);
+                if (meta) {
+                    setCloudMeta(meta);
+                }
                 setNodes(items);
             } finally {
                 setIsLoading(false);
@@ -106,7 +136,10 @@ export function CloudBrowser({ entity = null, initialNodes, onRootNodesChange })
         setIsLoading(true);
         try {
             const result = await fetchCloudNode(currentPath, entity);
-            const { items, folderId } = extractListing(result, currentPath);
+            const { items, folderId, meta } = extractListing(result, currentPath);
+            if (meta) {
+                setCloudMeta(meta);
+            }
             if (currentPath === "") {
                 setRootFolderId((old) => folderId ?? old);
             }
@@ -120,14 +153,14 @@ export function CloudBrowser({ entity = null, initialNodes, onRootNodesChange })
         }
     }
 
-    async function loadFolder(path, label) {
+    async function loadFolder(path, label, nodeReadOnly = false) {
         setIsLoading(true);
         try {
             const result = await fetchCloudNode(path, entity);
             const { items } = extractListing(result, path);
             listingsRef.current[path] = items;
             setNodes(items);
-            setStack((old) => [...old, { path, label }]);
+            setStack((old) => [...old, { path, label, readonly: nodeReadOnly }]);
         } finally {
             setIsLoading(false);
         }
@@ -141,9 +174,9 @@ export function CloudBrowser({ entity = null, initialNodes, onRootNodesChange })
         if (hasLoadedChildren) {
             listingsRef.current[node.id] = node.children;
             setNodes(node.children);
-            setStack((old) => [...old, { path: node.id, label: node.libelle }]);
+            setStack((old) => [...old, { path: node.id, label: node.libelle, readonly: Boolean(node.readonly) }]);
         } else {
-            loadFolder(node.id, node.libelle);
+            loadFolder(node.id, node.libelle, node.readonly);
         }
     }
 
@@ -193,6 +226,10 @@ export function CloudBrowser({ entity = null, initialNodes, onRootNodesChange })
     async function handleCreateFolder() {
         const name = (dialog?.value ?? "").trim();
         if (!name) {
+            return;
+        }
+        if (!writeAllowed) {
+            createNotification(<p>La création de dossiers n’est pas autorisée ici (lecture seule)</p>);
             return;
         }
         if (!currentFolderId) {
@@ -254,6 +291,10 @@ export function CloudBrowser({ entity = null, initialNodes, onRootNodesChange })
         if (!file) {
             return;
         }
+        if (!writeAllowed) {
+            createNotification(<p>Le téléversement n’est pas autorisé ici (lecture seule)</p>);
+            return;
+        }
         if (!currentFolderId) {
             createNotification(<p>Impossible de déterminer le dossier courant</p>);
             return;
@@ -286,7 +327,8 @@ export function CloudBrowser({ entity = null, initialNodes, onRootNodesChange })
                 <Button
                     className="cloud-tool-button"
                     onClick={() => setDialog({ type: "create", value: "" })}
-                    disabled={isBusy || !currentFolderId}
+                    disabled={isBusy || !currentFolderId || !writeAllowed}
+                    title={!writeAllowed ? "Lecture seule : la création de dossiers n’est pas autorisée ici" : undefined}
                 >
                     <NewFolderIcon className="cloud-tool-icon" />
                     Nouveau dossier
@@ -294,7 +336,8 @@ export function CloudBrowser({ entity = null, initialNodes, onRootNodesChange })
                 <Button
                     className="cloud-tool-button"
                     onClick={() => fileInputRef.current?.click()}
-                    disabled={isBusy || !currentFolderId}
+                    disabled={isBusy || !currentFolderId || !writeAllowed}
+                    title={!writeAllowed ? "Lecture seule : le téléversement n’est pas autorisé ici" : undefined}
                 >
                     Téléverser
                 </Button>
@@ -308,6 +351,20 @@ export function CloudBrowser({ entity = null, initialNodes, onRootNodesChange })
                     <RefreshIcon className="cloud-tool-icon" />
                     Actualiser
                 </Button>
+                {(!writeAllowed || readOnly || currentReadOnly) && <span className="cloud-readonly-badge">Lecture seule</span>}
+                {cloudMeta?.quota > 0 && (
+                    <div className="cloud-storage-meter" title="Espace de stockage utilisé">
+                        <span className="cloud-storage-label">
+                            {formatBytes(cloudMeta.taille ?? 0)} / {formatBytes(cloudMeta.quota)}
+                        </span>
+                        <div className="cloud-storage-bar">
+                            <div
+                                className={`cloud-storage-fill${storageRatio >= 0.9 ? " almost-full" : ""}${storageRatio >= 1 ? " full" : ""}`}
+                                style={{ width: `${Math.min(100, storageRatio * 100)}%` }}
+                            />
+                        </div>
+                    </div>
+                )}
             </div>
             <nav className="cloud-breadcrumb" aria-label="Chemin">
                 {stack.map((crumb, index) => (
@@ -340,26 +397,22 @@ export function CloudBrowser({ entity = null, initialNodes, onRootNodesChange })
                                 </button>
                                 <div className="cloud-item-actions">
                                     {node.type === "file" && downloadingId === node.id && <span className="cloud-busy">…</span>}
-                                    {!node.readonly && (
-                                        <Button
-                                            className="cloud-action"
-                                            disabled={isBusy}
-                                            onClick={() => setDialog({ type: "rename", node, value: node.libelle })}
-                                            title="Renommer"
-                                        >
-                                            <RenameIcon className="cloud-action-icon" />
-                                        </Button>
-                                    )}
-                                    {!node.readonly && (
-                                        <Button
-                                            className="cloud-action"
-                                            disabled={isBusy}
-                                            onClick={() => setDialog({ type: "delete", node })}
-                                            title="Supprimer"
-                                        >
-                                            <TrashIcon className="cloud-action-icon" />
-                                        </Button>
-                                    )}
+                                    <Button
+                                        className="cloud-action"
+                                        disabled={isBusy || node.readonly || !writeAllowed}
+                                        onClick={() => setDialog({ type: "rename", node, value: node.libelle })}
+                                        title={!writeAllowed || node.readonly ? "Lecture seule : le renommage n’est pas autorisé" : "Renommer"}
+                                    >
+                                        <RenameIcon className="cloud-action-icon" />
+                                    </Button>
+                                    <Button
+                                        className="cloud-action"
+                                        disabled={isBusy || node.readonly || !writeAllowed}
+                                        onClick={() => setDialog({ type: "delete", node })}
+                                        title={!writeAllowed || node.readonly ? "Lecture seule : la suppression n’est pas autorisée" : "Supprimer"}
+                                    >
+                                        <TrashIcon className="cloud-action-icon" />
+                                    </Button>
                                 </div>
                             </li>
                         ))}
@@ -420,12 +473,12 @@ export function CloudBrowser({ entity = null, initialNodes, onRootNodesChange })
     );
 }
 
-export default function Cloud({ isLoading, initialNodes, onRootNodesChange }) {
+export default function Cloud({ isLoading, initialNodes, onRootNodesChange, readOnly = false }) {
     if (isLoading || initialNodes === undefined) {
         return <ModulesSkeleton cards={3} />;
     }
     if (initialNodes === null) {
         return <EmptyState message="Le cloud n'a pas pu être chargé" graphic="confused" />;
     }
-    return <CloudBrowser initialNodes={initialNodes} onRootNodesChange={onRootNodesChange} />;
+    return <CloudBrowser initialNodes={initialNodes} onRootNodesChange={onRootNodesChange} readOnly={readOnly} />;
 }

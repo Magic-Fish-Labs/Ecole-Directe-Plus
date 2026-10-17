@@ -515,6 +515,56 @@ body:has(#modules) {
     display: none;
 }
 
+#modules .cloud-readonly-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 10px;
+    font-size: var(--font-size-14);
+    font-weight: var(--font-weight-semi-bold);
+    color: rgb(var(--text-color-alt));
+    background-color: rgba(var(--background-color-2), 0.7);
+    border: 1px solid rgba(var(--border-color-0), 0.35);
+}
+
+#modules .cloud-storage-meter {
+    margin-left: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 160px;
+    flex: 0 1 220px;
+}
+
+#modules .cloud-storage-label {
+    font-size: var(--font-size-14);
+    color: rgba(var(--text-color-alt), 0.9);
+    text-align: right;
+}
+
+#modules .cloud-storage-bar {
+    height: 6px;
+    border-radius: 3px;
+    background-color: rgba(var(--background-color-2), 0.8);
+    border: 1px solid rgba(var(--border-color-0), 0.3);
+    overflow: hidden;
+}
+
+#modules .cloud-storage-fill {
+    height: 100%;
+    border-radius: 3px;
+    background-color: rgb(var(--border-color-1));
+    transition: width 0.3s ease;
+}
+
+#modules .cloud-storage-fill.almost-full {
+    background-color: rgb(var(--background-color-warning-2));
+}
+
+#modules .cloud-storage-fill.full {
+    background-color: rgb(var(--text-color-error));
+}
+
 #modules .cloud-breadcrumb {
     display: flex;
     flex-flow: row wrap;
@@ -650,8 +700,12 @@ body:has(#modules) {
 #modules .cloud-dialog {
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    min-width: min(340px, 80vw);
+    gap: 20px;
+    min-width: min(360px, 80vw);
+}
+
+#pop-up-background:has(.cloud-dialog) {
+    padding: 30px;
 }
 
 #modules .dialog-title {

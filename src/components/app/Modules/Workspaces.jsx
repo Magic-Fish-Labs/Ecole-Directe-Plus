@@ -57,6 +57,9 @@ export default function Workspaces({ isLoading, workspaces, onListChange }) {
     if (selectedId !== null) {
         const current = detail ?? list.find((workspace) => String(workspace.id) === String(selectedId));
         if (current) {
+            const droitUtilisateur = current.droitUtilisateur ?? current.parametrage?.droitUtilisateur;
+            const cloudReadOnly = current.estMembre === false
+                || (typeof droitUtilisateur === "number" && droitUtilisateur > 0 && droitUtilisateur < 2);
             return (
                 <div className="workspace-detail">
                     <div className="detail-header">
@@ -82,7 +85,7 @@ export default function Workspaces({ isLoading, workspaces, onListChange }) {
                     {current.cloud && (
                         <div className="workspace-cloud">
                             <h4 className="subsection-heading">Fichiers de l'espace</h4>
-                            <CloudBrowser key={selectedId} entity={`W/${selectedId}`} />
+                            <CloudBrowser key={selectedId} entity={`W/${selectedId}`} readOnly={cloudReadOnly} />
                         </div>
                     )}
                 </div>

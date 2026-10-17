@@ -7,17 +7,26 @@ export default class IframeRequestLinker {
     }
 
     #handleMessage(event) {
-        const { action, values } = event.data;
-        const { fetchId, result } = values;
-        switch (action) {
-            case "RESPONSE":
-                this.solverList[fetchId].resolve(result);
-                delete this.solverList[fetchId]
-                return;
-            case "ERROR":
-                this.solverList[fetchId].reject(result);
-                delete this.solverList[fetchId]
-                return;
+        if (this.iframeWindow === null || event.source !== this.iframeWindow) {
+            return;
+        }
+        const data = event.data;
+        if (!data || typeof data !== "object") {
+            return;
+        }
+        const { action, values } = data;
+        if ((action !== "RESPONSE" && action !== "ERROR") || !values || typeof values !== "object") {
+            return;
+        }
+        const solver = this.solverList[values.fetchId];
+        if (!solver) {
+            return;
+        }
+        delete this.solverList[values.fetchId];
+        if (action === "RESPONSE") {
+            solver.resolve(values.result);
+        } else {
+            solver.reject(values.result);
         }
     }
 
