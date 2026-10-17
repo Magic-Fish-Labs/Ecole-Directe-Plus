@@ -1,0 +1,168 @@
+{
+    "classeurs": [
+        {
+            "id": 285,
+            "libelle": "Travail"
+        },
+        {
+            "id": 276,
+            "libelle": "Inutile"
+        }
+    ],
+    "messages": {
+        "received": [
+            {
+                "id": 1001,
+                "responseId": 0,
+                "forwardId": 0,
+                "mtype": "received",
+                "read": false,
+                "idDossier": -1,
+                "idClasseur": 0,
+                "transferred": false,
+                "answered": false,
+                "to_cc_cci": "to",
+                "brouillon": false,
+                "canAnswer": true,
+                "subject": "Problème d'hygiène au self",
+                "content": "PGgxPkFUVEVOVElPTiBUT1VUIExFIE1PTkRFPC9oMT4KPHA+Qm9uam91ciDDoCB0b3VzLCB2ZXVpbGxleiB0b3VzIHZvdXMgcmVuZHJlIGVuIHNhbGxlIDIwNCBkZW1haW4uIE1lcmNpIGQnYXZhbmNlICE8L3A+",
+                "date": "2026-10-11 18:59:05",
+                "to": [],
+                "files": [],
+                "from": {
+                    "nom": "DUPONT",
+                    "prenom": "K.",
+                    "particule": "",
+                    "civilite": "Mme",
+                    "role": "A",
+                    "listeRouge": false,
+                    "id": 152,
+                    "read": true,
+                    "fonctionPersonnel": ""
+                }
+            },
+            {
+                "id": 1002,
+                "responseId": 0,
+                "forwardId": 0,
+                "mtype": "received",
+                "read": true,
+                "idDossier": -1,
+                "idClasseur": 0,
+                "transferred": false,
+                "answered": false,
+                "to_cc_cci": "to",
+                "brouillon": false,
+                "canAnswer": true,
+                "subject": "Sortie au musée",
+                "content": "PHA+Qm9uam91ciw8YnI+TGEgc29ydGllIGF1IG11c8OpZSBlc3QgY29uZmlybcOpZSBwb3VyIHZlbmRyZWRpLiBQZW5zZXogw6AgcHLDqXZvaXIgdW4gc2FuZHdpY2guPC9wPg==",
+                "date": "2026-10-05 14:32:10",
+                "to": [],
+                "files": [],
+                "from": {
+                    "nom": "ZANNEUR",
+                    "prenom": "Eric",
+                    "particule": "",
+                    "civilite": "M.",
+                    "role": "P",
+                    "listeRouge": false,
+                    "id": 233,
+                    "read": true,
+                    "fonctionPersonnel": "",
+                    "matiere": "HISTOIRE-GEOGRAPHIE"
+                }
+            },
+            {
+                "id": 1003,
+                "responseId": 0,
+                "forwardId": 0,
+                "mtype": "received",
+                "read": true,
+                "idDossier": -1,
+                "idClasseur": 0,
+                "transferred": false,
+                "answered": false,
+                "to_cc_cci": "to",
+                "brouillon": false,
+                "canAnswer": true,
+                "subject": "Réunion parents-professeurs",
+                "content": "PHA+Qm9uam91ciw8YnI+TGEgcsOpdW5pb24gcGFyZW50cy1wcm9mZXNzZXVycyBhdXJhIGxpZXUgbGUgMTIgb2N0b2JyZSDDoCAxOGguIE1lcmNpIGRlIGNvbmZpcm1lciB2b3RyZSBwcsOpc2VuY2UuPC9wPg==",
+                "date": "2026-09-28 09:15:44",
+                "to": [],
+                "files": [],
+                "from": {
+                    "nom": "DUPONT",
+                    "prenom": "K.",
+                    "particule": "",
+                    "civilite": "Mme",
+                    "role": "A",
+                    "listeRouge": false,
+                    "id": 152,
+                    "read": true,
+                    "fonctionPersonnel": ""
+                }
+            }
+        ],
+        "sent": [
+            {
+                "id": 2001,
+                "responseId": 0,
+                "forwardId": 0,
+                "mtype": "sent",
+                "read": true,
+                "idDossier": -1,
+                "idClasseur": 0,
+                "transferred": false,
+                "answered": false,
+                "to_cc_cci": "to",
+                "brouillon": false,
+                "canAnswer": false,
+                "subject": "Re: Problème d'hygiène au self",
+                "content": "PHA+Qm9uam91ciBNYWRhbWUsIG1lcmNpIHBvdXIgbCdpbmZvcm1hdGlvbi48L3A+",
+                "date": "2026-10-11 19:45:00",
+                "to": [],
+                "files": [],
+                "from": {
+                    "nom": "",
+                    "prenom": "Guest",
+                    "particule": "",
+                    "civilite": "",
+                    "role": "E",
+                    "listeRouge": false,
+                    "id": 1,
+                    "read": true,
+                    "fonctionPersonnel": ""
+                }
+            }
+        ],
+        "draft": [],
+        "archived": []
+    },
+    "parametrage": {
+        "isActif": true,
+        "canParentsLireMessagesEnfants": true,
+        "destAdmin": true,
+        "destEleve": false,
+        "destFamille": false,
+        "destProf": true,
+        "destEspTravail": false,
+        "destEntreprise": true,
+        "disabledNotification": false,
+        "notificationEmailEtablissement": true,
+        "choixMailNotification": 0,
+        "autreMailNotification": "",
+        "mailPro": "",
+        "mailPerso": "",
+        "messagerieApiVersion": "v3",
+        "blackListProfActive": false,
+        "estEnBlackList": false,
+        "afficherToutesLesClasses": false
+    },
+    "pagination": {
+        "messagesRecusCount": 3,
+        "messagesEnvoyesCount": 1,
+        "messagesArchivesCount": 0,
+        "messagesRecusNotReadCount": 1,
+        "messagesDraftCount": 0
+    }
+}

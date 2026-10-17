@@ -76,7 +76,7 @@ function apiBoolean(value) {
     return value === true || value === 1 || value === "1" || value === "true";
 }
 
-function normalizeCourse(course) {
+export function normalizeCourse(course) {
     const start = parseApiDate(course.start_date);
     const end = parseApiDate(course.end_date);
     if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end <= start) {

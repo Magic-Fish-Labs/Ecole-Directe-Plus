@@ -154,3 +154,157 @@
     stroke: rgb(var(--text-color-alt));
 }
 
+.task-comments {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-block: 5px;
+}
+
+.task-comments-title {
+    color: rgb(var(--text-color-alt));
+    font-size: var(--font-size-14);
+    font-weight: 600;
+}
+
+.task-comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.task-comment {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.dark .task-comment {
+    background-color: rgba(var(--text-color-main-reverse), 0.15);
+}
+
+.light .task-comment {
+    background-color: rgba(var(--text-color-main-reverse), 0.3);
+}
+
+.task-comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.task-comment-author {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    min-width: 0;
+    font-size: var(--font-size-14);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.task-comment-you {
+    flex-shrink: 0;
+    padding: 1px 6px;
+    border-radius: 5px;
+    background-color: rgba(var(--background-color-3), .5);
+    color: rgb(var(--text-color-alt));
+    font-size: var(--font-size-12);
+    font-weight: 400;
+}
+
+.task-comment-date {
+    flex-shrink: 0;
+    color: rgb(var(--text-color-alt));
+    font-size: var(--font-size-12);
+}
+
+.task-comments .task-comment-content > div {
+    font-size: var(--font-size-14);
+    overflow-wrap: anywhere;
+}
+
+.task-comments .task-comment-content > div > p {
+    margin-block: 0;
+}
+
+.task-comments .task-comment-content > div > p + p {
+    margin-top: 5px;
+}
+
+.task-comment-composer {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: flex-end;
+    gap: 5px;
+}
+
+.task-comment-input {
+    flex-grow: 1;
+    min-width: 0;
+    min-height: 40px;
+    max-height: 150px;
+    resize: vertical;
+    border: 2px solid rgb(var(--border-color-0));
+    border-radius: 10px;
+    padding: 8px;
+    background-color: transparent;
+    color: rgb(var(--text-color-main));
+    font-family: inherit;
+    font-size: var(--font-size-16);
+    outline: none;
+    transition: .1s;
+}
+
+.task-comment-input::placeholder {
+    color: rgba(var(--text-color-alt), .8);
+}
+
+.task-comment-input:is(:hover, :focus) {
+    border-color: rgb(var(--border-color-1));
+}
+
+.task-comment-input:focus {
+    background-color: rgba(var(--background-color-focus));
+}
+
+.task-comment-input:disabled {
+    cursor: not-allowed;
+}
+
+.task-comment-submit {
+    appearance: none;
+    border: none;
+    padding: 8px;
+    border-radius: 10px;
+    background-color: rgba(var(--background-color-3), .5);
+    color: rgb(var(--text-color-alt));
+    font-family: inherit;
+    font-size: var(--font-size-14);
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: .1s;
+}
+
+.task-comment-submit:is(:hover, :focus-visible) {
+    background-color: rgb(var(--background-color-3));
+}
+
+.task-comment-submit:active {
+    background-color: rgba(var(--background-color-3), .7);
+}
+
+.task-comment-submit:disabled {
+    pointer-events: none;
+    filter: brightness(0.6);
+    cursor: not-allowed;
+}
+
+.light .task-comment-submit:disabled {
+    filter: opacity(0.4);
+}
+

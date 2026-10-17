@@ -8,7 +8,7 @@ body:has(#account) {
 
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: 2fr 1fr;
+    grid-template-rows: auto auto auto;
     gap: clamp(20px, 3vw, 50px);
 }
 
@@ -60,8 +60,9 @@ body:has(#account) {
     min-width: max-content;
 }
 
-/* TODO: enlever quand plus WIP */
-#profile.frame {
+#account #profile {
+    grid-column: 1;
+    grid-row: 1;
     display: flex;
     flex-flow: column nowrap;
 }
@@ -75,23 +76,6 @@ body:has(#account) {
     font-size: 18px;
 }
 
-.coming-soon {
-    height: 100%;
-    color: rgb(var(--text-color-alt));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 10px;
-    padding: 20px;
-    border: 2px solid rgb(var(--text-color-alt));
-    border-radius: 8px;
-    opacity: .5;
-}
-
-#profile .coming-soon {
-    margin-top: 30px;
-}
-
 #account #profile {
     --diagonal: repeating-linear-gradient(128deg,
             rgb(14, 21, 46) 0%,
@@ -102,9 +86,73 @@ body:has(#account) {
             rgb(14, 21, 46) 12%);
 }
 
+#account #account-settings {
+    grid-column: 1;
+    grid-row: 2;
+    display: flex;
+    flex-flow: column nowrap;
+}
+
+#account #behavior {
+    grid-column: 1;
+    grid-row: 3;
+}
+
 #account #documents {
     grid-column: 2 / 3;
-    grid-row: 1 / 3;
+    grid-row: 1 / 4;
+}
+
+
+#account #account-settings .no-available-documents {
+    flex: 1;
+    padding-block: 20px;
+}
+
+.account-settings-form,
+.account-settings-loader {
+    display: flex;
+    flex-flow: column nowrap;
+    gap: 15px;
+    padding-bottom: 10px;
+}
+
+.account-settings-field {
+    display: flex;
+    flex-flow: column nowrap;
+    gap: 6px;
+    min-width: 0;
+}
+
+.account-settings-label {
+    font-size: var(--font-size-16);
+    font-weight: var(--font-weight-semi-bold);
+    color: rgb(var(--text-color-alt));
+}
+
+.account-settings-question {
+    max-width: 100%;
+}
+
+.account-settings-streamer-note {
+    margin: 0;
+    text-align: center;
+    font-size: var(--font-size-14);
+    color: rgb(var(--text-color-alt));
+}
+
+.account-settings-buttons {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin-top: 5px;
+}
+
+.account-settings-buttons .button {
+    margin: 0;
+    min-width: 140px;
 }
 
 
@@ -118,9 +166,8 @@ body:has(#account) {
 #account .behavior-types {
     padding-block: 20px;
     height: 100%;
-    display: flex;
-    flex-flow: row nowrap;
-    justify-content: space-around;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
 }
 
 #account .behavior-type {
@@ -128,11 +175,21 @@ body:has(#account) {
     display: flex;
     flex-flow: column nowrap;
     justify-content: space-between;
-    flex: 1;
+    min-width: 0;
+    padding: 15px 5px;
 }
 
-#account .behavior-type:not(:last-child) {
+#account .behavior-type:not(:nth-child(3n)) {
     border-right: 1px solid rgb(var(--border-color-0));
+}
+
+#account .behavior-type:nth-child(-n + 3) {
+    border-bottom: 1px solid rgb(var(--border-color-0));
+}
+
+#account .behavior-type > span:first-child {
+    font-size: var(--font-size-14);
+    overflow-wrap: anywhere;
 }
 
 #account .behavior-type .count {
@@ -164,9 +221,12 @@ body:has(#account) {
         grid-template-rows: auto;
     }
 
-    #account #documents {
+    #account #profile,
+    #account #account-settings,
+    #account #documents,
+    #account #behavior {
         grid-column: auto;
-        grid-row: 3 / 4;
+        grid-row: auto;
     }
 
     #account .frame .frame-heading {

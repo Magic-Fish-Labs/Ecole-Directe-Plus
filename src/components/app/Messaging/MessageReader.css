@@ -211,6 +211,18 @@
     stroke: rgb(var(--text-color-alt));
 }
 
+.action-button .reply-icon path,
+.action-button .forward-icon path {
+    stroke: none;
+    fill: rgb(var(--text-color-alt));
+    transition: .2s;
+}
+
+.action-button:is(:hover, :focus-visible) .reply-icon path,
+.action-button:is(:hover, :focus-visible) .forward-icon path {
+    fill: rgb(var(--text-color-main));
+}
+
 .scroll-footer-div {
     flex: 1;
 }

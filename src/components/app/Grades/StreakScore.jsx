@@ -23,6 +23,7 @@ export default function StreakScore({ streakScore, streakHighScore=0, className=
 
     const { useUserSettings } = useContext(AppContext);
     const displayMode = useUserSettings("displayMode");
+    const showOldStreaks = !!useUserSettings("showOldStreaks").get();
 
     const containerRef = useRef(null);
     const scoreRef = useRef(null);
@@ -113,9 +114,9 @@ export default function StreakScore({ streakScore, streakHighScore=0, className=
                         Array.from({ length: arrowsNumber }, (_, index) => <ArrowOutline className="arrow-outline right" key={index} style={{ "--order": (arrowsNumber - index) }} />)
                     }
                 </ShiningDiv>
-                <div className="score-high-score">
+                {showOldStreaks && <div className="score-high-score">
                     Record : <span>{streakHighScore || 0}</span>
-                </div>
+                </div>}
             </WindowContent>
         </Window>
     )

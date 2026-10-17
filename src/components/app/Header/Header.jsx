@@ -11,6 +11,8 @@ import HomeworksIconOfficial from "../../graphics/HomeworksIconOfficial";
 import GradesIcon from "../../graphics/GradesIcon";
 import TimetableIcon from "../../graphics/TimetableIcon";
 import MessagingIcon from "../../graphics/MessagingIcon";
+import SchoolLifeIcon from "../../graphics/SchoolLifeIcon";
+import ModulesIcon from "../../graphics/ModulesIcon";
 import BottomSheet from "../../generic/PopUps/BottomSheet";
 import FeedbackForm from "../../Feedback/FeedbackForm";
 import PatchNotes from "../../generic/PatchNotes";
@@ -159,6 +161,16 @@ export default function Header({ currentEDPVersion, accountsList, setActiveAccou
             isNew: false
         },
         {
+            enabled: accountsList[activeAccount]?.modules?.find((item) => item.code === "VIE_SCOLAIRE")?.enable ?? true,
+            id: 6,
+            name: "vie-scolaire",
+            title: "Vie scolaire",
+            link: `/app/${activeAccount}/vie-scolaire`,
+            icon: <SchoolLifeIcon />,
+            notifications: notifications?.["vie-scolaire"] || 0,
+            isNew: false
+        },
+        {
             enabled: accountsList[activeAccount]?.modules?.filter((item) => item.code === "NOTES").map((item) => item.enable).includes(true) ?? true,
             id: 2,
             name: "grades",
@@ -197,6 +209,16 @@ export default function Header({ currentEDPVersion, accountsList, setActiveAccou
             icon: <MessagingIcon />,
             notifications: notifications?.messaging || 0,
             isNew: false
+        },
+        {
+            enabled: true,
+            id: 7,
+            name: "modules",
+            title: "Modules",
+            link: `/app/${activeAccount}/modules`,
+            icon: <ModulesIcon />,
+            notifications: notifications?.modules || 0,
+            isNew: false
         }
     ];
     // Behavior
@@ -226,7 +248,7 @@ export default function Header({ currentEDPVersion, accountsList, setActiveAccou
                     <nav className="navbar">
                         <ul className="header-button-list">
                             {headerNavigationButtons.map((headerButton) => (headerButton.enabled &&
-                                <li className={`header-button-container`} key={headerButton.id} id={headerButton.name}>
+                                <li className={`header-button-container`} key={headerButton.id} id={`${headerButton.name}-nav`}>
                                     <HeaderNavigationButton className={location.pathname === headerButton.link ? " selected" : ""} link={headerButton.link} icon={headerButton.icon} title={headerButton.title} notifications={headerButton.notifications} isNew={headerButton.isNew} />
                                 </li>
                             )

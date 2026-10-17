@@ -1,4 +1,4 @@
-import { useEffect, useRef, useContext } from "react"
+import { useEffect, useRef, useContext, useState } from "react"
 import ContentLoader from "react-content-loader"
 import EncodedHTMLDiv from "../../generic/CustomDivs/EncodedHTMLDiv"
 import CheckBox from "../../generic/UserInputs/CheckBox"
@@ -10,6 +10,7 @@ import PatchNotesIcon from "../../graphics/PatchNotesIcon"
 import DownloadIcon from "../../graphics/DownloadIcon"
 import CopyButton from "../../generic/CopyButton"
 import { clearHTML } from "../../../utils/html"
+import { getISODate } from "../../../utils/utils"
 
 import "./DetailedTask.css"
 
@@ -17,6 +18,91 @@ const supposedNoSessionContent = [
     "PHAgc3R5bGU9Ii13ZWJraXQtdGFwLWhpZ2hsaWdodC1jb2xvcjogcmdiYSgwLCAwLCAwLCAwKTsiPjxicj48L3A+PHAgc3R5bGU9Ii13ZWJraXQtdGFwLWhpZ2hsaWdodC1jb2xvcjogcmdiYSgwLCAwLCAwLCAwKTsiPjxicj48L3A+",
     "",
 ]
+
+function escapeCommentHTML(text) {
+    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+}
+
+function encodeCommentBase64(html) {
+    const bytes = new TextEncoder().encode(html);
+    let binary = "";
+    for (let i = 0; i < bytes.length; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+}
+
+export function TaskComments({ comments = [], idContenu, day }) {
+    const { postHomeworkComment, fetchHomeworks, accountsListState, activeAccount, createNotification } = useContext(AppContext)
+    const [localComments, setLocalComments] = useState([])
+    const [draft, setDraft] = useState("")
+    const [isSubmitting, setIsSubmitting] = useState(false)
+
+    const account = accountsListState?.[activeAccount]
+    const isGuest = account?.firstName === "Guest"
+    const publishedComments = comments ?? []
+    const displayedComments = [...publishedComments, ...localComments.filter((localComment) => !publishedComments.some((comment) => comment.id === localComment.id))]
+
+    function handleSubmit(event) {
+        event.preventDefault()
+        event.stopPropagation()
+        const text = draft.trim()
+        if (!text || isSubmitting || isGuest) {
+            return
+        }
+        setIsSubmitting(true)
+        const html = "<p>" + escapeCommentHTML(text) + "</p>"
+        postHomeworkComment(idContenu, html).then((result) => {
+            setIsSubmitting(false)
+            if (result.ok) {
+                setDraft("")
+                setLocalComments((oldLocalComments) => [...oldLocalComments, {
+                    id: result.id ?? crypto.randomUUID(),
+                    author: `${account.firstName} ${account.lastName}`.trim(),
+                    profile: "E",
+                    date: getISODate(new Date()),
+                    content: encodeCommentBase64(html),
+                }])
+                fetchHomeworks(new AbortController(), day)
+                createNotification(<p>Commentaire publié</p>)
+            } else {
+                createNotification(<p>{result.error ?? "Le commentaire n'a pas pu être publié"}</p>)
+            }
+        })
+    }
+
+    return (
+        <div className="task-comments" onClick={(event) => event.stopPropagation()}>
+            <h5 className="task-comments-title">Commentaires</h5>
+            {displayedComments.length > 0 && <div className="task-comments-list">
+                {displayedComments.map((comment) => (
+                    <div className="task-comment" key={comment.id}>
+                        <div className="task-comment-header">
+                            <span className="task-comment-author">
+                                {comment.author}
+                                {comment.profile === "E" && <span className="task-comment-you">vous</span>}
+                            </span>
+                            <time className="task-comment-date" dateTime={comment.date}>{(new Date(comment.date)).toLocaleDateString("fr-FR")}</time>
+                        </div>
+                        <EncodedHTMLDiv className="task-comment-content">{comment.content}</EncodedHTMLDiv>
+                    </div>
+                ))}
+            </div>}
+            <form className="task-comment-composer" onSubmit={handleSubmit}>
+                <textarea
+                    className="task-comment-input"
+                    rows={2}
+                    value={draft}
+                    onChange={(event) => setDraft(event.target.value)}
+                    placeholder={isGuest ? "Non disponible en mode invité" : "Écrire un commentaire…"}
+                    disabled={isGuest || isSubmitting}
+                    title={isGuest ? "Non disponible en mode invité" : undefined}
+                />
+                <button type="submit" className="task-comment-submit" disabled={isGuest || isSubmitting || draft.trim() === ""}>Publier</button>
+            </form>
+        </div>
+    )
+}
 
 export default function DetailedTask({ task, userHomeworks, day, ...props }) {
     const navigate = useNavigate()
@@ -116,6 +202,7 @@ export default function DetailedTask({ task, userHomeworks, day, ...props }) {
                 {task.isInterrogation && <span className="interrogation-alert">évaluation</span>}
             </div>
             <EncodedHTMLDiv className="task-content" nonEncodedChildren={<CopyButton content={clearHTML(task.content, undefined, false).innerText} />} backgroundColor={actualDisplayTheme === "dark" ? "#40405b" : "#e4e4ff"} >{task.content}</EncodedHTMLDiv>
+            <TaskComments comments={task.comments} idContenu={task.id} day={day} />
             <div className="task-footer">
                 <Link to={`#${day};${task.id};s`} onClick={(e) => e.stopPropagation()} replace={true} className={`task-footer-button ${supposedNoSessionContent.includes(task.sessionContent) ? "disabled" : ""}`}><PatchNotesIcon className="session-content-icon" />Contenu de séance</Link>
                 <Link to={`#${day};${task.id};f`} onClick={(e) => e.stopPropagation()} replace={true} className={`task-footer-button ${task.files.length === 0 ? "disabled" : ""}`}><DownloadIcon className="download-icon" />Fichiers</Link>

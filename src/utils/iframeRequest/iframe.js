@@ -28,7 +28,14 @@
     }
 
     function handleMessage(event) {
-        const {action, values} = event.data;
+        const data = event.data;
+        if (!data || typeof data !== "object") {
+            return;
+        }
+        const { action, values } = data;
+        if (!values || typeof values !== "object") {
+            return;
+        }
         switch (action) {
             case "FETCH":
                 handleFetch(event.source, values);

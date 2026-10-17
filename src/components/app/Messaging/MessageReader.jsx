@@ -17,10 +17,13 @@ import MarkAsUnread from "../../graphics/MarkAsUnread";
 import SendIcon from "../../graphics/SendIcon";
 import DraftIcon from "../../graphics/DraftIcon";
 import DeleteIcon from "../../graphics/DeleteIcon";
+import EditIcon from "../../graphics/EditIcon";
+import BackArrow from "../../graphics/BackArrow";
+import SwitchArrows from "../../graphics/SwitchArrows";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../generic/PopUps/Tooltip";
 
 
-export default function MessageReader({ selectedMessage, fetchMessageMarkAsUnread, setSelectedMessage, archiveMessage, unarchiveMessage, moveMessage, deleteMessage }) {
+export default function MessageReader({ selectedMessage, fetchMessageMarkAsUnread, setSelectedMessage, archiveMessage, unarchiveMessage, moveMessage, deleteMessage, onReply, onForward, onEditDraft }) {
 
     // States
     const location = useLocation();
@@ -126,6 +129,15 @@ export default function MessageReader({ selectedMessage, fetchMessageMarkAsUnrea
                         </ScrollShadedDiv>
 
                         <div className="actions-container">
+                            {message && message.folderId === -4 && onEditDraft ? (
+                                <Tooltip className="action-button-main"><TooltipTrigger><button className="action-button" onClick={() => onEditDraft(message)}><EditIcon /></button></TooltipTrigger><TooltipContent>Modifier</TooltipContent></Tooltip>
+                            ) : null}
+                            {message && message.folderId !== -4 && message.folderId !== -1 && onReply ? (
+                                <>
+                                    <Tooltip className="action-button-main"><TooltipTrigger><button className="action-button" onClick={() => onReply(message)}><BackArrow className="reply-icon" /></button></TooltipTrigger><TooltipContent>Répondre</TooltipContent></Tooltip>
+                                    <Tooltip className="action-button-main"><TooltipTrigger><button className="action-button" onClick={() => onForward(message)}><SwitchArrows className="forward-icon" /></button></TooltipTrigger><TooltipContent>Transfert</TooltipContent></Tooltip>
+                                </>
+                            ) : null}
                             <Tooltip className="action-button-main"><TooltipTrigger><button className="action-button" onClick={
                                 () => {
                                     // only print the content of the rendered message

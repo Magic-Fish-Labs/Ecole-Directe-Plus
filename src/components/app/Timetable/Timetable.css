@@ -598,8 +598,8 @@
     white-space: nowrap;
 }
 
-.course-time,
-.course-meta {
+.timetable-course .course-time,
+.timetable-course .course-meta {
     width: 100%;
     overflow: hidden;
     font-size: 1.1rem;
@@ -609,7 +609,7 @@
     white-space: nowrap;
 }
 
-.course-time {
+.timetable-course .course-time {
     font-weight: var(--font-weight-semi-bold);
     font-variant-numeric: tabular-nums;
 }

@@ -6,10 +6,12 @@ import { AppContext } from "../../../App"
 import { applyZoom, getZoomedBoudingClientRect } from "../../../utils/zoom";
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import DownloadIcon from "../../graphics/DownloadIcon"
+import { TaskComments } from "./DetailedTask"
 
 import { clearHTML } from "../../../utils/html"
 
 import "./DetailedSessionContent.css"
+import "./DetailedTask.css"
 
 export default function DetailedSessionContent({ sessionContent, userHomeworks, day, sessionContentIndex, ...props }) {
     const navigate = useNavigate()
@@ -73,6 +75,7 @@ export default function DetailedSessionContent({ sessionContent, userHomeworks, 
         <Link to={`#${day};${sessionContent.id};s`} className="session-content-link" onClick={(e) => e.stopPropagation()} replace={true} >
             <EncodedHTMLDiv className="session-content-content" backgroundColor={actualDisplayTheme === "dark" ? "#40405b" : "#e4e4ff"} >{sessionContent.sessionContent}</EncodedHTMLDiv>
         </Link>
+        <TaskComments comments={sessionContent.sessionComments} idContenu={sessionContent.id} day={day} />
         <div className="session-content-footer">
             <Link to={`#${day};${sessionContent.id};f`} onClick={(e) => e.stopPropagation()} replace={true} className={`session-content-footer-button ${sessionContent.sessionContentFiles.length === 0 ? "disabled" : ""}`}><DownloadIcon className="download-icon" />Fichiers</Link>
         </div>
