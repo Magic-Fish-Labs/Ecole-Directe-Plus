@@ -16,7 +16,7 @@ import BottomSheet from "../../generic/PopUps/BottomSheet";
 import EncodedHTMLDiv from "../../generic/CustomDivs/EncodedHTMLDiv";
 import UpcomingAssignments from "./UpcomingAssignments";
 import PopUp from "../../generic/PopUps/PopUp";
-import { formatDateRelative } from "../../../utils/date";
+import { formatDateRelative, isValidDateFormat } from "../../../utils/date";
 import FileComponent from "../../generic/FileComponent";
 import { getISODate } from "../../../utils/utils";
 import DateSelector from "./Calendar";
@@ -34,7 +34,7 @@ const supposedNoSessionContent = [
 export default function Homeworks({ isLoggedIn, activeAccount, fetchHomeworks }) {
     // States
 
-    const { useUserData } = useContext(AppContext);
+    const { useUserData, accountsListState } = useContext(AppContext);
     const homeworks = useUserData("sortedHomeworks").get();
     const navigate = useNavigate();
     const location = useLocation();
@@ -47,6 +47,12 @@ export default function Homeworks({ isLoggedIn, activeAccount, fetchHomeworks })
     useEffect(() => {
         document.title = "Cahier de texte • Ecole Directe Plus";
     }, []);
+
+    useEffect(() => {
+        if (isValidDateFormat(selectedDate)) {
+            sessionStorage.setItem(`edp-selected-homework-day-${accountsListState?.[activeAccount]?.id ?? activeAccount}`, selectedDate);
+        }
+    }, [activeAccount, accountsListState, selectedDate]);
 
     useEffect(() => {
         const controller = new AbortController();

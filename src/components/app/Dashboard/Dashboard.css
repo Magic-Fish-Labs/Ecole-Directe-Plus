@@ -4,40 +4,97 @@
     min-height: 100%;
 }
 
-.dashboard-timetable-info {
+.dashboard-timetable-preview {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    height: 100%;
+    min-height: 0;
+    padding: 16px;
+    color: rgb(var(--text-color-main));
+}
+
+.dashboard-timetable-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.dashboard-timetable-days {
+    display: inline-flex;
+    flex-shrink: 0;
+    gap: 2px;
+    padding: 4px;
+    border-radius: 14px;
+    background: rgba(var(--background-color-0), .55);
+}
+
+.dashboard-timetable-days button {
+    min-height: 32px;
+    padding: 5px 12px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: rgb(var(--text-color-main));
+    font-size: var(--font-size-14);
+    font-weight: var(--font-weight-semi-bold);
+    cursor: pointer;
+}
+
+.dashboard-timetable-days button:hover,
+.dashboard-timetable-days button:focus-visible {
+    background: rgba(var(--background-color-focus));
+}
+
+.dashboard-timetable-days button.selected {
+    background: rgb(var(--border-color-0));
+    color: rgb(var(--text-color-main-reverse));
+    box-shadow: 0 4px 12px rgba(var(--text-color-main), .14);
+}
+
+.dark .dashboard-timetable-days button.selected {
+    color: white;
+}
+
+.dashboard-timetable-date {
+    text-transform: capitalize;
+    font-size: var(--font-size-18);
+}
+
+.dashboard-timetable-scroll {
+    display: grid;
+    grid-template-columns: 50px minmax(0, 1fr);
+    min-height: 0;
+    flex: 1;
+    overflow: hidden;
+}
+
+.dashboard-timetable-axis {
+    position: relative;
+    color: rgb(var(--text-color-alt));
+    font-size: var(--font-size-12);
+}
+
+.dashboard-timetable-axis span {
+    position: absolute;
+    right: 4px;
+    transform: translateY(-50%);
+}
+
+.dashboard-timetable-column {
+    min-width: 0;
+    border-left: 1px solid rgba(var(--border-color-contrast), .35);
+}
+
+.dashboard-timetable-column .timetable-course {
+    box-sizing: border-box;
+}
+
+.dashboard-timetable-message {
+    margin: auto;
     color: rgb(var(--text-color-alt));
     text-align: center;
-    position:absolute;
-    width: 80%;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-}
-
-#dashboard .timetable-page-link {
-    display: block;
-    width: max-content;
-    margin: 0 auto;
-    appearance: none;
-    text-decoration: none;
-    padding: 15px 20px;
-    border: 2px solid rgb(var(--text-color-alt));
-    border-radius: 50px;
-    font-weight: 600;
-    margin-block: 20px;
-    transition: .2s;
-    color: rgb(var(--text-color-alt));
-}
-
-#dashboard .timetable-page-link:hover {
-    background-color: rgb(var(--text-color-alt));
-    color: rgb(var(--background-color-0));
-}
-
-#dashboard .timetable-page-link:active {
-    background-color: rgba(var(--text-color-alt), .6);
-}
-
-#dashboard a {
-    color: rgb(var(--text-color-alt));
 }

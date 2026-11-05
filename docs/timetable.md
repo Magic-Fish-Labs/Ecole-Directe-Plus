@@ -33,7 +33,9 @@ including when the authenticated account is a family account.
 
 ## Supported behavior
 
-- Week and three-day views, Monday through Sunday
+- Week view, Monday through Saturday by default, with optional Saturday and Sunday toggles
+- Three-day view including weekend days when they fall in the selected period
+- One-day dashboard preview that switches to tomorrow after today's courses end
 - Three-day navigation advances continuously in three-day increments, including across week boundaries
 - Dynamic time range based on the first and last visible events
 - Previous/next week navigation and return to today
@@ -43,7 +45,9 @@ including when the authenticated account is a family account.
 - Name-priority rendering for short classes with long subjects
 - Course details with teacher, room, group, code, date, time, and duration
 - Current-day and current-time indicators
+- Side-by-side columns for overlapping courses
+- Homework icons for pending, completed, and interrogation work
 - Hide/show cancelled courses
-- iCalendar export and print layout
+- iCalendar export and print options for homework icons and cancelled courses
 - Keyboard-focusable controls and course cards
 - Responsive day selection for compact screens

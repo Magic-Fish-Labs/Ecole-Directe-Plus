@@ -20,6 +20,28 @@ const contributors = [
 
 export default function PatchNotes({ currentEDPVersion, onClose }) {
 
+    if (currentEDPVersion === "0.5.1") {
+        return <div id="patch-notes">
+            <InfoPopUp type="info" header="Nouvelle mise à jour EDP ! 🎊 v0.5.1" subHeader="26 septembre 2026" contentTitle="Patch notes :" onClose={onClose}>
+                <hr />
+                <p className="first-paragraph">L'emploi du temps trouve aussi sa place sur l'accueil 📅</p>
+                <h3 className="sub-header">Nouveautés</h3>
+                <ul>
+                    <li>Le dashboard affiche les cours d'aujourd'hui ou de demain, avec un passage automatique à demain une fois la journée terminée.</li>
+                    <li>Les cours simultanés se partagent désormais la largeur du calendrier.</li>
+                    <li>Le samedi et le dimanche sont configurables dans la vue semaine.</li>
+                    <li>L'impression propose de choisir l'affichage des devoirs et des cours annulés.</li>
+                </ul>
+                <h3 className="sub-header">Améliorations</h3>
+                <ul>
+                    <li>Le crayon indique aussi les devoirs faits en vert et les interrogations en rouge.</li>
+                    <li>Les noms des cours ont davantage de place dans la vue semaine.</li>
+                </ul>
+                <p>Merci à <a href="https://github.com/mTxBeN" target="_blank" rel="noreferrer">@mTxBeN</a> pour ces améliorations de l'emploi du temps !</p>
+            </InfoPopUp>
+        </div>;
+    }
+
     return (
         <div id="patch-notes">
             <InfoPopUp type="info" header={"Nouvelle mise à jour EDP ! 🎊 v" + currentEDPVersion} subHeader={"09 septembre 2026"} contentTitle={"Patch notes :"} onClose={onClose} >
