@@ -151,13 +151,13 @@ function normalizeTimetableSubject(value) {
 }
 
 function homeworkMatchesCourse(homework, course) {
-    const homeworkCode = normalizeTimetableSubject(homework?.codeMatiere);
+    const homeworkCode = normalizeTimetableSubject(homework?.codeMatiere || homework?.subjectCode);
     const courseCode = normalizeTimetableSubject(course?.codeMatiere);
     if (homeworkCode && courseCode && homeworkCode === courseCode) {
         return true;
     }
 
-    const homeworkSubject = normalizeTimetableSubject(homework?.matiere);
+    const homeworkSubject = normalizeTimetableSubject(homework?.matiere || homework?.subject);
     const courseSubject = normalizeTimetableSubject(course?.matiere || course?.text);
     if (!homeworkSubject || !courseSubject) {
         return false;
@@ -168,31 +168,55 @@ function homeworkMatchesCourse(homework, course) {
             && (homeworkSubject.startsWith(courseSubject) || courseSubject.startsWith(homeworkSubject)));
 }
 
-function enrichTimetableWithHomework(courses, homeworkByDate, detailedHomeworkByDate = {}) {
+function enrichTimetableWithHomework(courses, homeworkByDate) {
     return (courses ?? []).map((course) => {
         const courseDate = String(course.start_date ?? "").slice(0, 10);
         const matchingHomework = (homeworkByDate?.[courseDate] ?? [])
-            .filter((homework) => homeworkMatchesCourse(homework, course));
-        const assignedHomework = matchingHomework.filter((homework) =>
-            apiBoolean(homework.aFaire) || apiBoolean(homework.interrogation));
-        const detailedHomework = (detailedHomeworkByDate[courseDate] ?? [])
             .filter((homework) => homeworkMatchesCourse(homework, course))
-            .filter((homework) => homework.aFaire && typeof homework.aFaire === "object")
+            .filter((homework) => homework.type === "task" || apiBoolean(homework.aFaire)
+                || (homework.aFaire && typeof homework.aFaire === "object")
+                || apiBoolean(homework.isInterrogation ?? homework.interrogation))
             .map((homework) => ({
-                effectue: homework.aFaire.effectue,
-                interrogation: homework.interrogation,
+                effectue: homework.isDone ?? homework.effectue ?? homework.aFaire?.effectue,
+                interrogation: homework.isInterrogation ?? homework.interrogation,
             }));
-        const courseHomework = detailedHomework.length > 0 ? detailedHomework : assignedHomework;
+        const courseHomework = matchingHomework.length ? matchingHomework : (course.homeworkSummary ?? []);
 
         return {
             ...course,
             devoirAFaire: apiBoolean(course.devoirAFaire) || courseHomework.length > 0,
             homeworkSummary: courseHomework,
             homeworkDone: courseHomework.length > 0
-                && courseHomework.every((homework) => apiBoolean(homework.effectue)),
-            homeworkInterrogation: courseHomework.some((homework) => apiBoolean(homework.interrogation)),
+                ? courseHomework.every((homework) => apiBoolean(homework.effectue))
+                : apiBoolean(course.homeworkDone),
+            homeworkInterrogation: courseHomework.length > 0
+                ? courseHomework.some((homework) => apiBoolean(homework.interrogation))
+                : apiBoolean(course.homeworkInterrogation),
         };
     });
+}
+
+function hasDetailedHomeworkDay(homeworks) {
+    return Array.isArray(homeworks) && (homeworks.length === 0 || homeworks.every((homework) =>
+        Object.prototype.hasOwnProperty.call(homework, "teacher")
+        || Object.prototype.hasOwnProperty.call(homework, "content")
+        || Object.prototype.hasOwnProperty.call(homework, "sessionContent")));
+}
+
+function storedCourseworkForCourse(homeworks, course) {
+    return homeworks.filter((item) => homeworkMatchesCourse(item, course)).map((item) => ({
+        id: item.id,
+        subject: item.subject || course.subject,
+        teacher: item.teacher || course.teacher,
+        hasHomework: item.type === "task",
+        isInterrogation: apiBoolean(item.isInterrogation),
+        isDone: item.type === "task" ? apiBoolean(item.isDone) : null,
+        assignedOn: item.addDate || null,
+        homeworkContent: item.content || "",
+        sessionContent: item.sessionContent || "",
+        files: item.files ?? [],
+        sessionFiles: item.sessionContentFiles ?? [],
+    }));
 }
 
 // get data from localstorage
@@ -618,10 +642,9 @@ export default function App({ edpFetch }) {
     function changeUserData(data, value) {
         setUserData((oldData) => {
             const newData = [...oldData];
-            if (!newData[activeAccount]) {
-                newData[activeAccount] = {};
-            }
-            newData[activeAccount][data] = value;
+            const accountData = { ...(newData[activeAccount] ?? {}) };
+            accountData[data] = typeof value === "function" ? value(accountData[data]) : value;
+            newData[activeAccount] = accountData;
             return newData;
         })
     }
@@ -1226,9 +1249,9 @@ export default function App({ edpFetch }) {
                         isDone: effectue,
                         teacher: nomProf,
                         content: contenu,
-                        files: documents.map((e) => (new File(e.id, e.type, e.libelle))),
-                        sessionContent: contenuDeSeance.contenu,
-                        sessionContentFiles: contenuDeSeance.documents.map((e) => (new File(e.id, e.type, e.libelle)))
+                        files: (documents ?? []).map((e) => (new File(e.id, e.type, e.libelle, undefined, { idDevoir: aFaire.idDevoir || id }))),
+                        sessionContent: contenuDeSeance?.contenu,
+                        sessionContentFiles: (contenuDeSeance?.documents ?? []).map((e) => (new File(e.id, e.type, e.libelle, undefined, { idDevoir: aFaire.idDevoir || id })))
                     }
                 }
                 else {
@@ -1240,8 +1263,8 @@ export default function App({ edpFetch }) {
                         subject: matiere,
                         addDate: day[0],
                         teacher: nomProf,
-                        sessionContent: contenuDeSeance.contenu,
-                        sessionContentFiles: contenuDeSeance.documents.map((e) => (new File(e.id, e.type, e.libelle)))
+                        sessionContent: contenuDeSeance?.contenu,
+                        sessionContentFiles: (contenuDeSeance?.documents ?? []).map((e) => (new File(e.id, e.type, e.libelle)))
                     }
                 }
             }).filter((item) => item)]
@@ -1767,7 +1790,7 @@ export default function App({ edpFetch }) {
 
             if (timetableResponse.code === 520 || timetableResponse.code === 525) {
                 requireLogin();
-                throw new Error("Votre session a expiré. Reconnectez-vous pour actualiser l’emploi du temps.");
+                throw new DOMException("Session expirée", "AbortError");
             }
             if (timetableResponse.code !== 200) {
                 throw new Error(timetableResponse.message || "EcoleDirecte n’a pas pu fournir l’emploi du temps.");
@@ -1777,8 +1800,8 @@ export default function App({ edpFetch }) {
             let detailToken = timetableToken;
             setTokenState((old) => timetableResponse.token || old);
 
-            let homeworkByDate = {};
-            try {
+            let homeworkByDate = getUserData("sortedHomeworks") ?? {};
+            if (getUserData("sortedHomeworks") === undefined) try {
                 const homeworkResponse = await edpFetch(
                     `https://api.ecoledirecte.com/v3/Eleves/${accountsListState[activeAccount].id}/cahierdetexte.awp?verbe=get&v=${apiVersion}`,
                     {
@@ -1798,28 +1821,27 @@ export default function App({ edpFetch }) {
                 if (homeworkResponse.code === 200) {
                     setTokenState((old) => homeworkResponse.token || old);
                     detailToken = homeworkResponse.token || detailToken;
-                    homeworkByDate = homeworkResponse.data || {};
+                    const upcoming = sortNextHomeworks(homeworkResponse.data || {});
+                    homeworkByDate = { ...upcoming, ...homeworkByDate };
+                    changeUserData("sortedHomeworks", (existing) => ({ ...upcoming, ...existing }));
                 }
                 if (homeworkResponse.code === 520 || homeworkResponse.code === 525) {
                     requireLogin();
-                    throw new Error("Votre session a expiré. Reconnectez-vous pour actualiser l’emploi du temps.");
+                    throw new DOMException("Session expirée", "AbortError");
                 }
             } catch (homeworkError) {
                 if (homeworkError?.name === "AbortError") {
                     throw homeworkError;
                 }
-                if (homeworkError?.message?.startsWith("Votre session a expiré")) {
-                    throw homeworkError;
-                }
                 console.warn("Impossible d’enrichir l’emploi du temps avec le cahier de texte.", homeworkError);
             }
 
-            const detailedHomeworkByDate = {};
             const todayKey = getLocalISODate(new Date());
             const pastDates = [...new Set((timetableResponse.data ?? [])
                 .map((course) => String(course.start_date ?? "").slice(0, 10))
                 .filter((date) => /^\d{4}-\d{2}-\d{2}$/.test(date) && date <= todayKey))].sort();
             for (const date of pastDates) {
+                if (hasDetailedHomeworkDay(homeworkByDate[date])) continue;
                 try {
                     const response = await edpFetch(
                         `https://api.ecoledirecte.com/v3/Eleves/${accountsListState[activeAccount].id}/cahierdetexte/${date}.awp?verbe=get&v=${apiVersion}`,
@@ -1838,22 +1860,24 @@ export default function App({ edpFetch }) {
                     );
                     if (response.code === 520 || response.code === 525) {
                         requireLogin();
-                        throw new Error("Votre session a expiré. Reconnectez-vous pour actualiser l’emploi du temps.");
+                        throw new DOMException("Session expirée", "AbortError");
                     }
                     if (response.code === 200) {
-                        detailedHomeworkByDate[date] = response.data?.matieres ?? [];
+                        const detailed = sortDayHomeworks({ [date]: response.data?.matieres ?? [] });
+                        homeworkByDate = { ...homeworkByDate, ...detailed };
+                        changeUserData("sortedHomeworks", (existing) => ({ ...existing, ...detailed }));
                         detailToken = response.token || detailToken;
                         setTokenState((old) => response.token || old);
                     }
                 } catch (detailError) {
-                    if (detailError?.name === "AbortError" || detailError?.message?.startsWith("Votre session a expiré")) {
+                    if (detailError?.name === "AbortError") {
                         throw detailError;
                     }
                     console.warn(`Impossible de charger le cahier de texte du ${date}.`, detailError);
                 }
             }
 
-            return enrichTimetableWithHomework(timetableResponse.data, homeworkByDate, detailedHomeworkByDate);
+            return enrichTimetableWithHomework(timetableResponse.data, homeworkByDate);
         } catch (error) {
             if (error.message === "Unexpected token 'P', \"Proxy error\" is not valid JSON") {
                 setProxyError(true);
@@ -1872,6 +1896,8 @@ export default function App({ edpFetch }) {
 
         try {
             const courseDate = getLocalISODate(course.start);
+            const storedDay = getUserData("sortedHomeworks")?.[courseDate];
+            if (hasDetailedHomeworkDay(storedDay)) return storedCourseworkForCourse(storedDay, course);
             const response = await edpFetch(
                 `https://api.ecoledirecte.com/v3/Eleves/${accountsListState[activeAccount].id}/cahierdetexte/${courseDate}.awp?verbe=get&v=${apiVersion}`,
                 {
@@ -1890,40 +1916,17 @@ export default function App({ edpFetch }) {
 
             if (response.code === 520 || response.code === 525) {
                 requireLogin();
-                throw new Error("Votre session a expiré. Reconnectez-vous pour afficher le travail associé.");
+                throw new DOMException("Session expirée", "AbortError");
             }
             if (response.code !== 200) {
                 throw new Error(response.message || "Le cahier de texte n’a pas pu être chargé.");
             }
 
             setTokenState((old) => response.token || old);
+            const detailed = sortDayHomeworks({ [courseDate]: response.data?.matieres ?? [] });
+            changeUserData("sortedHomeworks", (existing) => ({ ...existing, ...detailed }));
 
-            return (response.data?.matieres ?? [])
-                .filter((item) => homeworkMatchesCourse(item, course))
-                .map((item) => {
-                    const homework = item.aFaire && typeof item.aFaire === "object" ? item.aFaire : null;
-                    const sessionContent = item.contenuDeSeance || homework?.contenuDeSeance || null;
-                    const homeworkId = homework?.idDevoir || item.id;
-
-                    return {
-                        id: item.id || homeworkId,
-                        subject: item.matiere || course.subject,
-                        teacher: item.nomProf || course.teacher,
-                        hasHomework: homework !== null,
-                        isInterrogation: apiBoolean(item.interrogation),
-                        isDone: homework ? apiBoolean(homework.effectue) : null,
-                        assignedOn: homework?.donneLe || null,
-                        homeworkContent: homework?.contenu || "",
-                        sessionContent: sessionContent?.contenu || "",
-                        files: (homework?.documents ?? []).map((document) => (
-                            new File(document.id, document.type, document.libelle, undefined, { idDevoir: homeworkId })
-                        )),
-                        sessionFiles: (sessionContent?.documents ?? []).map((document) => (
-                            new File(document.id, document.type, document.libelle, undefined, { idDevoir: homeworkId })
-                        )),
-                    };
-                })
-                .filter((item) => item.hasHomework || item.homeworkContent || item.sessionContent || item.files.length || item.sessionFiles.length);
+            return storedCourseworkForCourse(detailed[courseDate], course);
         } catch (error) {
             if (error.message === "Unexpected token 'P', \"Proxy error\" is not valid JSON") {
                 setProxyError(true);
@@ -3072,6 +3075,7 @@ export default function App({ edpFetch }) {
 
     const appContextValue = useMemo(() => ({
         useUserData,
+        enrichTimetableWithHomework,
         useUserSettings,
         refreshApp,
         addNewGrade,

@@ -46,8 +46,10 @@ export default function Task({ day, task, userHomeworks, ...props }) {
                 completedTaskAnimation();
             }
         }
-        homeworks[date].find((item) => item.id === task.id).isDone = !task.isDone;
-        userHomeworks.set(homeworks);
+        userHomeworks.set({
+            ...homeworks,
+            [date]: homeworks[date].map((item) => item.id === task.id ? { ...item, isDone: !item.isDone } : item),
+        });
     }
 
     function handleTaskClick(event) {

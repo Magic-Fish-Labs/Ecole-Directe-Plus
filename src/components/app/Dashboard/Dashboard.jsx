@@ -116,7 +116,7 @@ export default function Dashboard({ fetchUserGrades, grades, fetchHomeworks, fet
                                 <h2>Emploi du temps</h2>
                             </WindowHeader>
                             <WindowContent>
-                                <DashboardTimetable activeAccount={activeAccount} fetchTimetable={fetchTimetable} onOpen={() => navigate("../timetable")} isStreamerModeEnabled={settings.get("isStreamerModeEnabled")} />
+                                <DashboardTimetable activeAccount={activeAccount} isLoggedIn={isLoggedIn} fetchTimetable={fetchTimetable} onOpen={() => navigate("../timetable")} isStreamerModeEnabled={settings.get("isStreamerModeEnabled")} />
                             </WindowContent>
                         </Window>
                     </WindowsLayout>

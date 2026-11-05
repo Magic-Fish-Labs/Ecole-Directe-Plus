@@ -463,10 +463,12 @@ export default function Timetable({ isLoggedIn, activeAccount, accountId, fetchT
     const courseworkCache = useRef(new Map());
     const courseworkController = useRef(null);
     const courseworkRequestId = useRef(0);
+    const wasLoggedIn = useRef(isLoggedIn);
     const fetchTimetableRef = useRef(fetchTimetable);
     const fetchCourseworkRef = useRef(fetchCoursework);
-    const { useUserSettings } = useContext(AppContext);
+    const { useUserSettings, useUserData, enrichTimetableWithHomework } = useContext(AppContext);
     const settings = useUserSettings();
+    const homeworkByDate = useUserData("sortedHomeworks").get();
 
     const periodLength = viewMode === "three-day" ? THREE_DAY_WINDOW : WEEK_DAYS;
     const threeDayDays = useMemo(
@@ -504,9 +506,13 @@ export default function Timetable({ isLoggedIn, activeAccount, accountId, fetchT
     );
     const requiredWeekKeys = requiredWeeks.map((week) => timetableWeekKey(accountKey, week));
     const periodKey = requiredWeekKeys.join("|");
+    const enrichedCourses = useMemo(
+        () => enrichTimetableWithHomework(courses, homeworkByDate).map(normalizeCourse).filter(Boolean),
+        [courses, enrichTimetableWithHomework, homeworkByDate],
+    );
     const periodCourses = useMemo(
-        () => courses.filter((course) => visibleDays.some((day) => isSameDay(course.start, day))),
-        [courses, visibleDays],
+        () => enrichedCourses.filter((course) => visibleDays.some((day) => isSameDay(course.start, day))),
+        [enrichedCourses, visibleDays],
     );
     const displayedCourses = useMemo(
         () => periodCourses.filter((course) => (isPrinting ? printCancelled : showCancelled) || !course.isCancelled),
@@ -581,6 +587,11 @@ export default function Timetable({ isLoggedIn, activeAccount, accountId, fetchT
     }, []);
 
     useEffect(() => {
+        if (!isLoggedIn) {
+            setLoading(true);
+            setRefreshing(false);
+            return undefined;
+        }
         const cachedWeeks = requiredWeekKeys.map((key) => cache.current.get(key));
         if (cachedWeeks.every(Boolean)) {
             setCourses(cachedWeeks.flatMap((week) => week.courses));
@@ -621,7 +632,7 @@ export default function Timetable({ isLoggedIn, activeAccount, accountId, fetchT
             });
 
         return () => { active = false; };
-    }, [periodKey, refreshRequest]);
+    }, [isLoggedIn, periodKey, refreshRequest]);
 
     useEffect(() => {
         if (!isLoggedIn || !requiredWeekKeys.every((key) => cache.current.has(key))) return undefined;
@@ -744,6 +755,7 @@ export default function Timetable({ isLoggedIn, activeAccount, accountId, fetchT
             })
             .catch((courseworkError) => {
                 if (controller.signal.aborted || requestId !== courseworkRequestId.current) return;
+                if (courseworkError?.name === "AbortError") return;
                 setCoursework({
                     status: "error",
                     items: [],
@@ -758,6 +770,12 @@ export default function Timetable({ isLoggedIn, activeAccount, accountId, fetchT
         setSelectedCourse(null);
         setCoursework(IDLE_COURSEWORK);
     };
+
+    useEffect(() => {
+        const reconnected = isLoggedIn && !wasLoggedIn.current;
+        wasLoggedIn.current = isLoggedIn;
+        if (reconnected && selectedCourse) openCourse(selectedCourse, true);
+    }, [isLoggedIn, selectedCourse]);
 
     return (
         <>
@@ -954,7 +972,9 @@ export default function Timetable({ isLoggedIn, activeAccount, accountId, fetchT
     );
 }
 
-export function DashboardTimetable({ activeAccount, fetchTimetable, onOpen, isStreamerModeEnabled }) {
+export function DashboardTimetable({ activeAccount, isLoggedIn, fetchTimetable, onOpen, isStreamerModeEnabled }) {
+    const { accountsListState, useUserData, enrichTimetableWithHomework } = useContext(AppContext);
+    const homeworkByDate = useUserData("sortedHomeworks").get();
     const fetchTimetableRef = useRef(fetchTimetable);
     const previewGridRef = useRef(null);
     const [previewHeight, setPreviewHeight] = useState(0);
@@ -964,7 +984,11 @@ export function DashboardTimetable({ activeAccount, fetchTimetable, onOpen, isSt
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const today = startOfDay(now);
-    const tomorrow = addDays(today, 1);
+    const showSaturday = localStorage.getItem("edp-timetable-saturday") !== "false";
+    const showSunday = localStorage.getItem("edp-timetable-sunday") === "true";
+    const displayToday = nextEnabledDay(today, showSaturday, showSunday);
+    const displayTomorrow = addEnabledDays(displayToday, 1, showSaturday, showSunday);
+    const accountKey = accountsListState?.[activeAccount]?.id ?? activeAccount;
 
     useEffect(() => { fetchTimetableRef.current = fetchTimetable; }, [fetchTimetable]);
 
@@ -984,27 +1008,49 @@ export function DashboardTimetable({ activeAccount, fetchTimetable, onOpen, isSt
     }, []);
 
     useEffect(() => {
-        const controller = new AbortController();
+        if (!isLoggedIn) return undefined;
+        let active = true;
+        const weekStarts = weeksInRange(
+            startOfWeek(displayToday, { weekStartsOn: 1 }),
+            startOfWeek(displayTomorrow, { weekStartsOn: 1 }),
+        );
+        const cached = weekStarts.map((week) => timetableSessionCache.get(timetableWeekKey(accountKey, week)));
+        if (cached.every(Boolean)) {
+            setCourses(cached.flatMap((week) => week.courses));
+            setLoading(false);
+            setError("");
+            return undefined;
+        }
         setLoading(true);
         setError("");
-        fetchTimetableRef.current({ startDate: today, endDate: tomorrow, controller })
-            .then((rawCourses) => {
-                if (controller.signal.aborted) return;
-                setCourses((rawCourses ?? []).map(normalizeCourse).filter(Boolean));
+        (async () => {
+            const weeks = [];
+            for (const week of weekStarts) {
+                weeks.push(await loadTimetableWeek(timetableWeekKey(accountKey, week), week, fetchTimetableRef.current));
+            }
+            return weeks;
+        })()
+            .then((weeks) => {
+                if (active) setCourses(weeks.flatMap((week) => week.courses));
             })
             .catch((fetchError) => {
-                if (!controller.signal.aborted) setError(fetchError?.message || "Impossible de charger l'emploi du temps.");
+                if (active && fetchError?.name !== "AbortError") setError(fetchError?.message || "Impossible de charger l'emploi du temps.");
             })
             .finally(() => {
-                if (!controller.signal.aborted) setLoading(false);
+                if (active) setLoading(false);
             });
-        return () => controller.abort();
-    }, [activeAccount, dateKey(today)]);
+        return () => { active = false; };
+    }, [accountKey, dateKey(today), isLoggedIn, showSaturday, showSunday]);
 
-    const todayCourses = courses.filter((course) => isSameDay(course.start, today) && !course.isCancelled);
-    const autoDay = todayCourses.every((course) => course.end <= now) ? tomorrow : today;
-    const day = selectedDay && (isSameDay(selectedDay, today) || isSameDay(selectedDay, tomorrow)) ? selectedDay : autoDay;
-    const dayCourses = courses.filter((course) => isSameDay(course.start, day)).sort((a, b) => a.start - b.start);
+    const enrichedCourses = useMemo(
+        () => enrichTimetableWithHomework(courses, homeworkByDate).map(normalizeCourse).filter(Boolean),
+        [courses, enrichTimetableWithHomework, homeworkByDate],
+    );
+    const todayCourses = enrichedCourses.filter((course) => isSameDay(course.start, displayToday) && !course.isCancelled);
+    const autoDay = isSameDay(displayToday, today) && todayCourses.every((course) => course.end <= now)
+        ? displayTomorrow : displayToday;
+    const day = selectedDay && (isSameDay(selectedDay, displayToday) || isSameDay(selectedDay, displayTomorrow)) ? selectedDay : autoDay;
+    const dayCourses = enrichedCourses.filter((course) => isSameDay(course.start, day)).sort((a, b) => a.start - b.start);
     const range = getGridRange(dayCourses);
     const hourHeight = (previewHeight || 500) / ((range.end - range.start) / 60);
     const height = ((range.end - range.start) / 60) * hourHeight;
@@ -1017,8 +1063,8 @@ export function DashboardTimetable({ activeAccount, fetchTimetable, onOpen, isSt
         <div className="dashboard-timetable-header">
             <strong className="dashboard-timetable-date">{format(day, "EEEE d MMMM", { locale: fr })}</strong>
             <div className="dashboard-timetable-days" role="group" aria-label="Jour de l'aperçu">
-                <button type="button" className={isSameDay(day, today) ? "selected" : ""} aria-pressed={isSameDay(day, today)} onClick={() => setSelectedDay(today)}>Aujourd'hui</button>
-                <button type="button" className={isSameDay(day, tomorrow) ? "selected" : ""} aria-pressed={isSameDay(day, tomorrow)} onClick={() => setSelectedDay(tomorrow)}>Demain</button>
+                <button type="button" className={isSameDay(day, displayToday) ? "selected" : ""} aria-pressed={isSameDay(day, displayToday)} onClick={() => setSelectedDay(displayToday)}>{isSameDay(displayToday, today) ? "Aujourd'hui" : format(displayToday, "EEEE", { locale: fr })}</button>
+                <button type="button" className={isSameDay(day, displayTomorrow) ? "selected" : ""} aria-pressed={isSameDay(day, displayTomorrow)} onClick={() => setSelectedDay(displayTomorrow)}>{isSameDay(displayTomorrow, addDays(today, 1)) ? "Demain" : format(displayTomorrow, "EEEE", { locale: fr })}</button>
             </div>
         </div>
         {loading ? <p className="dashboard-timetable-message">Chargement des cours…</p>
